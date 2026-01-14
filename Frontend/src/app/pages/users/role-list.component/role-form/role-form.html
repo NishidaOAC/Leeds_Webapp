@@ -1,0 +1,139 @@
+<div class="role-form-container">
+  <mat-card class="role-card">
+
+    <mat-card-content>
+      <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          
+          <!-- Role Name -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Role Name *</mat-label>
+            <input 
+              matInput 
+              formControlName="roleName" 
+              placeholder="e.g., Administrator, Manager, User" 
+            />
+            @if (roleForm.get('roleName')?.hasError('required')) {
+            <mat-error>
+              Role name is required
+            </mat-error>
+            }
+            @if(roleForm.get('roleName')?.hasError('minlength')){
+                <mat-error>
+                Role name must be at least 2 characters long
+                </mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Abbreviation -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Abbreviation *</mat-label>
+            <input 
+              matInput 
+              formControlName="abbreviation" 
+              placeholder="e.g., ADMIN, MGR, USR" 
+              maxlength="10"
+            />
+            <mat-hint>{{ roleForm.get('abbreviation')?.value?.length || 0 }}/10</mat-hint>
+            @if (roleForm.get('abbreviation')?.hasError('required')) {
+                <mat-error>
+                    Abbreviation is required
+                </mat-error>
+            }
+            @if (roleForm.get('abbreviation')?.hasError('maxlength')) {
+                <mat-error>
+                Abbreviation cannot exceed 10 characters
+                </mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Access Permissions -->
+          <!-- <div class="full-width">
+            <label class="section-label">Access Permissions</label>
+            <div class="access-grid">
+                @for (access of accessOptions; track $index) {
+                    <mat-checkbox
+                        [checked]="isAccessSelected(access)"
+                        (change)="toggleAccess(access)"
+                        class="access-checkbox"
+                    >
+                        {{ access }}
+                    </mat-checkbox>
+                }
+            </div>
+            @if (roleForm.get('access')?.hasError('required') && roleForm.get('access')?.touched) {
+                <mat-error class="mat-error">
+                    At least one permission must be selected
+                </mat-error>
+
+            }
+             @if(selectedAccessCount > 0){
+                <div class="selected-permissions">
+                    <label class="preview-label">Selected Permissions ({{ selectedAccessCount }}):</label>
+                    <div class="permissions-chips">
+                        @for (access of roleForm.get('access')?.value; track $index) {
+                            <mat-chip  
+                                class="permission-chip"
+                                >
+                                {{ access }}
+                            </mat-chip>
+                        }
+                    </div>
+                </div>
+             }
+          </div> -->
+
+        </div>
+
+        <div class="btn-container">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="!roleForm.valid || isLoading"
+            class="submit-btn"
+          >
+            <div class="btn-content">
+              @if (isLoading) {
+                <mat-progress-spinner
+                  diameter="20"
+                  mode="indeterminate"
+                  color="accent"
+                  class="loading-spinner"
+                ></mat-progress-spinner>
+                <span>{{ isEdit ? 'Updating...' : 'Creating...' }}</span>
+              } @else {
+                <mat-icon>{{ isEdit ? 'update' : 'save' }}</mat-icon>
+                <span>{{ isEdit ? 'Update Role' : 'Create Role' }}</span>
+              }
+            </div>
+          </button>
+
+          <button 
+            mat-button 
+            type="button" 
+            color="warn" 
+            [disabled]="isLoading"
+            (click)="onReset()"
+            class="reset-btn"
+          >
+            <mat-icon>refresh</mat-icon>
+            <span>Reset</span>
+          </button>
+
+          <button 
+            mat-button 
+            type="button" 
+            [disabled]="isLoading"
+            routerLink="/roles"
+            class="cancel-btn"
+          >
+            <mat-icon>cancel</mat-icon>
+            <span>Cancel</span>
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

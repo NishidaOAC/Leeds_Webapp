@@ -1,0 +1,64 @@
+// html .light-theme {
+//   color-scheme: light;
+//   --mat-sys-corner-small: 7px;
+//   --mat-sys-corner-medium: 20px;
+//   --mat-sys-background: #fafafa;
+//   --mat-sys-surface-bright: #f2f6fa;
+//   --mat-sys-surface: #fff;
+//   --mat-sys-surface-container: #fff;
+//   --mat-sys-surface-container-low: #fff;
+//   --mat-sys-on-background: #2a3547;
+//   --mat-sys-outline: #d7dde2;
+//   --mat-sys-outline-variant: #d7dde2;
+//   --mdc-outlined-text-field-hover-outline-color: #d7dde2;
+//   --mdc-checkbox-unselected-hover-state-layer-color: #d7dde2;
+//   --mat-menu-item-hover-state-layer-color: #f6f9fc;
+//   --mat-standard-button-toggle-state-layer-color: #f6f9fc;
+// }
+
+
+
+html .light-theme {
+  color-scheme: light;
+   /* 🌿 Rounded corners */
+  --mat-sys-corner-small: 7px;
+  --mat-sys-corner-medium: 16px;
+
+  /* 🌿 Background & surface colors */
+  --mat-sys-background: #f3f8f4; /* light greenish background */
+  --mat-sys-surface-bright: #f6faf7;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-surface-container: #ffffff;
+  --mat-sys-surface-container-low: #ffffff;
+
+  /* 🌿 Text & outline */
+  --mat-sys-on-background: #0d1a0d; /* dark greenish text */
+  --mat-sys-outline: #e0efe2;
+  --mat-sys-outline-variant: #e0efe2;
+
+  /* 🌿 Primary / Secondary colors */
+  --mat-sys-primary: rgb(20, 0, 150); /* rich green */
+  --mat-sys-primary-fixed-dim: rgba(55, 0, 150, 0.15);
+  --mat-sys-secondary: rgb(47, 86, 107); /* olive tone */
+  --mat-sys-secondary-fixed-dim: rgba(47, 93, 107, 0.15);
+
+  /* 🌿 On-primary (text on green) */
+  --mat-sys-on-primary: #ffffff;
+
+  /* 🌿 Hover / focus states (soft greenish gray) */
+  --mat-menu-item-hover-state-layer-color: #efedf7;
+  --mat-standard-button-toggle-state-layer-color: #efedf7;
+  --mat-option-focus-state-layer-color: #eeedf7;
+  --mat-option-hover-state-layer-color: #edf7ef;
+  --mat-stepper-header-focus-state-layer-color: #eeedf7;
+  --mat-stepper-header-hover-state-layer-color: #eeedf7;
+  --mat-expansion-header-hover-state-layer-color: #eeedf7;
+
+  /* 🌿 Inputs, checkboxes, switches */
+  --mdc-outlined-text-field-hover-outline-color: #d9d6eb;
+  --mdc-checkbox-unselected-hover-state-layer-color: #d8d6eb;
+  --mdc-switch-unselected-track-color: #eceaf6;
+
+  /* 🌿 Dialog text color */
+  --mdc-dialog-supporting-text-color: var(--mat-sys-on-background);
+}

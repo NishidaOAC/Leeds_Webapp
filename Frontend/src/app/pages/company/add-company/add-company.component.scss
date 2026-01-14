@@ -1,0 +1,319 @@
+/* Dialog Container */
+::ng-deep .mat-dialog-container {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Dialog Header */
+.dialog-header {
+  background: linear-gradient(90deg, #203f7a 0%, #327ebd 100%);
+  padding: 20px 30px;
+  color: white;
+}
+
+.dialog-header h1 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.dialog-header mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+/* Dialog Content */
+.dialog-content {
+  padding: 30px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Form Section */
+.form-section {
+  background: white;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.section-header mat-icon {
+  color: #327ebd;
+  font-size: 24px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Form Grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Form Fields */
+.form-field {
+  width: 100%;
+}
+
+::ng-deep .form-field .mat-form-field-outline {
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+::ng-deep .form-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+::ng-deep .form-field .mat-form-field-flex {
+  align-items: center;
+}
+
+::ng-deep .form-field .mat-form-field-prefix .mat-icon {
+  color: #64748b;
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+::ng-deep .form-field .mat-form-field-label {
+  color: #64748b !important;
+}
+
+::ng-deep .form-field .mat-form-field-outline-thick .mat-form-field-outline-start,
+::ng-deep .form-field .mat-form-field-outline-thick .mat-form-field-outline-end,
+::ng-deep .form-field .mat-form-field-outline-thick .mat-form-field-outline-gap {
+  border-color: #327ebd !important;
+}
+
+/* Company Type Section */
+.company-type-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.checkbox-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.checkbox-header mat-icon {
+  color: #327ebd;
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.company-type-checkbox {
+  flex: 1;
+  min-width: 200px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.company-type-checkbox:hover {
+  border-color: #327ebd;
+  box-shadow: 0 2px 8px rgba(50, 126, 189, 0.1);
+}
+
+::ng-deep .company-type-checkbox .mat-checkbox-label {
+  width: 100%;
+}
+
+.checkbox-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.checkbox-content mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #64748b;
+}
+
+.checkbox-content span {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.checkbox-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: normal;
+}
+
+::ng-deep .company-type-checkbox.mat-checkbox-checked .checkbox-content mat-icon {
+  color: #327ebd;
+}
+
+/* Dialog Actions */
+.dialog-actions {
+  padding: 20px 30px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.cancel-btn, .submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 30px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn {
+  border: 2px solid #94a3b8;
+  color: #64748b;
+}
+
+.cancel-btn:hover {
+  border-color: #64748b;
+  background: #f8fafc;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #327ebd 0%, #203f7a 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(50, 126, 189, 0.3);
+}
+
+.submit-btn:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(50, 126, 189, 0.4);
+}
+
+.submit-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Scrollbar Styling */
+.dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dialog-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dialog-content {
+    padding: 20px;
+  }
+  
+  .form-section {
+    padding: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .checkbox-group {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .company-type-checkbox {
+    min-width: 100%;
+  }
+  
+  .dialog-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-btn, .submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-header {
+    padding: 15px 20px;
+  }
+  
+  .dialog-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .dialog-actions {
+    padding: 15px 20px;
+  }
+}
+
+/* Form Validation */
+::ng-deep .mat-form-field-invalid .mat-form-field-outline {
+  border-color: #dc3545 !important;
+}
+
+::ng-deep .mat-form-field-invalid .mat-form-field-label {
+  color: #dc3545 !important;
+}
+
+::ng-deep .mat-form-field-required-marker {
+  color: #dc3545;
+}
+
+/* Focus States */
+::ng-deep .form-field .mat-form-field-outline-thick {
+  box-shadow: 0 0 0 2px rgba(50, 126, 189, 0.1);
+}

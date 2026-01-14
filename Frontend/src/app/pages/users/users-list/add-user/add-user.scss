@@ -1,0 +1,101 @@
+.user-card {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.user-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+mat-card-header {
+  background-color: #bfc9f4;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid #e0e6f1;
+}
+
+mat-card-title {
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: #232a4f;
+}
+
+mat-card-subtitle {
+  color: #6b7080;
+  font-size: 0.9rem;
+}
+
+/* Dynamic grid for form fields */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+/* If only two fields, make them full width */
+.form-grid > *:nth-last-child(2):first-child,
+.form-grid > *:nth-last-child(2):first-child ~ * {
+  grid-column: 1 / -1;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Buttons */
+.btn-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button {
+  background-color: #594caf;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #453e8e;
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  background-color: #ada5d6;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.loading-spinner {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Responsive tweak */
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

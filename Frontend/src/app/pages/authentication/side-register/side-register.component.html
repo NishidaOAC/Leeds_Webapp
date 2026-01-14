@@ -1,0 +1,239 @@
+<div class="blank-layout-container justify-content-center align-items-center bg-light">
+  <div class="position-relative row w-100 h-100 bg-gredient justify-content-center">
+    <div class="col-lg-4 d-flex align-items-center">
+      <mat-card class="auth-card boxed-auth" style="background-color: #1c4768;">
+        <mat-card-content class="p-32">
+          <!-- Logo Section -->
+          <div class="auth-header text-center mb-40">
+            <!-- <a [routerLink]="['/dashboard']" class="logo-link">
+              <img 
+                src="../../../../assets/images/logos/fintech_logo.png" 
+                class="auth-logo align-middle" 
+                alt="AeroAssist Fintech Logo" 
+                width="350"
+              />
+            </a> -->
+            <h2 class="auth-title m-t-16 text-white f-s-20 f-w-500">
+              CREATE YOUR ACCOUNT
+            </h2>
+          </div>
+
+          <!-- Register Form -->
+          <form [formGroup]="registerForm" (ngSubmit)="submit()" class="register-form">
+            <!-- Name Field -->
+            <div class="form-field">
+              <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
+                Full Name *
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input 
+                  matInput 
+                  formControlName="name"
+                  placeholder="Enter your full name"
+                  aria-label="Full Name"
+                />
+                <mat-icon matSuffix class="text-muted">person_outline</mat-icon>
+                @if (registerForm.get('name')?.hasError('required') && registerForm.get('name')?.touched) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Name is required
+                  </mat-error>
+                }
+                @if (registerForm.get('name')?.hasError('minlength') && registerForm.get('name')?.touched) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Name must be at least 2 characters
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-field">
+              <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
+                Email Address *
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input 
+                  matInput 
+                  type="email" 
+                  formControlName="email"
+                  placeholder="Enter your email"
+                  aria-label="Email Address"
+                />
+                <mat-icon matSuffix class="text-muted">email</mat-icon>
+                @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Email is required
+                  </mat-error>
+                }
+                @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Please enter a valid email
+                  </mat-error>
+                }
+                @if (registerForm.get('email')?.hasError('duplicate')) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    This email is already registered
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <!-- Employee Number (Optional) -->
+            <div class="form-field">
+              <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
+                Employee Number (Optional)
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input 
+                  matInput 
+                  formControlName="empNo"
+                  placeholder="e.g., EMP001"
+                  aria-label="Employee Number"
+                />
+                <mat-icon matSuffix class="text-muted">badge</mat-icon>
+                @if (registerForm.get('empNo')?.hasError('duplicate')) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    This employee number already exists
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-field">
+              <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
+                Password *
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input 
+                  matInput 
+                  [type]="hidePassword ? 'password' : 'text'"
+                  formControlName="password"
+                  placeholder="Create a strong password"
+                  aria-label="Password"
+                />
+                <button 
+                  type="button" 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+                  class="password-toggle"
+                >
+                  <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Password is required
+                  </mat-error>
+                }
+                @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Password must be at least 8 characters
+                  </mat-error>
+                }
+                @if (registerForm.get('password')?.hasError('weakPassword')) {
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Include uppercase, lowercase, and numbers
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Password Strength Meter -->
+              @if (registerForm.get('password')?.value) {
+                <div class="password-strength">
+                  <div class="strength-meter">
+                    <div 
+                      class="strength-bar" 
+                      [style.width.%]="getPasswordStrength()"
+                      [class]="getPasswordStrengthClass()"
+                    ></div>
+                  </div>
+                  <div class="strength-labels">
+                    <span [class.active]="getPasswordStrength() >= 25">Weak</span>
+                    <span [class.active]="getPasswordStrength() >= 50">Medium</span>
+                    <span [class.active]="getPasswordStrength() >= 75">Strong</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Password Requirements -->
+              <!-- <div class="password-requirements">
+                <p class="requirement-title">Password must contain:</p>
+                <ul>
+                  <li [class.valid]="registerForm.get('password')?.value?.length >= 8">
+                    <mat-icon>{{ registerForm.get('password')?.value?.length >= 8 ? 'check_circle' : 'circle' }}</mat-icon>
+                    At least 8 characters
+                  </li>
+                  <li [class.valid]="hasUppercase(registerForm.get('password')?.value)">
+                    <mat-icon>{{ hasUppercase(registerForm.get('password')?.value) ? 'check_circle' : 'circle' }}</mat-icon>
+                    One uppercase letter
+                  </li>
+                  <li [class.valid]="hasLowercase(registerForm.get('password')?.value)">
+                    <mat-icon>{{ hasLowercase(registerForm.get('password')?.value) ? 'check_circle' : 'circle' }}</mat-icon>
+                    One lowercase letter
+                  </li>
+                  <li [class.valid]="hasNumber(registerForm.get('password')?.value)">
+                    <mat-icon>{{ hasNumber(registerForm.get('password')?.value) ? 'check_circle' : 'circle' }}</mat-icon>
+                    One number
+                  </li>
+                </ul>
+              </div> -->
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="form-field terms-field">
+              <mat-checkbox formControlName="acceptTerms" color="primary" class="terms-checkbox">
+                <span class="checkbox-label text-white f-s-14">
+                  I agree to the 
+                  <a href="#" class="terms-link">Terms of Service</a> 
+                  and 
+                  <a href="#" class="terms-link">Privacy Policy</a>
+                </span>
+              </mat-checkbox>
+              @if (registerForm.get('acceptTerms')?.hasError('required') && registerForm.get('acceptTerms')?.touched) {
+                <mat-error class="terms-error">
+                  <mat-icon class="error-icon">error</mat-icon>
+                  You must accept the terms
+                </mat-error>
+              }
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+              mat-flat-button 
+              class="submit-btn w-100" 
+              type="submit"
+              [disabled]="registerForm.invalid || isLoading"
+              aria-label="Create Account"
+            >
+              @if (isLoading) {
+                <mat-spinner diameter="20" class="spinner"></mat-spinner>
+                <span class="btn-text f-w-500">Creating Account...</span>
+              } @else {
+                <span class="btn-text f-w-500">Create Account</span>
+              }
+            </button>
+
+            <!-- Login Link -->
+            <div class="login-link">
+              <p class="text-white f-w-400 f-s-14">
+                Already have an account? 
+                <a [routerLink]="['/login']" class="login-link-text">Sign In</a>
+              </p>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

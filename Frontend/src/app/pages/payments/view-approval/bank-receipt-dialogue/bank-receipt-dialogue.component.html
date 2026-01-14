@@ -1,0 +1,106 @@
+<div class="compact-upload-container">
+  <!-- Compact Header -->
+  <div class="compact-header">
+    <mat-icon class="header-icon">attach_file</mat-icon>
+    <div class="header-text">
+      <h3>Upload Document</h3>
+      <p>Invoice: {{piNo}}</p>
+    </div>
+  </div>
+
+  <!-- Upload Area -->
+  <div class="compact-content">
+    <form [formGroup]="piForm" class="compact-form">
+      
+      @if(!imageUrl){
+        <!-- Upload Section -->
+        <div class="compact-upload-area" 
+             (drop)="onFileDropped($event)" 
+             (dragover)="onDragOver($event)"
+             (click)="fileInput.click()"
+             [class.drag-over]="isDragOver">
+          
+          <input type="file" 
+                 class="file-input" 
+                 hidden 
+                 #fileInput 
+                 (change)="onFileSelected($event)"
+                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
+          
+          <div class="upload-icon-text">
+            <mat-icon>upload_file</mat-icon>
+            <div class="upload-text">
+              <p class="primary-text">Choose file or drag & drop</p>
+              <p class="secondary-text">PDF, DOC, JPG, PNG, TXT up to 10MB</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Remarks -->
+        <mat-form-field appearance="outline" class="remarks-field">
+          <mat-label>Remarks (optional)</mat-label>
+          <textarea matInput 
+                   formControlName="remarks" 
+                   placeholder="Add notes..."
+                   rows="2"></textarea>
+          <mat-icon matPrefix>notes</mat-icon>
+        </mat-form-field>
+      }
+      
+      @else{
+        <!-- Preview Section -->
+        <div class="compact-preview">
+          <div class="preview-header">
+            <div class="file-info">
+              <mat-icon class="file-icon">description</mat-icon>
+              <div class="file-details">
+                <span class="file-name">{{ uploadedFileName }}</span>
+                @if(uploadedFileSize){
+                  <span class="file-size">{{ uploadedFileSize }}</span>
+                }
+              </div>
+            </div>
+            <button mat-icon-button 
+                    color="warn" 
+                    class="delete-btn" 
+                    matTooltip="Remove"
+                    (click)="onDeleteImage()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          
+          <!-- Preview -->
+          <div class="preview-frame">
+            <iframe [src]="imageUrl | safe" 
+                    width="100%" 
+                    height="250px" 
+                    frameborder="0"></iframe>
+          </div>
+        </div>
+      }
+    </form>
+  </div>
+
+  <!-- Compact Actions -->
+  <div class="compact-actions">
+    <button mat-stroked-button 
+            color="basic" 
+            class="cancel-btn"
+            (click)="onCancelClick()">
+      Cancel
+    </button>
+    
+    <button mat-raised-button 
+            color="primary" 
+            class="save-btn"
+            (click)="onSubmit()" 
+            [disabled]="!piForm.valid || submitted">
+      @if(submitted){
+        <mat-spinner diameter="20" color="accent" class="btn-spinner"></mat-spinner>
+        Saving...
+      } @else {
+        Save
+      }
+    </button>
+  </div>
+</div>

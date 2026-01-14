@@ -1,0 +1,367 @@
+/* Dashboard Container */
+.dashboard-container {
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
+    min-height: 100vh;
+}
+
+/* Matrix Section */
+.matrix-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    overflow: hidden;
+    border: 1px solid #e3e8f0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.matrix-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+}
+
+.wire-transfer-section {
+    border-left: 4px solid #327ebd;
+}
+
+.credit-card-section {
+    border-left: 4px solid #28a745;
+}
+
+/* Section Header */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.4rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h3 .material-icons {
+    font-size: 1.6rem;
+    color: #327ebd;
+}
+
+.wire-transfer-section .section-header h3 .material-icons {
+    color: #327ebd;
+}
+
+.credit-card-section .section-header h3 .material-icons {
+    color: #28a745;
+}
+
+.badge {
+    background: linear-gradient(135deg, #327ebd 0%, #203f7a 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Matrix Table */
+.scrollable-table {
+    overflow-x: auto;
+    padding: 0 15px;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+}
+
+.matrix-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.matrix-table th {
+    background: linear-gradient(180deg, #203f7a 0%, #327ebd 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 20px;
+    text-align: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.matrix-table th:last-child {
+    border-right: none;
+}
+
+.matrix-table th:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+.matrix-row {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.matrix-row:hover {
+    background-color: #f8fafc;
+    transform: scale(1.002);
+}
+
+.matrix-table td {
+    padding: 18px 20px;
+    text-align: center;
+    vertical-align: middle;
+    border-right: 1px solid #f1f5f9;
+    position: relative;
+}
+
+.matrix-table td:last-child {
+    border-right: none;
+}
+
+/* Cell Types */
+.entry-cell {
+    min-width: 150px;
+}
+
+.customer-cell {
+    min-width: 200px;
+    text-align: left !important;
+}
+
+.attempt-cell {
+    min-width: 100px;
+}
+
+.status-cell {
+    min-width: 120px;
+}
+
+/* Invoice Link */
+.invoice-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #327ebd;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(50, 126, 189, 0.05);
+}
+
+.invoice-link:hover {
+    color: #203f7a;
+    background: rgba(50, 126, 189, 0.1);
+    text-decoration: none;
+    transform: translateX(3px);
+}
+
+.invoice-link .material-icons {
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+/* Customer Name */
+.customer-name {
+    font-weight: 500;
+    color: #1e293b;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(248, 250, 252, 0.5);
+}
+
+/* Attempt Badge */
+.attempt-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 30px;
+}
+
+/* Status Icons */
+.check-cell {
+    background: rgba(40, 167, 69, 0.08);
+}
+
+.check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #28a745;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.cross-cell {
+    background: rgba(220, 53, 69, 0.08);
+}
+
+.cross-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.empty-cell {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Pagination */
+.pagination-container {
+    padding: 20px;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+::ng-deep .custom-paginator .mat-paginator-container {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size {
+    align-items: center;
+}
+
+::ng-deep .custom-paginator .mat-paginator-range-actions {
+    gap: 10px;
+}
+
+/* No Data Message */
+.no-data-message {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.no-data-message .material-icons {
+    font-size: 4rem;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-data-message h4 {
+    color: #64748b;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.no-data-message p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 10px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .matrix-table th,
+    .matrix-table td {
+        padding: 12px 15px;
+        font-size: 0.85rem;
+    }
+    
+    .scrollable-table {
+        margin: 0 -10px;
+        padding: 0 10px;
+    }
+    
+    .invoice-link {
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .invoice-link .material-icons {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .matrix-table {
+        min-width: 600px;
+    }
+    
+    .section-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+    }
+}
+
+/* Animation for rows */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.matrix-row {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.matrix-row:nth-child(even) {
+    animation-delay: 0.05s;
+}
+
+.matrix-row:nth-child(odd) {
+    animation-delay: 0.1s;
+}

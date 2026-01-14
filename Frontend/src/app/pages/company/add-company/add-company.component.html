@@ -1,0 +1,198 @@
+<!-- Dialog Content -->
+<mat-dialog-content class="dialog-content">
+  <form [formGroup]="companyForm" class="company-form">
+    
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <mat-icon>info</mat-icon>
+        <h3>Basic Information</h3>
+      </div>
+      
+      <div class="form-grid">
+        <!-- Company Name -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Company Name</mat-label>
+          <input matInput formControlName="companyName" placeholder="Enter company name" required>
+          <mat-icon matPrefix>business</mat-icon>
+          <mat-error>
+            @if (companyForm.controls['companyName'].hasError('required')) {
+              Company name is required
+            }
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Company Code -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Company Code</mat-label>
+          <input matInput formControlName="code" placeholder="Enter company code">
+          <mat-icon matPrefix>tag</mat-icon>
+        </mat-form-field>
+
+        <!-- Contact Person -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Contact Person</mat-label>
+          <input matInput formControlName="contactPerson" placeholder="Contact person name">
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Email Address</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="company@example.com">
+          <mat-icon matPrefix>email</mat-icon>
+          <mat-error>
+            @if (companyForm.controls['email'].hasError('email')) {
+              Please enter a valid email address
+            }
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Phone Number -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Phone Number</mat-label>
+          <input matInput formControlName="phoneNumber" placeholder="+1 (555) 123-4567">
+          <mat-icon matPrefix>phone</mat-icon>
+        </mat-form-field>
+
+        <!-- Website -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Website</mat-label>
+          <input matInput formControlName="website" placeholder="https://www.example.com">
+          <mat-icon matPrefix>language</mat-icon>
+        </mat-form-field>
+      </div>
+
+      
+      <!-- Company Type Checkboxes -->
+      <div class="company-type-section">
+        <div class="checkbox-header">
+          <mat-icon>category</mat-icon>
+          <span>Company Type</span>
+        </div>
+        <div class="checkbox-group">
+          <mat-checkbox formControlName="customer" color="primary" class="company-type-checkbox">
+            <div class="checkbox-content">
+              <mat-icon>person</mat-icon>
+              <span>Customer</span>
+              <span class="checkbox-description">This company is a customer</span>
+            </div>
+          </mat-checkbox>
+          
+          <mat-checkbox formControlName="supplier" color="primary" class="company-type-checkbox">
+            <div class="checkbox-content">
+              <mat-icon>store</mat-icon>
+              <span>Supplier</span>
+              <span class="checkbox-description">This company is a supplier</span>
+            </div>
+          </mat-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- Address Information Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <mat-icon>location_on</mat-icon>
+        <h3>Address Information</h3>
+      </div>
+      
+      <div class="form-grid">
+        <!-- Address Line 1 -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Address Line 1</mat-label>
+          <input matInput formControlName="address1" placeholder="Street address, P.O. box">
+          <mat-icon matPrefix>home</mat-icon>
+        </mat-form-field>
+
+        <!-- Address Line 2 -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Address Line 2</mat-label>
+          <input matInput formControlName="address2" placeholder="Apartment, suite, unit, building, floor">
+          <mat-icon matPrefix>home_work</mat-icon>
+        </mat-form-field>
+
+        <!-- City -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city" placeholder="City">
+          <mat-icon matPrefix>location_city</mat-icon>
+        </mat-form-field>
+
+        <!-- State -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>State / Province</mat-label>
+          <input matInput formControlName="state" placeholder="State or province">
+          <mat-icon matPrefix>map</mat-icon>
+        </mat-form-field>
+
+        <!-- Country -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Country</mat-label>
+          <input matInput formControlName="country" placeholder="Country">
+          <mat-icon matPrefix>public</mat-icon>
+        </mat-form-field>
+
+        <!-- Zip Code -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Zip / Postal Code</mat-label>
+          <input matInput formControlName="zipcode" placeholder="Zip code">
+          <mat-icon matPrefix>markunread_mailbox</mat-icon>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Additional Information Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <mat-icon>more_horiz</mat-icon>
+        <h3>Additional Information</h3>
+      </div>
+      
+      <div class="form-grid">
+        <!-- LinkedIn -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>LinkedIn Profile</mat-label>
+          <input matInput formControlName="linkedIn" placeholder="LinkedIn company URL">
+          <mat-icon matPrefix>link</mat-icon>
+        </mat-form-field>
+
+        <!-- Remarks -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Remarks</mat-label>
+          <textarea matInput formControlName="remarks" 
+                    placeholder="Additional notes or remarks" 
+                    rows="3"></textarea>
+          <mat-icon matPrefix>notes</mat-icon>
+        </mat-form-field>
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<!-- Dialog Actions -->
+<mat-dialog-actions class="dialog-actions">
+  <!-- <button mat-stroked-button color="basic" (click)="close()" type="button" class="cancel-btn">
+    <mat-icon>close</mat-icon>
+    CANCEL
+  </button> -->
+  
+  <button mat-raised-button color="primary" 
+          [disabled]="!companyForm.valid" 
+          (click)="onSubmit()"
+          class="submit-btn">
+    <mat-icon>
+      @if (company) {
+        save
+      } @else {
+        add_circle
+      }
+    </mat-icon>
+    @if (company) {
+      UPDATE COMPANY
+    } @else {
+      CREATE COMPANY
+    }
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "auth": "nodemon auth-service/index.js",
+    "payments": "nodemon invoice-service/index.js",
+    "gateway": "nodemon index.js",
+    "start:all": "concurrently -k \"npm run auth\" \"npm run payments\" \"npm run gateway\""
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.5",
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.11"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

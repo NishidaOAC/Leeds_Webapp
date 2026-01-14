@@ -1,0 +1,417 @@
+// Table Styles
+.table-header {
+  background: linear-gradient(90deg, #203f7a 0%, #327ebd 100%);
+  color: white;
+  padding: 0 20px;
+  height: 60px;
+}
+
+.table-container {
+  padding: 15px;
+}
+
+.table-component-holder {
+  border: 1px solid #cbddec;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+// Main Table Styles
+table {
+  border: 1px solid #e0e0e0;
+  border-collapse: collapse;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+table caption {
+  font-size: 1.5em;
+  margin: .5em 0 .75em;
+  font-family: 'Segoe UI', Roboto, "Helvetica Neue", sans-serif;
+  font-weight: 600;
+}
+
+table tr {
+  border: 1px solid #e0e0e0;
+  transition: background-color 0.2s ease;
+}
+
+table tr:hover {
+  background-color: #f5f9ff;
+  cursor: pointer;
+}
+
+table tr:nth-child(odd) td {
+  background: #ffffff;
+  font-family: 'Segoe UI', Roboto, "Helvetica Neue", sans-serif;
+}
+
+table tr:nth-child(even) td {
+  background: #f8fafc;
+  font-family: 'Segoe UI', Roboto, "Helvetica Neue", sans-serif;
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+  text-align: center;
+  font-family: 'Segoe UI', Roboto, "Helvetica Neue", sans-serif;
+  border-right: 1px solid #e0e0e0;
+}
+
+table th:last-child,
+table td:last-child {
+  border-right: none;
+}
+
+table th {
+  background: linear-gradient(180deg, #203f7a 0%, #327ebd 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+// Header with Search
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.col {
+  flex: 1;
+  margin-right: 20px;
+  width: 100%;
+}
+
+.input-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.input-group input {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  width: 250px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #327ebd;
+  box-shadow: 0 0 0 2px rgba(50, 126, 189, 0.2);
+}
+
+// Action Buttons
+.action-icons {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+// Button Styles
+button {
+  font-family: 'Segoe UI', Roboto, "Helvetica Neue", sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+/* Approve Button */
+.approve-button {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+  min-width: 80px;
+}
+
+.approve-button:hover:not([disabled]) {
+  background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(40, 167, 69, 0.4);
+}
+
+/* Reject Button */
+.reject-button {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  min-width: 80px;
+}
+
+.reject-button:hover:not([disabled]) {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(220, 53, 69, 0.4);
+}
+
+/* Update Button */
+.update-button {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+  min-width: 70px;
+}
+
+.update-button:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 123, 255, 0.4);
+}
+
+/* Delete Button */
+.delete-button {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  min-width: 70px;
+}
+
+.delete-button:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(220, 53, 69, 0.4);
+}
+
+/* Add Bank Slip Button */
+.add-bank-slip-button {
+  background: linear-gradient(135deg, #145ca9 0%, #0d4b8a 100%);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(20, 92, 169, 0.3);
+  min-width: 90px;
+}
+
+.add-bank-slip-button:hover {
+  background: linear-gradient(135deg, #0d4b8a 0%, #0a3a6b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(20, 92, 169, 0.4);
+}
+
+/* KAM Unavailable Button */
+.kam-unavailable-button {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #212529;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+  min-width: 160px;
+}
+
+.kam-unavailable-button:hover {
+  background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(255, 193, 7, 0.4);
+}
+
+// Paginator
+::ng-deep .mat-paginator {
+  background: transparent;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+}
+
+::ng-deep .mat-paginator-page-size {
+  align-items: center;
+}
+
+::ng-deep .mat-paginator-range-actions {
+  gap: 10px;
+}
+
+// Spinner
+.user-spinner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 10;
+}
+
+// Disabled State
+::ng-deep .mat-raised-button[disabled],
+::ng-deep .mat-raised-button.mat-button-disabled {
+  background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%) !important;
+  color: #9e9e9e !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.7;
+  transform: none !important;
+}
+
+// Status Column Styles
+.status-cell {
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.status-GENERATED {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-VERIFIED {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-APPROVED {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-REJECTED {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+// Mobile Responsiveness
+@media screen and (max-width: 768px) {
+  .table-header {
+    padding: 0 10px;
+    height: 50px;
+  }
+
+  .input-group input {
+    width: 200px;
+    padding: 6px 12px;
+  }
+
+  .col {
+    margin-right: 10px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .table-header {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .col {
+    margin-right: 0;
+    text-align: center !important;
+  }
+
+  .input-group {
+    justify-content: center;
+  }
+
+  .input-group input {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  table {
+    display: block;
+  }
+
+  table thead {
+    display: none;
+  }
+
+  table tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left !important;
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    height: auto;
+  }
+
+  table td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #327ebd;
+    min-width: 120px;
+  }
+
+  table td:last-child {
+    border-bottom: none;
+  }
+
+  .action-icons {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .action-icons button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .action-icons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-icons button {
+    width: 100%;
+  }
+}

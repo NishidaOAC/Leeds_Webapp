@@ -1,0 +1,101 @@
+
+/* Auth Card */
+.auth-card {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 480px;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Logo */
+.auth-logo {
+  transition: transform 0.3s ease;
+}
+
+.logo-link:hover .auth-logo {
+  transform: scale(1.05);
+}
+
+/* Form Fields */
+.form-field mat-form-field {
+  font-size: 14px;
+}
+
+.form-field mat-form-field .mat-form-field-outline {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.form-field mat-form-field .mat-input-element {
+  color: white !important;
+}
+
+.form-field mat-form-field .mat-form-field-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Error Messages */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.error-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Submit Button */
+.submit-btn {
+    margin-top: 20px;
+    color: #000;
+    background-color: rgb(124, 165, 42);
+    height: 48px;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover:not([disabled]) {
+    background-color: #64b5f6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Links */
+.forgot-password-link {
+  transition: color 0.3s ease;
+}
+
+.forgot-password-link:hover {
+  color: #64b5f6 !important;
+  text-decoration: underline !important;
+}
+
+/* Checkbox */
+.remember-checkbox .mat-checkbox-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .auth-card {
+    margin: 16px;
+  }
+  
+  .auth-logo {
+    width: 280px;
+  }
+  
+  .social-btn {
+    height: 44px;
+  }
+  
+  .submit-btn {
+    height: 44px;
+  }
+}

@@ -1,0 +1,182 @@
+<div class="team-form-container">
+  <mat-card class="team-card">
+
+    <mat-card-content>
+        <form [formGroup]="teamForm" (ngSubmit)="onSubmit()">
+        <mat-card class="background">
+            <mat-card-content>
+            <div class="form-grid">
+                
+                <!-- Team Name -->
+                <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Team Name *</mat-label>
+                <input 
+                    matInput 
+                    formControlName="teamName" 
+                    placeholder="e.g., Development Team, Sales Team" 
+                />
+                @if (teamForm.get('teamName')?.hasError('required')) {
+                    <mat-error>
+                    Team name is required
+                    </mat-error>
+                }
+                @if(teamForm.get('teamName')?.hasError('minlength')){
+                    <mat-error>
+                    Team name must be at least 2 characters long
+                    </mat-error>
+                }
+                </mat-form-field>
+
+                <!-- Team Leaders -->
+                <mat-form-field class="full-width" appearance="outline">
+                <mat-label>Team Leaders</mat-label>
+                <mat-select 
+                    placeholder="Select Team Leaders" 
+                    formControlName="teamLeaders" 
+                    multiple
+                >
+                    <mat-option class="add-user-option" (click)="manageUser()">
+                        <span class="material-icons" style="color: rgb(30,58,138); margin-right: 8px;">
+                            playlist_add
+                        </span>
+                        Add New User
+                    </mat-option>
+                    <mat-divider></mat-divider>
+                    @for (user of users; track user.id) {
+                    @if (user.name !== 'HR Admin' && user.name !== 'Approval Admin' && user.name !== 'Super Admin') {
+                        <mat-option [value]="user.id">
+                        {{ user.name }}
+                        </mat-option>
+                    }
+                    }
+                </mat-select>
+                @if (teamForm.get('teamLeaders')?.hasError('required')) {
+                    <mat-error>
+                    At least one team leader is required
+                    </mat-error>
+                }
+                </mat-form-field>
+
+                <!-- Team Members -->
+                <mat-form-field class="full-width" appearance="outline">
+                <mat-label>Team Members</mat-label>
+                <mat-select 
+                    formControlName="teamMembers" 
+                    multiple
+                    placeholder="Select Team Members"
+                >
+                    @for (user of users; track user.id) {
+                    @if (user.name !== 'HR Admin' && user.name !== 'Approval Admin' && user.name !== 'Super Admin') {
+                        <mat-option [value]="user.id">
+                        {{ user.name }}
+                        </mat-option>
+                    }
+                    }
+                </mat-select>
+                @if (teamForm.get('teamMembers')?.hasError('required')) {
+                    <mat-error>
+                    At least one team member is required
+                    </mat-error>
+                }
+                </mat-form-field>
+
+                <!-- Access Permissions (Optional - uncomment if needed) -->
+                <!--
+                <div class="full-width">
+                <label class="section-label">Access Permissions</label>
+                <div class="access-grid">
+                    @for (access of accessOptions; track $index) {
+                    <mat-checkbox
+                        [checked]="isAccessSelected(access)"
+                        (change)="toggleAccess(access)"
+                        class="access-checkbox"
+                    >
+                        {{ access }}
+                    </mat-checkbox>
+                    }
+                </div>
+                @if (teamForm.get('access')?.hasError('required') && teamForm.get('access')?.touched) {
+                    <mat-error class="mat-error">
+                    At least one permission must be selected
+                    </mat-error>
+                }
+                @if(selectedAccessCount > 0){
+                    <div class="selected-permissions">
+                    <label class="preview-label">Selected Permissions ({{ selectedAccessCount }}):</label>
+                    <div class="permissions-chips">
+                        @for (access of teamForm.get('access')?.value; track $index) {
+                        <mat-chip class="permission-chip">
+                            {{ access }}
+                        </mat-chip>
+                        }
+                    </div>
+                    </div>
+                }
+                </div>
+                -->
+
+            </div>
+            </mat-card-content>
+
+            <mat-card-actions class="btn-container">
+            
+            <!-- Submit Button -->
+            <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="!teamForm.valid || isLoading"
+                class="submit-btn"
+            >
+                <div class="btn-content">
+                @if (isLoading) {
+                    <mat-progress-spinner
+                    diameter="20"
+                    mode="indeterminate"
+                    color="accent"
+                    class="loading-spinner"
+                    ></mat-progress-spinner>
+                    <span>{{ isEdit ? 'Updating...' : 'Creating...' }}</span>
+                } @else {
+                    <mat-icon>{{ isEdit ? 'update' : 'save' }}</mat-icon>
+                    <span>{{ isEdit ? 'Update Team' : 'Create Team' }}</span>
+                }
+                </div>
+            </button>
+
+            <!-- Clear/Reset Button -->
+            <button 
+                mat-button 
+                type="button" 
+                color="warn" 
+                [disabled]="isLoading"
+                (click)="onReset()"
+                class="reset-btn"
+            >
+                <mat-icon>refresh</mat-icon>
+                <span>Clear</span>
+            </button>
+
+            <!-- Cancel Button -->
+            @if (team) {
+                <!-- For edit mode, show Update separately if needed -->
+            }
+            @else {
+                <button 
+                mat-button 
+                type="button" 
+                [disabled]="isLoading"
+                routerLink="/teams"
+                class="cancel-btn"
+                >
+                <mat-icon>cancel</mat-icon>
+                <span>Cancel</span>
+                </button>
+            }
+
+            </mat-card-actions>
+        </mat-card>
+        </form>
+    </mat-card-content>
+  </mat-card>
+</div>

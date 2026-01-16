@@ -87,9 +87,44 @@ export class InvoiceService {
     return this._http.post(this.url + '/invoice-status/updatestatus', data);
   }
   
+  updatePIBySE(data: any, id: number){
+    return this._http.patch(this.url + '/updateBySE/'+ id, data);
+  }
+
+  updatePIByKAM(data: any, id: number){
+    return this._http.patch(this.url + '/updateByKAM/'+ id, data);
+  }
+
+  updatePIByAM(data: any, id: number){
+    return this._http.patch(this.url + '/updateByAM/'+ id, data);
+  }
+
+  updatePIByAdminSuperAdmin(data: any, id: number){
+    return this._http.patch(this.url + '/updatePIByAdminSuperAdmin/'+ id, data);
+  }
+
+  deleteInvoice(id: number) {
+    return this._http.delete(`${this.url}/${id}`);
+  }
+
+  getAdminReports(data: any){
+    return this._http.patch<any[]>(this.url + '/getforadminreport', data);
+  }
+  
+  getExcelLog(): Observable<any[]>{
+    return this._http.get<any[]>(this.url + '/excelLog/find');
+  }
+
+  deleteExcelLog(id: number){
+    return this._http.delete(this.url + '/excelLog/delete-excel/' + id);
+  }
+
   updateKAM(data: any, id: number){
     return this._http.patch(this.url + '/performaInvoice/kamupdate/'+ id, data);
   }
 
+  reportExport(data: any){
+    return this._http.post<any[]>(this.url + '/invoice/download-excel', data);
+  }
 
 }

@@ -11,6 +11,9 @@ router.post( '/upload', uploadMiddleware.single('file'),validationMiddleware.val
 
 
 router.post('/bankslipupload', uploadMiddleware.single('file'), validationMiddleware.validateFileUpload, fileController.uploadBankSlip );
+
+router.delete('/filedeletebyurl', fileController.deleteByUrl);
+
 router.post(
   '/upload-multiple',
   uploadMiddleware.array('files', 10), // Max 10 files

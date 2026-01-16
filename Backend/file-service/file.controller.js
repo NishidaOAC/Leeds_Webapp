@@ -6,8 +6,6 @@ class FileController {
   }
 
   uploadFile = async (req, res, next) => {
-    console.log("uploading...............");
-    
     try {
       if (!req.file) {
         return res.status(400).json({ 
@@ -15,12 +13,6 @@ class FileController {
           error: 'No file provided' 
         });
       }
-      
-      console.log('File received:', {
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size
-      });
       
       // Parse metadata safely
       let customMetadata = {};
@@ -41,8 +33,6 @@ class FileController {
         customMetadata: customMetadata
       };
       
-      console.log('Metadata:', metadata);
-      
       // Call the file service
       const result = await this.fileService.uploadFile(req.file, metadata);
       
@@ -59,8 +49,6 @@ class FileController {
   }
 
   uploadBankSlip = async (req, res, next) => {
-    console.log("Uploading bank slip...............");
-    
     try {
       if (!req.file) {
         return res.status(400).json({ 
@@ -68,13 +56,6 @@ class FileController {
           error: 'No file uploaded' 
         });
       }
-      
-      console.log('Bank slip received:', {
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size
-      });
-      
       // Parse metadata safely
       let customMetadata = {};
       try {
@@ -99,9 +80,6 @@ class FileController {
         referenceNumber: req.body.referenceNumber
       };
       
-      console.log('Bank slip metadata:', metadata);
-      
-      // Call your file service
       const result = await this.fileService.uploadBankSlip(req.file, metadata);
       
       res.status(201).json({
@@ -115,6 +93,74 @@ class FileController {
       next(error);
     }
   };
+
+  deleteUploaded =  async (req, res) => {
+    let id = req.query.id;
+    let index = req.query.index;
+    let fileKey;
+    let t;
+
+    try {
+      t = await sequelize.transaction();
+
+      let result = await PerformaInvoice.findByPk(id, { transaction: t });
+
+      if (!result || !result.url || !result.url[index]) {
+        return res.send('File or index not found' );
+      }
+
+      fileKey = result.url[index].url;
+      result.url.splice(index, 1); 
+
+      result.setDataValue('url', result.url);
+      result.changed('url', true);
+
+      await result.save({ transaction: t });
+
+      await t.commit();
+
+      result = await PerformaInvoice.findByPk(id);
+
+      const deleteParams = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: fileKey.replace('https://approval-management-data-s3.s3.ap-south-1.amazonaws.com/', '')
+      };
+
+      await s3.deleteObject(deleteParams).promise();
+
+      res.send({ message: 'File deleted successfully' });
+    } catch (error) {
+      if (t) await t.rollback();
+
+      res.send( error.message );
+    }
+  }
+
+  deleteByUrl = async (req, res) => {
+    const { key } = req.query;
+    console.log('key', key);
+    
+    try {
+      if (!key) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'File key is required' 
+        });
+      }
+
+      const result = await this.fileService.deleteFileByKey(key);
+      
+      res.json(result);
+      
+    } catch (error) {
+      console.error('Error in deleteByUrl:', error);
+      
+      res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
 
   uploadMultipleFiles = async (req, res, next) => {
     try {

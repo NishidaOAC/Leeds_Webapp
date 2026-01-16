@@ -40,6 +40,18 @@ export const navItems: NavItem[] = [
     route: '/dashboard/users/roles',  
     bgcolor: 'primary',
   },
+  {
+    displayName: 'Team',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/users/teams',  
+    bgcolor: 'primary',
+  },
+  {
+    displayName: 'Report',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/payments/report',  
+    bgcolor: 'primary',
+  },
   // {
   //   displayName: 'Visits',
   //   iconName: 'layout-grid-add',

@@ -1,0 +1,10 @@
+<div class="page-container">
+  <div class="toolbar">
+    <div class="title">Excel Report</div>
+    <button mat-raised-button color="primary" (click)="downloadExcel()">Download Excel</button>
+  </div>
+  <div class="viewer-card">
+    <iframe class="excel-iframe" [src]="excelUrl"></iframe>
+  </div>
+</div>
+  

@@ -7,6 +7,7 @@ const winston = require('winston');
 const authRoutes = require('./routes/authRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const notRoutes = require('./routes/notificationRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 const { sequelize, testConnection } = require('./config/database');
 const { publishEvent } = require('./utils/eventPublisher');
 
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
 app.use('/', authRoutes);
 app.use('/role', roleRoutes);
 app.use('/notification', notRoutes);
+app.use('/team', teamRoutes);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

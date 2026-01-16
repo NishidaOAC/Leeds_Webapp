@@ -1,0 +1,217 @@
+<mat-card class="cardWithShadow teams-card">
+  <mat-card-content>
+    <div class="card-header">
+      <div class="header-content">
+        <div class="title-section">
+          <mat-icon class="title-icon">group</mat-icon>
+          <mat-card-title class="title-text">Teams</mat-card-title>
+        </div>
+      </div>
+    </div>
+
+    <mat-tab-group (selectedTabChange)="onTabChange($event)" class="custom-tab-group">
+      <mat-tab label="Team List">
+        <div class="tab-content">
+          <!-- Loading Overlay -->
+          @if(isLoading){
+            <div class="loader-overlay">
+              <div class="loader-container">
+                <mat-progress-spinner mode="indeterminate" diameter="50" color="accent"></mat-progress-spinner>
+                <p class="loading-text">Loading teams...</p>
+              </div>
+            </div>
+          }
+
+          <!-- Search Bar -->
+          <div class="search-section">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search Teams</mat-label>
+              <input matInput (keyup)="applyFilter($event)" placeholder="Search by team name or abbreviation..." />
+              <mat-icon matSuffix>search</mat-icon>
+              <mat-hint>Search by team name or abbreviation</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Table -->
+<!-- Table -->
+<div class="table-container">
+  <table mat-table [dataSource]="dataSource1" matSort class="teams-table">
+    
+    <!-- Team Name Column -->
+    <ng-container matColumnDef="teamName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="table-header">
+        <div class="header-content">
+          <span>Team</span>
+          <mat-icon class="sort-icon">unfold_more</mat-icon>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element" class="table-cell">
+        <div class="team-name-cell">
+          <span class="team-name">{{ element.teamName }}</span>
+          @if (element.abbreviation) {
+            <span class="team-abbreviation">{{ element.abbreviation }}</span>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Leaders Column -->
+    <ng-container matColumnDef="leaders">
+      <th mat-header-cell *matHeaderCellDef class="table-header">
+        <div class="header-content">
+          <span>Leaders</span>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element" class="table-cell">
+        <div class="leaders-cell">
+          @if (element.TeamLeaders?.length) {
+            <div class="users-list">
+              @for (leader of element.TeamLeaders; track leader.userId; let last = $last) {
+                <div class="user-item">
+                  <div class="user-info">
+                    <mat-icon class="leader-icon" title="Leader">star</mat-icon>
+                    <span class="user-name">{{ leader.user?.name || 'Unknown' }}</span>
+                  </div>
+                  @if (!$last) {
+                    <mat-divider class="user-divider"></mat-divider>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <span class="no-users">No leaders assigned</span>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Members Column -->
+    <ng-container matColumnDef="members">
+      <th mat-header-cell *matHeaderCellDef class="table-header">
+        <div class="header-content">
+          <span>Members</span>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element" class="table-cell">
+        <div class="members-cell">
+          @if (element.TeamMembers?.length) {
+            <div class="users-list">
+              @for (member of element.TeamMembers; track member.userId; let last = $last) {
+                <div class="user-item">
+                  <div class="user-info">
+                    <mat-icon class="member-icon" title="Member">person</mat-icon>
+                    <span class="user-name">{{ member.user?.name || 'Unknown' }}</span>
+                  </div>
+                  @if (!$last) {
+                    <mat-divider class="user-divider"></mat-divider>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <span class="no-users">No members assigned</span>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Total Users Column -->
+    <ng-container matColumnDef="totalUsers">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="table-header">
+        <div class="header-content">
+          <span>Total Users</span>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element" class="table-cell">
+        <div class="total-users-cell">
+          <mat-icon class="users-icon">people</mat-icon>
+          <span class="users-count">{{ (element.TeamLeaders?.length || 0) + (element.TeamMembers?.length || 0) }}</span>
+          <span class="users-text">users</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef class="table-header text-center">
+        <div class="header-content">
+          <span>Actions</span>
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element" class="table-cell text-center">
+        <div class="actions-container">
+          <button mat-icon-button color="accent" matTooltip="Edit Team" 
+                  (click)="editTeam(element)" class="action-btn edit-btn">
+            <mat-icon>edit</mat-icon>
+          </button>
+          
+          <button mat-icon-button color="warn" matTooltip="Delete Team" 
+                  (click)="deleteTeam(element)" class="action-btn delete-btn">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Data Rows -->
+    <tr mat-row *matRowDef="let row; columns: displayedColumns1" 
+        class="table-row" 
+        [class.selected]="row === selectedTeam"
+        [class.row-hover]="true">
+    </tr>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <tr class="loading-row">
+        <td [attr.colspan]="displayedColumns1.length">
+          <div class="loading-content">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading teams...</p>
+          </div>
+        </td>
+      </tr>
+    }
+
+    <!-- No Data Row -->
+    @if (!isLoading && dataSource1.data.length === 0) {
+      <tr class="no-data-row">
+        <td class="no-data-cell" [attr.colspan]="displayedColumns1.length">
+          <div class="no-data-content">
+            <mat-icon class="no-data-icon">groups</mat-icon>
+            <div class="no-data-text">
+              <h3>No teams found</h3>
+              <p class="no-data-hint">Create your first team to get started</p>
+            </div>
+          </div>
+        </td>
+      </tr>
+    }
+  </table>
+</div>
+
+          <!-- Paginator -->
+          <div class="paginator-container">
+            <mat-paginator
+              [length]="totalRecords"
+              [pageSize]="pageSize"
+              [pageSizeOptions]="[5, 10, 20, 50]"
+              [pageIndex]="pageIndex"
+              (page)="onPageChange($event)"
+              class="custom-paginator">
+            </mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Add Team">
+        <div class="add-team-tab">
+          <app-team-form
+            [team]="selectedTeam"
+            (formSaved)="onFormSaved()"
+            class="add-team-form">
+          </app-team-form>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>

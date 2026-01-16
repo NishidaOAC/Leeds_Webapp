@@ -1,43 +1,48 @@
 import { Component, inject, ViewChild } from '@angular/core';
-import { NgFor } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatTabChangeEvent, MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { TeamService } from './team.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RoleForm } from "./role-form/role-form";
-import { DesignationServices } from './designation.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatTabsModule, MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { TeamForm } from "./team-form/team-form";
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
-  selector: 'app-role-list.component',
+  selector: 'app-team-list',
   imports: [MatCardModule, MatTableModule, MatProgressBarModule, MatIconModule, MatMenuModule, MatButtonModule,
-    MatTabsModule, MatPaginatorModule, MatProgressSpinnerModule, MatFormFieldModule, MatInputModule, MatSortModule, RoleForm],
-  templateUrl: './role-list.component.html',
-  styleUrl: './role-list.component.scss',
+    MatTabsModule, MatPaginatorModule, MatProgressSpinnerModule, MatFormFieldModule, MatInputModule, MatSortModule, TeamForm, MatDividerModule],
+  templateUrl: './team-list.html',
+  styleUrl: './team-list.scss',
+  standalone: true,
 })
-export class RoleListComponent {
-   roles: any[] = [];
+export class TeamList {
+   teams: any[] = [];
    loading = true;
    dataSource1 = new MatTableDataSource<any>([]);
-   displayedColumns1 = ['role', 'abbreviation', 'actions'];
-   constructor(private ps: DesignationServices, private router: Router) {}
+   displayedColumns1 = ['teamName', 'leaders', 'members', 'totalUsers', 'actions'];
+   constructor(private service: TeamService, private router: Router) {}
  
  
+   onRowClick(row: any) {
+     this.router.navigate([`/teams/${row.id}`]);
+   }
+
    ngOnInit() {
      this.load();
    }
  
    onTabChange(event: MatTabChangeEvent): void {
-     if(!this.isEdit) this.selectedRole = null;
+     if(!this.isEdit) this.selectedTeam = null;
      this.isEdit = false;
    }
  
@@ -62,10 +67,9 @@ export class RoleListComponent {
  
    load() {
      this.isLoading = true;
-     this.ps.getRoles().subscribe({
+     this.service.getTeams().subscribe({
        next: (res: any) => {
         console.log(res);
-        
          this.dataSource1.data = res;
         //  this.totalRecords = res.count;
          this.isLoading = false;
@@ -84,39 +88,39 @@ export class RoleListComponent {
    }
  
  
-   edit(role: any) {
-     this.router.navigate([`/roles/${role.id}/edit`]);
+   edit(team: any) {
+     this.router.navigate([`/teams/${team.id}/edit`]);
    }
  
  
-   viewVisits(role: any) {
-     this.router.navigate([`/visits`], { queryParams: { roleId: role.id } });
+   viewVisits(team: any) {
+     this.router.navigate([`/visits`], { queryParams: { teamId: team.id } });
    }
  
    private route = inject(ActivatedRoute);
-   openRole(row: any) {
+   openTeam(row: any) {
      this.router.navigate(['../visit', row.id], { relativeTo: this.route });
    }
  
-   selectedRole: any = null
+   selectedTeam: any = null
    @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
    isEdit: boolean = false;
-   editRole(row: any) {
+   editTeam(row: any) {
      this.isEdit = true;
-     this.selectedRole = row;
+     this.selectedTeam = row;
      this.tabGroup.selectedIndex = 1; // 🟢 switch to the 2nd tab
    }
  
    private snackBar = inject(MatSnackBar);
-   deleteRole(row: any) {
-     if (confirm(`Are you sure you want to delete ${row.roleName}?`)) {
-       this.ps.deleteRole(row.id).subscribe({
+   deleteTeam(row: any) {
+     if (confirm(`Are you sure you want to delete ${row.teamName}?`)) {
+       this.service.deleteTeam(row.id).subscribe({
          next: () => {
            this.load();
-           this.snackBar.open('Role deleted successfully', 'Close', { duration: 3000 });
+           this.snackBar.open('Team deleted successfully', 'Close', { duration: 3000 });
          },
          error: (err) => {
-           this.snackBar.open('Error deleting role', 'Close', { duration: 3000 });
+           this.snackBar.open('Error deleting team', 'Close', { duration: 3000 });
          },
        });
      }

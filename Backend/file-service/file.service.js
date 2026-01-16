@@ -11,6 +11,55 @@ class FileService {
     this.MAX_FILE_SIZE = constants.MAX_FILE_SIZE;
   }
 
+  async deleteFileByKey(s3Key) {
+    try {
+      if (!s3Key) {
+        throw new Error('S3 key is required');
+      }
+
+      // Remove the base URL if present
+      const cleanKey = s3Key.replace(
+        'https://approval-management-data-s3.s3.ap-south-1.amazonaws.com/',
+        ''
+      );
+
+      const params = {
+        Bucket: this.bucketName,
+        Key: cleanKey
+      };
+
+      console.log('Deleting file with key:', cleanKey);
+      
+      // Delete from S3
+      await this.s3.deleteObject(params).promise();
+      
+      console.log('✅ File deleted successfully from S3');
+      
+      // Optional: Delete from database if you store metadata
+      // await this.deleteFileMetadataByKey(cleanKey);
+      
+      return {
+        success: true,
+        message: 'File deleted successfully',
+        deletedKey: cleanKey
+      };
+      
+    } catch (error) {
+      console.error('❌ Failed to delete file:', error.message);
+      
+      // Handle specific S3 errors
+      if (error.code === 'NoSuchKey') {
+        throw new Error(`File not found with key: ${s3Key}`);
+      }
+      
+      if (error.code === 'AccessDenied') {
+        throw new Error('Access denied to delete file. Check IAM permissions.');
+      }
+      
+      throw new Error(`Delete failed: ${error.message}`);
+    }
+  }
+
   async uploadFile(file, metadata) {
     try {
       this.validateFile(file);
@@ -265,74 +314,74 @@ class FileService {
   }
 
 // Helper method to get file extension
-getFileExtension(filename) {
-  return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
-}
-
-// ⭐ NEW METHOD: Verify Object ACL
-async verifyObjectACL(s3Key) {
-  try {
-    const aclParams = {
-      Bucket: this.bucketName,
-      Key: s3Key
-    };
-    
-    const acl = await this.s3.getObjectAcl(aclParams).promise();
-    
-    console.log('Object ACL Grants:');
-    acl.Grants.forEach((grant, index) => {
-      console.log(`  Grant ${index + 1}:`);
-      console.log(`    Permission: ${grant.Permission}`);
-      console.log(`    Grantee Type: ${grant.Grantee.Type}`);
-      console.log(`    Grantee URI: ${grant.Grantee.URI || 'N/A'}`);
-      console.log(`    Grantee ID: ${grant.Grantee.ID || 'N/A'}`);
-    });
-    
-    // Check for public read grant
-    const hasPublicRead = acl.Grants.some(grant => 
-      grant.Grantee.Type === 'Group' && 
-      grant.Grantee.URI === 'http://acs.amazonaws.com/groups/global/AllUsers' &&
-      grant.Permission === 'READ'
-    );
-    
-    if (hasPublicRead) {
-      console.log('✅ Object has public-read ACL');
-    } else {
-      console.log('❌ Object does NOT have public-read ACL');
-      console.log('This could be due to:');
-      console.log('1. S3 Block Public Access is enabled');
-      console.log('2. Bucket policy overrides ACL');
-      console.log('3. IAM user lacks s3:PutObjectAcl permission');
-    }
-    
-    return hasPublicRead;
-  } catch (error) {
-    console.error('Failed to get object ACL:', error.message);
-    return false;
+  getFileExtension(filename) {
+    return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
   }
-}
 
-// ⭐ NEW METHOD: Test Public Access
-async testPublicAccess(fileUrl) {
-  try {
-    console.log('\nTesting public access to:', fileUrl);
-    
-    // Using fetch or axios to test
-    const response = await fetch(fileUrl, { method: 'HEAD' });
-    
-    if (response.ok) {
-      console.log('✅ File is publicly accessible!');
-      console.log('Status:', response.status);
-      console.log('Content-Type:', response.headers.get('content-type'));
-      console.log('Content-Length:', response.headers.get('content-length'));
-    } else {
-      console.log('❌ File is NOT publicly accessible');
-      console.log('Status:', response.status);
+  // ⭐ NEW METHOD: Verify Object ACL
+  async verifyObjectACL(s3Key) {
+    try {
+      const aclParams = {
+        Bucket: this.bucketName,
+        Key: s3Key
+      };
+      
+      const acl = await this.s3.getObjectAcl(aclParams).promise();
+      
+      console.log('Object ACL Grants:');
+      acl.Grants.forEach((grant, index) => {
+        console.log(`  Grant ${index + 1}:`);
+        console.log(`    Permission: ${grant.Permission}`);
+        console.log(`    Grantee Type: ${grant.Grantee.Type}`);
+        console.log(`    Grantee URI: ${grant.Grantee.URI || 'N/A'}`);
+        console.log(`    Grantee ID: ${grant.Grantee.ID || 'N/A'}`);
+      });
+      
+      // Check for public read grant
+      const hasPublicRead = acl.Grants.some(grant => 
+        grant.Grantee.Type === 'Group' && 
+        grant.Grantee.URI === 'http://acs.amazonaws.com/groups/global/AllUsers' &&
+        grant.Permission === 'READ'
+      );
+      
+      if (hasPublicRead) {
+        console.log('✅ Object has public-read ACL');
+      } else {
+        console.log('❌ Object does NOT have public-read ACL');
+        console.log('This could be due to:');
+        console.log('1. S3 Block Public Access is enabled');
+        console.log('2. Bucket policy overrides ACL');
+        console.log('3. IAM user lacks s3:PutObjectAcl permission');
+      }
+      
+      return hasPublicRead;
+    } catch (error) {
+      console.error('Failed to get object ACL:', error.message);
+      return false;
     }
-  } catch (error) {
-    console.log('❌ Cannot access file:', error.message);
   }
-}
+
+  // ⭐ NEW METHOD: Test Public Access
+  async testPublicAccess(fileUrl) {
+    try {
+      console.log('\nTesting public access to:', fileUrl);
+      
+      // Using fetch or axios to test
+      const response = await fetch(fileUrl, { method: 'HEAD' });
+      
+      if (response.ok) {
+        console.log('✅ File is publicly accessible!');
+        console.log('Status:', response.status);
+        console.log('Content-Type:', response.headers.get('content-type'));
+        console.log('Content-Length:', response.headers.get('content-length'));
+      } else {
+        console.log('❌ File is NOT publicly accessible');
+        console.log('Status:', response.status);
+      }
+    } catch (error) {
+      console.log('❌ Cannot access file:', error.message);
+    }
+  }
   async uploadMultipleFiles(files, metadataList) {
     const uploadPromises = files.map((file, index) => 
       this.uploadFile(file, metadataList[index] || {})

@@ -118,8 +118,8 @@ export class BankReceiptDialogueComponent {
       this.uploadSub = this.fileService.uploadBankSlip(file).subscribe(invoice => {
         console.log(invoice);
         
-        this.piForm.get('bankSlip')?.setValue(invoice.fileUrl);
-        this.imageUrl = `${invoice.fileUrl}`;
+        this.piForm.get('bankSlip')?.setValue(invoice.data.fileUrl);
+        this.imageUrl = `${invoice.data.fileUrl}`;
         this.uploadComplete = false;
       })
     }

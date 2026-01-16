@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, QueryList, ViewChildren } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -51,13 +51,13 @@ export class Payments {
   teamLead: boolean = false;
   pendingHeader : string = '';
   private roleService = inject(DesignationServices);
+  isViewReady = false;
+  private cdr = inject(ChangeDetectorRef);
   getRoleById(id: number){
     this.roleSub = this.roleService.getRoleById(id).subscribe(role => {
       this.roleName = role.roleName;
-      console.log(this.roleName);
-        
       if(!this.isSubmitted){
-        if(this.roleName === 'Sales Executive' || this.roleName === 'Team Lead') { 
+        if(this.roleName === 'SalesExecutive' || this.roleName === 'Team Lead') { 
           this.status = 'GENERATED'; this.sp = true; this.header = 'REJECTED'; this.pendingHeader='GENERATED'
          }
         if(this.roleName === 'Key Account Manager') { 
@@ -98,22 +98,52 @@ export class Payments {
         teamLead: this.teamLead,
         pageStatus: this.pageStatus
       }
-      const tabIndex = this.invoiceService.getState('tabIndex');
-      if (tabIndex !== undefined && tabIndex !== null) {
-        this.selectedTabIndex = tabIndex.tabIndex;
-        this.onTabChange(this.selectedTabIndex)
-      }else{
-        this.onTabChange(0)
+
+      // Mark view as ready and initialize tabs
+      if (!this.isViewReady) {
+        this.isViewReady = true;
+        this.cdr.detectChanges();
+        
+        // Wait for the next tick to ensure DOM is updated
+        setTimeout(() => {
+          this.initializeTabs();
+        });
+      } else {
+        this.updateActiveTab();
       }
     })
+  }
+    private initializeTabs(): void {
+    const tabIndex = this.invoiceService.getState('tabIndex');
+    
+    if (tabIndex !== undefined && tabIndex !== null) {
+      this.selectedTabIndex = tabIndex.tabIndex;
+    } else {
+      this.selectedTabIndex = 0;
+    }
+    
+    // Ensure tab group is fully rendered
+    setTimeout(() => {
+      this.onTabChange(this.selectedTabIndex);
+    });
+  }
+  
+  private updateActiveTab(): void {
+    // Update the currently active tab with new data
+    setTimeout(() => {
+      if (this.viewApprovalComponents.length > this.selectedTabIndex) {
+        const activeComponent = this.viewApprovalComponents.toArray()[this.selectedTabIndex];
+        if (activeComponent) {
+          activeComponent.loadData(this.data, this.selectedTabIndex);
+        }
+      }
+    });
   }
   
   selectedTabIndex: number = 0;
   onTabChange(event: number) {
-    console.log(this.roleName);
-    
     switch (this.roleName) {
-      case 'Sales Executive':
+      case 'SalesExecutive':
         switch (event) {
           case 0:
             this.data.status = 'GENERATED';

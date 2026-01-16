@@ -92,8 +92,7 @@ export class ViewApprovalComponent {
   am: boolean = false
   getInvoices() {
     let apiCall;
-    console.log(this.data);
-    
+    this.submittingForm = true;
     if (this.data.roleName === 'SalesExecutive') {
       apiCall = this.invoiceService.getPIBySP(this.data.status, this.filterValue, this.currentPage, this.pageSize);
     } else if (this.data.roleName === 'Team Lead') {
@@ -164,8 +163,7 @@ export class ViewApprovalComponent {
         this.invoiceSubscriptions.unsubscribe();
       }
       this.invoiceSubscriptions = apiCall.subscribe((res: any) => {
-        console.log(res);
-        
+      this.submittingForm = false;
         this.processInvoices(res.items, res.count);
       }, () => {
         this.submittingForm = false;
@@ -351,6 +349,8 @@ export class ViewApprovalComponent {
           const data = {
             kamId: result.newKam
           }
+          console.log(invoiceId, data);
+          
           this.kamUpdateSub = this.invoiceService.updateKAM(data, invoiceId).subscribe(res =>{
             this.submittingForm = false;
             this.snackBar.open(`KAM is changed...`,"" ,{duration:3000})

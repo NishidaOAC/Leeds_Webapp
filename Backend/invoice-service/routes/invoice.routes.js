@@ -46,31 +46,12 @@ router.patch('/updateByKAM/:id', authenticateToken, controller.updatePIKAM);
 router.patch('/updateByAM/:id', authenticateToken, controller.updatePIAM);
 
 router.delete('/:id', authenticateToken, controller.deleteInvoice)
-
-// Alternative: Fetch team users first, then filter invoices
-async function getTeamUsers(teamId, teamName, authToken) {
-    try {
-        const params = {};
-        if (teamId) params.teamId = teamId;
-        if (teamName) params.teamName = teamName;
-
-        const response = await axios.get(`${USER_DB_API_URL}/users/team`, {
-            params,
-            headers: {
-                Authorization: `Bearer ${authToken}`
-            }
-        });
-
-        return response.data || [];
-    } catch (error) {
-        console.error('Error fetching team users:', error);
-        return [];
-    }
-}
-
 // Modified route handler with alternative approach
 router.patch('/getforadminreport', authenticateToken, controller.getAdminReports);
 
+router.patch('/kamupdate/:id', authenticateToken, controller.updateKAM );
+
+router.post('/download-excel', authenticateToken, controller.downloadExcel);
 
 // router.patch('/updatePIByAdminSuperAdmin/:id', authenticateToken, );
 module.exports = router;

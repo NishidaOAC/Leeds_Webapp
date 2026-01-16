@@ -23,7 +23,6 @@ export class Payments {
   ngOnInit(): void {
     const token: any = localStorage.getItem('user')
     const user = JSON.parse(token)
-    console.log(user);
     
     const roleId = user.roleId
     this.refreshSub = interval(5000).subscribe(() => {

@@ -9,7 +9,7 @@ const nodemailer = require('nodemailer');
 const emailService = require('../services/emailService');
 const notificationService = require('../services/notificationService');
 const XLSX = require('xlsx');
-
+const ExcelJS = require('exceljs');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -3380,3 +3380,370 @@ function getStatusFilter(status) {
 //     res.status(500).json({ error: 'Failed to fetch Proforma Invoice' });
 //   }
 // };
+
+exports.updateKAM = async (req, res) => {
+    try {
+        const { kamId } = req.body;
+        // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
+
+        if (!kamId) {
+            return res.send('Please select Key Account Manager and proceed');
+        }
+
+        // const kam = await UserPosition.findOne({
+        //     where: { userId: kamId },
+        //     include: [{ model: User, attributes: ['name'] }]
+        // });
+
+        // if (!kam?.projectMailId) {
+        //     return res.send("KAM project email is missing. Please inform the admin to add it.");
+        // }
+
+            const kam = await getUserById(
+                kamId,
+                req.headers.authorization
+            );
+
+            recipientEmail = kam.user ? kam.user.email : null;
+            notificationRecipientId = kamId;
+
+        const pi = await PerformaInvoice.findByPk(req.params.id, {
+            include: [
+                { model: Company, as: 'customers', attributes: ['companyName'] },
+                { model: Company, as: 'suppliers', attributes: ['companyName'] },
+            ]
+        });
+
+        if (!pi) return res.send('Proforma Invoice not found.');
+
+        pi.kamId = kamId;
+
+        // const attachments = await getEmailAttachmentsFromS3(pi.url);
+
+        // await sendEmail({
+        //     to: recipientEmail,
+        //     subject: `Proforma Invoice Updated - ${pi.piNo}`,
+        //     attachments,
+        //     html: `
+        //         <p>Proforma Invoice updated by <strong>${req.user.name}</strong></p>
+        //         <p>${pi.kam.name} is unavailable, so KAM changed to <strong>${kam.user.name}</strong></p>
+        //         <p><strong>Entry Number:</strong> ${pi.piNo}</p>
+        //         <p><strong>Supplier:</strong> ${pi.suppliers.companyName}</p>
+        //         <p><strong>Status:</strong> ${pi.status}</p>
+        //         <p><strong>Payment Mode:</strong> ${pi.paymentMode}</p>
+        //         <p><strong>Notes:</strong> ${pi.notes}</p>
+        //         ${emailSignature}
+        //     `
+        // });
+
+        // await Notification.create({
+        //     userId: kamId,
+        //     message: `Payment Request Updated ${pi.piNo} / ${pi.supplierPoNo}`,
+        //     isRead: false,
+        // });
+
+        await pi.save();
+
+        await emailService.sendUpdatedPIEmail({
+          piNo: pi.piNo,
+          supplierName: pi.supplierName,
+          supplierPoNo: pi.supplierPoNo,
+          supplierSoNo: pi.supplierSoNo,
+          supplierPrice: pi.supplierPrice,
+          supplierCurrency: pi.supplierCurrency,
+          status: pi.status,
+          paymentMode: pi.paymentMode,
+          purpose: pi.purpose,
+          customerName: pi.customerName,
+          customerPoNo: pi.customerPoNo,
+          customerSoNo: pi.customerSoNo,
+          customerCurrency: pi.customerCurrency,
+          poValue: pi.poValue,
+          notes: pi.notes,
+          updatedBy: req.user.name,
+          toEmail: recipientEmail,
+          attachments: await emailService.getAttachmentsFromS3(pi.url),
+          action: 'KAM Changed'
+        });
+
+        res.json({
+            piNo: pi.piNo,
+            message: 'Proforma Invoice updated successfully',
+        });
+
+    } catch (error) {
+        res.send(error.message);
+    }
+};
+
+exports.downloadExcel = async (req, res) => {
+  const data = req.body.invoices;
+  const { startDate, endDate, status, addedBy, invoiceNo } = req.body;
+  
+  console.log(`Exporting ${data?.length || 0} invoices...`);
+  
+  // Validate required data
+  if (!data || !Array.isArray(data)) {
+    return res.status(400).json({ 
+      error: 'Invalid data format. Expected an array of invoices.' 
+    });
+  }
+
+  if (data.length === 0) {
+    return res.status(400).json({ 
+      error: 'No data available to export. Please select invoices to export.' 
+    });
+  }
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Add metadata
+    workbook.creator = 'AeroAssist FinTech System';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    
+    const worksheet = workbook.addWorksheet('Proforma Report');
+
+    // ========== ADD TITLE AND HEADER ROWS ==========
+    
+    // Title row
+    const titleRow = worksheet.addRow(['PROFORMA INVOICES REPORT']);
+    titleRow.font = { 
+      bold: true, 
+      size: 16, 
+      color: { argb: '1F4E78' } 
+    };
+    titleRow.alignment = { 
+      horizontal: 'center',
+      vertical: 'middle'
+    };
+    worksheet.mergeCells('A1:V1');
+    
+    // Subtitle with date range
+    let subtitleText = 'All Proforma Invoices';
+    if (startDate && endDate) {
+      subtitleText = `Date Range: ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
+    }
+    
+    const subtitleRow = worksheet.addRow([subtitleText]);
+    subtitleRow.font = { 
+      italic: true, 
+      size: 11,
+      color: { argb: '666666' }
+    };
+    subtitleRow.alignment = { 
+      horizontal: 'center',
+      vertical: 'middle'
+    };
+    worksheet.mergeCells('A2:V2');
+    
+    // Generated info row
+    const generatedRow = worksheet.addRow([`Generated on: ${new Date().toLocaleString()} by AeroAssist System`]);
+    generatedRow.font = { 
+      size: 10,
+      color: { argb: '999999' }
+    };
+    generatedRow.alignment = { 
+      horizontal: 'center',
+      vertical: 'middle'
+    };
+    worksheet.mergeCells('A3:V3');
+    
+    // Empty row for spacing
+    worksheet.addRow([]);
+    
+    // ========== DEFINE COLUMNS ==========
+    const columns = [
+      { header: 'PI NO', key: 'piNo', width: 12 },
+      { header: 'PO NO', key: 'supplierPoNo', width: 12 },
+      { header: 'Supplier', key: 'supplier', width: 25 },
+      { header: 'Invoice NO', key: 'supplierSoNo', width: 15 },
+      { header: 'Amount', key: 'supplierPrice', width: 18 },
+      { header: 'Purpose', key: 'purpose', width: 20 },
+      { header: 'Customer', key: 'customer', width: 25 },
+      { header: 'Customer SoNo', key: 'customerSoNo', width: 15 },
+      { header: 'Customer PoNo', key: 'customerPoNo', width: 15 },
+      { header: 'Customer Price', key: 'customerPrice', width: 18 },
+      { header: 'Payment Mode', key: 'paymentMode', width: 15 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Added By', key: 'addedBy', width: 20 },
+      { header: 'Sales Person', key: 'salesPerson', width: 20 },
+      { header: 'KAM', key: 'kamName', width: 20 },
+      { header: 'AM', key: 'amName', width: 20 },
+      { header: 'Accountant', key: 'accountant', width: 20 },
+      { header: 'Created Date', key: 'createdDate', width: 20 },
+      { header: 'Updated Date', key: 'updatedDate', width: 20 },
+      { header: 'Attachments', key: 'url', width: 40 },
+      { header: 'Wire Slip', key: 'bankSlip', width: 30 },
+      { header: 'Notes', key: 'notes', width: 40 }
+    ];
+    
+    // Add column headers at row 5
+    const headerRow = worksheet.addRow(columns.map(col => col.header));
+    
+    // Style header row
+    headerRow.eachCell((cell, colNumber) => {
+      cell.font = { 
+        bold: true, 
+        color: { argb: 'FFFFFF' },
+        size: 11
+      };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '2E7D32' } // Green color matching your theme
+      };
+      cell.alignment = { 
+        vertical: 'middle', 
+        horizontal: 'center',
+        wrapText: true
+      };
+      cell.border = {
+        top: { style: 'thin', color: { argb: '1B5E20' } },
+        left: { style: 'thin', color: { argb: '1B5E20' } },
+        bottom: { style: 'thin', color: { argb: '1B5E20' } },
+        right: { style: 'thin', color: { argb: '1B5E20' } }
+      };
+    });
+    
+    // ========== ADD DATA ROWS ==========
+    let rowIndex = 0;
+    data.forEach((item) => {
+      const rowData = [
+        item.piNo || 'N/A',
+        item.supplierPoNo || 'N/A',
+        item.suppliers?.companyName || 'N/A',
+        item.supplierSoNo || 'N/A',
+        `${item.poValue || 0} ${item.supplierCurrency || ''}`,
+        item.purpose || 'N/A',
+        item.customers?.companyName || 'N/A',
+        item.customerSoNo || 'N/A',
+        item.customerPoNo || 'N/A',
+        `${item.customerPrice || 0} ${item.customerCurrency || ''}`,
+        item.paymentMode || 'N/A',
+        item.status || 'N/A',
+        item.addedBy?.name || 'N/A',
+        item.salesPerson?.name || 'N/A',
+        item.kam?.name || 'N/A',
+        item.am?.name || 'N/A',
+        item.accountant?.name || 'N/A',
+        item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
+        item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'N/A',
+        item.url?.length > 0 ? `${item.url.length} attachment(s)` : 'No attachments',
+        item.bankSlip || 'No slip',
+        item.notes || 'No notes'
+      ];
+      
+      const row = worksheet.addRow(rowData);
+      rowIndex++;
+      
+      // Add borders to all cells
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'DDDDDD' } },
+          left: { style: 'thin', color: { argb: 'DDDDDD' } },
+          bottom: { style: 'thin', color: { argb: 'DDDDDD' } },
+          right: { style: 'thin', color: { argb: 'DDDDDD' } }
+        };
+        cell.alignment = {
+          vertical: 'middle',
+          wrapText: true
+        };
+      });
+      
+      // Alternate row colors for better readability
+      if (rowIndex % 2 === 0) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'F8F9FA' }
+        };
+      }
+      
+      // Color code status column (column L)
+      const statusCell = row.getCell(12); // Column L (12th column)
+      switch((item.status || '').toLowerCase()) {
+        case 'approved':
+        case 'completed':
+          statusCell.font = { color: { argb: '2E7D32' }, bold: true }; // Green
+          break;
+        case 'pending':
+        case 'in progress':
+          statusCell.font = { color: { argb: 'FF9800' }, bold: true }; // Orange
+          break;
+        case 'rejected':
+        case 'cancelled':
+          statusCell.font = { color: { argb: 'F44336' }, bold: true }; // Red
+          break;
+      }
+    });
+    
+    // ========== AUTO-FIT COLUMNS ==========
+    worksheet.columns.forEach((column, index) => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const columnLength = cell.value ? cell.value.toString().length : 10;
+        if (columnLength > maxLength) {
+          maxLength = columnLength;
+        }
+      });
+      
+      // Set column width with minimum and maximum limits
+      const calculatedWidth = Math.min(maxLength + 2, 50);
+      column.width = Math.max(calculatedWidth, columns[index]?.width || 10);
+    });
+    
+    // ========== ADD SUMMARY SECTION ==========
+    worksheet.addRow([]); // Empty row
+    
+    const totalRow = worksheet.addRow([`Total Records Exported: ${data.length}`]);
+    totalRow.font = { bold: true, size: 12 };
+    totalRow.alignment = { horizontal: 'right' };
+    worksheet.mergeCells(`A${totalRow.number}:V${totalRow.number}`);
+    
+    // ========== FREEZE PANES (Header row) ==========
+    worksheet.views = [
+      {
+        state: 'frozen',
+        xSplit: 0,
+        ySplit: 5, // Freeze rows 1-5 (title + header)
+        activeCell: 'A6',
+        showGridLines: true
+      }
+    ];
+    
+    // ========== GENERATE AND SEND FILE ==========
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `Proforma_Report_${timestamp}.xlsx`;
+
+    // Set response headers
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Optional: Set cache control headers
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Write workbook to buffer and send as response
+    const buffer = await workbook.xlsx.writeBuffer();
+    
+    // Send the file
+    res.send(buffer);
+    
+    console.log(`Excel report generated successfully: ${filename} (${data.length} records)`);
+
+  } catch (error) {
+    console.error('Error generating Excel report:', error);
+    
+    // Send JSON error (not binary)
+    res.status(500).json({ 
+      error: 'Failed to generate Excel report',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};

@@ -5,6 +5,7 @@ import {
   OnChanges,
   Output,
   EventEmitter,
+  OnInit,
 } from '@angular/core';
 import { NavItem } from './nav-item';
 import { Router } from '@angular/router';
@@ -20,7 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './nav-item.component.html',
   styleUrls: [],
 })
-export class AppNavItemComponent implements OnChanges {
+export class AppNavItemComponent implements OnChanges, OnInit {
   @Output() notify: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   @Input() item: NavItem | any;
@@ -29,7 +30,24 @@ export class AppNavItemComponent implements OnChanges {
 
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
   @Input() depth: any;
+  role!: string;
   constructor( public router: Router, private navService: NavService) {}
+  ngOnInit(): void {
+    const token: any = localStorage.getItem('user')
+    const user = JSON.parse(token)
+    this.role = user.role
+    console.log(this.role);
+  }
+
+   hasAccess(item: NavItem): boolean {
+    // If no roles specified, allow access to everyone
+    if (!item.roles || item.roles.length === 0) {
+      return true;
+    }
+    
+    // Check if user's role is in the allowed roles array
+    return item.roles.includes(this.role);
+  }
 
   ngOnChanges() {
     const url = this.navService.currentUrl();

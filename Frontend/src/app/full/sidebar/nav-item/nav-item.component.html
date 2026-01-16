@@ -2,7 +2,7 @@
 <div mat-subheader class="nav-caption">
   {{ item.navCap }}
 </div>
-} @if(!item.navCap && !item.external) {
+} @if(!item.navCap && !item.external && hasAccess(item)) {
 <a mat-list-item (click)="onItemSelected(item)" [ngClass]="{
     activeMenu: item.route ? router.isActive(item.route, true) : false, 
     expanded: expanded,
@@ -29,7 +29,7 @@
 
 <!-- external Link -->
 
-@if(!item.navCap && item.external) {
+@if(!item.navCap && item.external && hasAccess(item)) {
 <mat-list-item (click)="openExternalLink(item.route)" class="menu-list-item {{ item.bgcolor }}" target="_blank">
   <!-- <i-tabler class="routeIcon" name="{{ item.iconName }}" matListItemIcon></i-tabler> -->
   <span class="hide-menu">{{ item.displayName }} </span>

@@ -75,12 +75,20 @@ export class InvoiceService {
     return this._http.patch(this.url + '/bankslip/' + id, data);
   }
 
+  updateKAM(data: any, id: number){
+    return this._http.patch(this.url + '/kamupdate/'+ id, data);
+  }
+  
   getPIStatusByPIId(id: number, search: string): Observable<PerformaInvoiceStatus[]>{
     return this._http.get<PerformaInvoiceStatus[]>(this.url + `/invoice-status/findbypi/?search=${search}&id=${id}`);
   }
 
   uploadInvoice(formData: FormData): Observable<any> {
     return this._http.post(this.url + '/invoice/fileupload', formData);
+  }
+
+  reportExport(data: any){
+    return this._http.post<any[]>(this.url + '/download-excel', data);
   }
 
   updatePIStatus(data: any){
@@ -119,12 +127,6 @@ export class InvoiceService {
     return this._http.delete(this.url + '/excelLog/delete-excel/' + id);
   }
 
-  updateKAM(data: any, id: number){
-    return this._http.patch(this.url + '/performaInvoice/kamupdate/'+ id, data);
-  }
 
-  reportExport(data: any){
-    return this._http.post<any[]>(this.url + '/invoice/download-excel', data);
-  }
 
 }

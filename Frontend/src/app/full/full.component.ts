@@ -35,7 +35,7 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     MatListModule
 ],
   templateUrl: './full.component.html',
-  styleUrls: [],
+  styleUrls: ['./full.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class FullComponent implements OnInit {
@@ -57,11 +57,14 @@ export class FullComponent implements OnInit {
     return this.isMobileScreen;
   }
 
-
+  username: string;
   constructor(
     private router: Router,
     private breakpointObserver: BreakpointObserver,
   ) {
+        const token: any = localStorage.getItem('user')
+        let user = JSON.parse(token)
+        this.username = user.name;
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW])
@@ -85,6 +88,11 @@ export class FullComponent implements OnInit {
       });
   }
 
+  logout(){
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('user');
+      this.router.navigate(['/']);  
+  }
   ngOnInit(): void { }
 
   ngOnDestroy() {

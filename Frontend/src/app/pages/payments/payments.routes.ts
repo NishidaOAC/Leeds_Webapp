@@ -30,10 +30,10 @@ export const routes: Routes = [
         )
     },
     {
-        path: 'report',
-        loadComponent: () =>
+    path: 'report',
+    loadComponent: () =>
         import('./approval-report/approval-report.component').then(
-            c => c.ApprovalReportComponent
+        c => c.ApprovalReportComponent
         )
-    },
+    }
 ];

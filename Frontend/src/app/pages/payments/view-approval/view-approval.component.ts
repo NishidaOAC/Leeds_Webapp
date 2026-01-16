@@ -19,6 +19,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { InvoiceService } from '../invoice.service';
 import { VerificationDialogueComponent } from './verification-dialogue/verification-dialogue.component';
+import { BankReceiptDialogueComponent } from './bank-receipt-dialogue/bank-receipt-dialogue.component';
+import { KAMUnavailableComponent } from './kam-unavailable/kam-unavailable.component';
+import { PerformaInvoice } from '../performa-invoice';
 
 @Component({
   selector: 'app-view-approval',
@@ -86,9 +89,10 @@ export class ViewApprovalComponent {
   submittingForm: boolean = false;
   editButtonStatus: boolean = false;
   pageStatus: boolean = true;
+  am: boolean = false
   getInvoices() {
-    console.log(this.data.roleName)
     let apiCall;
+    this.submittingForm = true;
     if (this.data.roleName === 'SalesExecutive') {
       apiCall = this.invoiceService.getPIBySP(this.data.status, this.filterValue, this.currentPage, this.pageSize);
     } else if (this.data.roleName === 'Team Lead') {
@@ -123,6 +127,7 @@ export class ViewApprovalComponent {
       // apiCall = this.invoiceService.getPIByKAM(this.data.status, this.filterValue, this.currentPage, this.pageSize);
     } else if (this.data.roleName === 'Manager') {
       if (Array.isArray(this.data.status)) {
+        this.am = true;
         const statusArray = this.data.status;
         const allInvoices: any[] = [];
         let completedCalls = 0;
@@ -158,8 +163,7 @@ export class ViewApprovalComponent {
         this.invoiceSubscriptions.unsubscribe();
       }
       this.invoiceSubscriptions = apiCall.subscribe((res: any) => {
-        console.log(res);
-        
+      this.submittingForm = false;
         this.processInvoices(res.items, res.count);
       }, () => {
         this.submittingForm = false;
@@ -170,7 +174,6 @@ export class ViewApprovalComponent {
   processInvoices(invoicesArray: any[], count?: number) {
     const invoice = invoicesArray || [];
     this.totalItems = count || invoice.length;
-  
     invoice.forEach((mainObj: any) => {
       const matchingStatus = mainObj.performaInvoiceStatuses?.find(
         (statusObj: any) => statusObj.status === mainObj.status
@@ -196,9 +199,8 @@ export class ViewApprovalComponent {
       if (inv.addedById === this.user) {
         const role = inv.addedBy.role.roleName;
         const status = inv.status;
-  
         if (
-          (role === 'Sales Executive' &&
+          (role === 'SalesExecutive' &&
             ['GENERATED', 'KAM REJECTED', 'AM REJECTED', 'INITIATED', 'AM DECLINED'].includes(status)) ||
           (role === 'Key Account Manager' &&
             ['KAM VERIFIED', 'AM REJECTED', 'INITIATED'].includes(status)) ||
@@ -245,20 +247,31 @@ export class ViewApprovalComponent {
   }
 
   addBankSlip(piNo: string, id: number, status: string){
-    // const dialogRef = this.dialog.open(BankReceiptDialogueComponent, {
-    //   data: { invoiceNo: piNo, id: id, status: status }
-    // });
+    const dialogRef = this.dialog.open(BankReceiptDialogueComponent, {
+      data: { invoiceNo: piNo, id: id, status: status }
+    });
 
-    // this.dialogSub = dialogRef.afterClosed().subscribe(result => {
-    //   if(result){
-    //     this.getInvoices()
-    //     this.snackBar.open(`BankSlip is attached with Invoice ${piNo} ...`,"" ,{duration:3000})
-    //   }
-    // })
+    this.dialogSub = dialogRef.afterClosed().subscribe(result => {
+      if(result){
+        this.getInvoices()
+        this.snackBar.open(`BankSlip is attached with Invoice ${piNo} ...`,"" ,{duration:3000})
+      }
+    })
   }
 
   deleteSub!: Subscription;
-  deleteFunction(id: number){
+  deleteFunction(invoice: PerformaInvoice){
+    if (confirm(`Are you sure you want to delete ${invoice.piNo}?`)) {
+        this.deleteSub = this.invoiceService.deleteInvoice(invoice.id).subscribe((res)=>{
+          console.log(res);
+          
+          this.snackBar.open("PI deleted successfully...","" ,{duration:3000})
+          this.getInvoices()
+        },(error=>{
+
+          this.snackBar.open(error.error.message,"" ,{duration:3000})
+        }))
+    }
     // const dialogRef = this.dialog.open(DeleteDialogueComponent, {
     //   width: '320px',
     //   data: {}
@@ -321,29 +334,31 @@ export class ViewApprovalComponent {
 
   kamUpdateSub!: Subscription;  
   handleKamUnavailable(invoiceId: number, piNo: string, addName: string) {
-    // const dialogRef = this.dialog.open(KAMUnavailableComponent, {
-    //   width: '500px',
-    //   data: { invoiceId, piNo }
-    // });
+    const dialogRef = this.dialog.open(KAMUnavailableComponent, {
+      width: '500px',
+      data: { invoiceId, piNo }
+    });
   
-    // dialogRef.afterClosed().subscribe(result => {
-    //   if (result) {
-    //     if (result.action === 'approved' || result.action === 'rejected') {
-    //       this.verified(result.action, piNo, addName, invoiceId, 'GENERATED');
-    //     } 
-    //     else if (result.action === 'changeKam') {
-    //       this.submittingForm = true;
-    //       const data = {
-    //         kamId: result.newKam
-    //       }
-    //       this.kamUpdateSub = this.invoiceService.updateKAM(data, invoiceId).subscribe(res =>{
-    //         this.submittingForm = false;
-    //         this.snackBar.open(`KAM is changed...`,"" ,{duration:3000})
-    //         this.getInvoices()
-    //       })
-    //     }
-    //   }
-    // });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.action === 'approved' || result.action === 'rejected') {
+          this.verified(result.action, piNo, addName, invoiceId, 'GENERATED');
+        } 
+        else if (result.action === 'changeKam') {
+          this.submittingForm = true;
+          const data = {
+            kamId: result.newKam
+          }
+          console.log(invoiceId, data);
+          
+          this.kamUpdateSub = this.invoiceService.updateKAM(data, invoiceId).subscribe(res =>{
+            this.submittingForm = false;
+            this.snackBar.open(`KAM is changed...`,"" ,{duration:3000})
+            this.getInvoices()
+          })
+        }
+      }
+    });
   }
 
 }

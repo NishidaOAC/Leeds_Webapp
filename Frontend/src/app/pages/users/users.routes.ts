@@ -14,5 +14,12 @@ export const userRoutes: Routes = [
         import('./role-list.component/role-list.component').then(
             c => c.RoleListComponent
         )
-    }
+    },
+    {
+        path: 'teams',
+        loadComponent: () =>
+        import('./team-list/team-list').then(
+            c => c.TeamList
+        )
+    },
 ];

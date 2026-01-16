@@ -1,0 +1,476 @@
+/* Main Card */
+.upload-form-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
+  min-height: 600px;
+}
+
+/* Header */
+.form-header {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-icon {
+  font-size: 32px;
+  height: 32px;
+  width: 32px;
+  margin-right: 16px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Form Content */
+.form-content {
+  padding: 24px;
+}
+
+.form-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Form Grid Layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 992px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Columns */
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Section Cards */
+.section-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.section-header {
+  background: #e8eaf6;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section-header mat-icon {
+  color: #3f51b5;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Form Fields */
+.form-field {
+  width: 100%;
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-field ::ng-deep .mat-form-field-outline {
+  background: white;
+}
+
+.form-field ::ng-deep .mat-form-field-prefix {
+  margin-right: 12px;
+  color: #666;
+}
+
+/* Details Grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Autocomplete Suggestions */
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.suggestion-icon {
+  color: #666;
+}
+
+.suggestion-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.company-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.contact-person {
+  font-size: 12px;
+  color: #666;
+}
+
+.add-new-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3f51b5;
+  font-weight: 500;
+}
+
+/* Purpose Tags */
+.selected-purposes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.purpose-tag {
+  background: #e8eaf6;
+  color: #3f51b5;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.purpose-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.option-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-icon {
+  color: #666;
+  font-size: 18px;
+}
+
+/* User Options */
+.user-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Documents Section */
+.documents-section {
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.documents-section .section-header {
+  background: transparent;
+  border: none;
+  padding: 0 0 20px;
+}
+
+.doc-count {
+  margin-left: auto;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Document Cards */
+.document-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.document-row {
+  display: grid;
+  grid-template-columns: 300px 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .document-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+}
+
+.remarks-field {
+  width: 100%;
+}
+
+/* File Upload Area */
+.upload-area {
+  border: 2px dashed #c1c1c1;
+  border-radius: 8px;
+  padding: 40px 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: #3f51b5;
+  background: #f0f3ff;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-icon {
+  font-size: 48px;
+  color: #c1c1c1;
+}
+
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upload-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.upload-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Document Preview */
+.document-preview {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.preview-header {
+  padding: 12px 16px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-icon {
+  color: #3f51b5;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.delete-btn {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+}
+
+.preview-content {
+  height: 300px;
+}
+
+.document-viewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Remove Button */
+.remove-btn {
+  margin-top: 8px;
+}
+
+/* Add Document Button */
+.add-doc-btn {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.cancel-btn, .save-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  padding: 8px 24px;
+  border-radius: 8px;
+  min-width: 160px;
+}
+
+.cancel-btn {
+  border: 2px solid #e0e0e0;
+}
+
+.cancel-btn:hover {
+  border-color: #999;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border-radius: 12px;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.loading-text {
+  margin: 0;
+  color: #333;
+  font-weight: 500;
+}

@@ -1,5 +1,5 @@
-<app-topstrip></app-topstrip>
-<mat-sidenav-container class="mainWrapper blue_theme light-theme" autosize autoFocus dir="ltr">
+<!-- <app-topstrip></app-topstrip> -->
+<mat-sidenav-container class="blue_theme light-theme" autosize autoFocus dir="ltr">
   <!-- ============================================================== -->
   <!-- Vertical Sidebar -->
   <!-- ============================================================== -->
@@ -9,6 +9,21 @@
       <app-sidebar (toggleMobileNav)="sidenav.toggle()" [showToggle]="isOver"></app-sidebar>
       <ng-scrollbar class="position-relative" style="height: 100%">
         <mat-nav-list class="sidebar-list">
+          <div class="user-profile">
+                <a href="/" class="logodark">
+      <img
+        src="./assets/images/logos/fintech_logo.png" width="230"
+        alt="logo"
+      />
+    </a>
+              <div class="user-info">
+                  <div class="username">{{username}}</div>
+              </div>
+              <button class="logout-btn" (click)="logout()">
+                  <i class="material-icons">logout</i>
+                  <span class="logout-text">Logout</span>
+              </button>
+          </div>
           @for(item of navItems; track item) {
           <app-nav-item [item]="item" (notify)="sidenav.toggle()">
           </app-nav-item>

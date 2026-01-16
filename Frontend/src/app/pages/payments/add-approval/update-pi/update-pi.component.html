@@ -1,0 +1,475 @@
+<mat-card class="upload-form-card">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <mat-icon class="header-icon">receipt_long</mat-icon>
+      <div class="header-text">
+        <h1 class="title">UPLOAD INVOICE</h1>
+        <p class="subtitle">Fill in the invoice details and upload documents</p>
+      </div>
+      <button mat-mini-fab color="basic" class="close-btn" (click)="goBack()" matTooltip="Go Back">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Content -->
+  <mat-card-content class="form-content">
+    <div class="form-wrapper">
+      <form [formGroup]="piForm" class="main-form">
+        
+        <!-- Two Column Grid Layout -->
+        <div class="form-grid">
+          
+          <!-- Left Column - Supplier & Basic Info -->
+          <div class="form-column left-column">
+            
+            <!-- Basic Information -->
+            <div class="section-card">
+              <div class="section-header">
+                <mat-icon>info</mat-icon>
+                <h3>Basic Information</h3>
+              </div>
+              
+              <div class="section-content">
+                <!-- Entry Number -->
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Entry Number</mat-label>
+                  <input matInput formControlName="piNo" readonly="true">
+                  <mat-icon matPrefix>tag</mat-icon>
+                  <mat-hint>Auto-generated invoice number</mat-hint>
+                </mat-form-field>
+
+                <!-- Purpose -->
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Purpose</mat-label>
+                    <mat-select placeholder="Select Purpose" formControlName="purpose" [multiple]="true">
+                      <mat-option value="Stock">Stock</mat-option>
+                      <mat-option value="Customer">Customer</mat-option>
+                    </mat-select>
+                  <mat-icon matPrefix>category</mat-icon>
+                </mat-form-field>
+
+                <!-- Payment Mode -->
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Payment Mode</mat-label>
+                  <mat-select formControlName="paymentMode" (selectionChange)="onPaymentModeChange()">
+                    <mat-option value="CreditCard">
+                      <div class="payment-option">
+                        <span>Credit Card</span>
+                      </div>
+                    </mat-option>
+                    <mat-option value="WireTransfer">
+                      <div class="payment-option">
+                        <span>Wire Transfer</span>
+                      </div>
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matPrefix>payment</mat-icon>
+                </mat-form-field>
+
+                <!-- Notes -->
+                <mat-form-field appearance="outline" class="form-field full-width">
+                  <mat-label>Notes</mat-label>
+                  <textarea matInput 
+                           placeholder="Additional notes or instructions..." 
+                           formControlName="notes" 
+                           rows="3"></textarea>
+                  <mat-icon matPrefix>notes</mat-icon>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Manager Assignment -->
+            <div class="section-card">
+              <div class="section-header">
+                <mat-icon>supervisor_account</mat-icon>
+                <h3>Manager Assignment</h3>
+              </div>
+              
+              <div class="section-content">
+                <!-- Sales Person View -->
+                @if(sp || admin) {
+                  @if(piForm.get('paymentMode')?.value === 'CreditCard') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Authorize Manager</mat-label>
+                      <mat-select formControlName="amId">
+                        @for(item of AMList; track item.id) {
+                          <mat-option [value]="item.id">
+                            <div class="user-option">
+                              <div class="user-avatar">{{ item.name?.charAt(0) }}</div>
+                              <div class="user-info">
+                                <span class="user-name">{{ item.name }}</span>
+                                <!-- @if(item.email) {
+                                  <span class="user-email">{{ item.email }}</span>
+                                } -->
+                              </div>
+                            </div>
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-icon matPrefix>verified_user</mat-icon>
+                    </mat-form-field>
+                  }
+
+                  @if(piForm.get('paymentMode')?.value !== 'CreditCard') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Key Account Manager</mat-label>
+                      <mat-select formControlName="kamId">
+                        @for(item of kam; track item.id) {
+                          <mat-option [value]="item.id">
+                            <div class="user-option">
+                              <div class="user-avatar">{{ item.name?.charAt(0) }}</div>
+                              <div class="user-info">
+                                <span class="user-name">{{ item.name }}</span>
+                                @if(item.email) {
+                                  <span class="user-email">{{ item.email }}</span>
+                                }
+                              </div>
+                            </div>
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-icon matPrefix>supervisor_account</mat-icon>
+                    </mat-form-field>
+                  }
+                }
+
+                <!-- KAM View -->
+                @if(kamb){
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Authorize Manager</mat-label>
+                    <mat-select formControlName="amId">
+                      @for(item of AMList; track item.id) {
+                        <mat-option [value]="item.id">
+                          <div class="user-option">
+                            <div class="user-avatar">{{ item.name?.charAt(0) }}</div>
+                            <div class="user-info">
+                              <span class="user-name">{{ item.name }}</span>
+                              @if(item.email) {
+                                <span class="user-email">{{ item.email }}</span>
+                              }
+                            </div>
+                          </div>
+                        </mat-option>
+                      }
+                    </mat-select>
+                    <mat-icon matPrefix>admin_panel_settings</mat-icon>
+                  </mat-form-field>
+                }
+
+                <!-- AM View -->
+                @if(am){
+                  @if(piForm.get('paymentMode')?.value === 'CreditCard') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Key Account Manager</mat-label>
+                      <mat-select formControlName="kamId">
+                        @for(item of kam; track item.id) {
+                          <mat-option [value]="item.id">
+                            <div class="user-option">
+                              <div class="user-avatar">{{ item.name?.charAt(0) }}</div>
+                              <div class="user-info">
+                                <span class="user-name">{{ item.name }}</span>
+                                @if(item.email) {
+                                  <span class="user-email">{{ item.email }}</span>
+                                }
+                              </div>
+                            </div>
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-icon matPrefix>person_search</mat-icon>
+                    </mat-form-field>
+                  }
+
+                  @if(piForm.get('paymentMode')?.value !== 'CreditCard') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Accountant</mat-label>
+                      <mat-select formControlName="accountantId">
+                        @for(item of AccountantList; track item.id) {
+                          <mat-option [value]="item.id">
+                            <div class="user-option">
+                              <div class="user-avatar">{{ item.name?.charAt(0) }}</div>
+                              <div class="user-info">
+                                <span class="user-name">{{ item.name }}</span>
+                                @if(item.email) {
+                                  <span class="user-email">{{ item.email }}</span>
+                                }
+                              </div>
+                            </div>
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-icon matPrefix>account_balance_wallet</mat-icon>
+                    </mat-form-field>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column - Customer & Manager Info -->
+          <div class="form-column right-column">
+            
+            <!-- Supplier Information -->
+            <div class="section-card">
+              <div class="section-header">
+                <mat-icon>store</mat-icon>
+                <h3>Supplier Information</h3>
+              </div>
+              
+              <div class="section-content">
+                <!-- Supplier Search -->
+                @if(supplierCompanies) {
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Search Supplier</mat-label>
+                    <input matInput 
+                           placeholder="Type supplier name..." 
+                           formControlName="supplierName" 
+                           [matAutocomplete]="autoSupplier"
+                           (keyup)="search($event,'sup')">
+                    <mat-icon matPrefix>search</mat-icon>
+                    <mat-autocomplete #autoSupplier="matAutocomplete" (optionSelected)="patch($event.option.value,'sup')">
+                      @for(suggestion of fileterdOptions; track suggestion.id) {
+                        <mat-option [value]="suggestion">
+                          <div class="suggestion-item">
+                            <mat-icon class="suggestion-icon">business</mat-icon>
+                            <div class="suggestion-text">
+                              <span class="company-name">{{ suggestion.companyName }}</span>
+                              @if(suggestion.contactPerson) {
+                                <span class="contact-person">{{ suggestion.contactPerson }}</span>
+                              }
+                            </div>
+                          </div>
+                        </mat-option>
+                      }
+                      @if(fileterdOptions.length === 0) {
+                        <mat-option [value]="'add'" (click)="add('sup')">
+                          <div class="add-new-option">
+                            <mat-icon>add_circle</mat-icon>
+                            <span>Add New Supplier</span>
+                          </div>
+                        </mat-option>
+                      }
+                    </mat-autocomplete>
+                  </mat-form-field>
+                }
+
+                <!-- Supplier Details Grid -->
+                <div class="details-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Supplier SO#</mat-label>
+                    <input matInput placeholder="Supplier invoice number" formControlName="supplierSoNo">
+                    <mat-icon matPrefix>receipt</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Our PO#</mat-label>
+                    <input matInput placeholder="Our purchase order" formControlName="supplierPoNo">
+                    <mat-icon matPrefix>description</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Currency</mat-label>
+                    <mat-select formControlName="supplierCurrency">
+                      @for(currency of currencies; track currency) {
+                        <mat-option [value]="currency">
+                          {{ currency }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                    <mat-icon matPrefix>attach_money</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Price</mat-label>
+                    <input type="number" 
+                           matInput 
+                           placeholder="0.00" 
+                           formControlName="supplierPrice"
+                           min="0"
+                           step="0.01">
+                    <mat-icon matPrefix>paid</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+            <!-- Customer Information -->
+            @if(isCustomerSelected){
+              <div class="section-card">
+                <div class="section-header">
+                  <mat-icon>person</mat-icon>
+                  <h3>Customer Information</h3>
+                </div>
+                
+                <div class="section-content">
+                  <!-- Customer Search -->
+                  @if(customerCompanies) {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Search Customer</mat-label>
+                      <input matInput 
+                             placeholder="Type customer name..." 
+                             formControlName="customerName" 
+                             [matAutocomplete]="autoCustomer"
+                             (keyup)="search($event,'cust')">
+                      <mat-icon matPrefix>search</mat-icon>
+                      <mat-autocomplete #autoCustomer="matAutocomplete" (optionSelected)="patch($event.option.value,'cust')">
+                        @for(suggestion of filteredCustomers; track suggestion.id) {
+                          <mat-option [value]="suggestion">
+                            <div class="suggestion-item">
+                              <mat-icon class="suggestion-icon">person</mat-icon>
+                              <div class="suggestion-text">
+                                <span class="company-name">{{ suggestion.companyName }}</span>
+                                @if(suggestion.contactPerson) {
+                                  <span class="contact-person">{{ suggestion.contactPerson }}</span>
+                                }
+                              </div>
+                            </div>
+                          </mat-option>
+                        }
+                        @if(filteredCustomers.length === 0) {
+                          <mat-option [value]="'add'" (click)="add('cust')">
+                            <div class="add-new-option">
+                              <mat-icon>add_circle</mat-icon>
+                              <span>Add New Customer</span>
+                            </div>
+                          </mat-option>
+                        }
+                      </mat-autocomplete>
+                    </mat-form-field>
+                  }
+
+                  <!-- Customer Details Grid -->
+                  <div class="details-grid">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Customer PO#</mat-label>
+                      <input matInput placeholder="Customer purchase order" formControlName="customerPoNo">
+                      <mat-icon matPrefix>assignment</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Our SO#</mat-label>
+                      <input matInput placeholder="Our sales order" formControlName="customerSoNo">
+                      <mat-icon matPrefix>description</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Currency</mat-label>
+                      <mat-select formControlName="customerCurrency">
+                        @for(currency of currencies; track currency) {
+                          <mat-option [value]="currency">
+                            {{ currency }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-icon matPrefix>currency_exchange</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>PO Value</mat-label>
+                      <input type="number" 
+                             matInput 
+                             placeholder="0.00" 
+                             formControlName="poValue"
+                             min="0"
+                             step="0.01">
+                      <mat-icon matPrefix>monetization_on</mat-icon>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+            }
+
+          </div>
+        </div>
+
+        <!-- Document Upload Section -->
+        <div class="documents-section">
+          <div class="section-header">
+            <mat-icon>attach_file</mat-icon>
+            <h3>DOCUMENTS UPLOAD</h3>
+            <span class="doc-count">({{ doc().length }} document(s) attached)</span>
+          </div>
+          
+          <form [formGroup]="piForm" enctype="multipart/form-data">
+            <div formArrayName="url">
+              <div *ngFor="let uploadForm of doc().controls; let i = index" [formGroupName]="i" class="form-instance">
+                <div class="row" style="margin-top: 20px;">
+                  <div class="col">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Document Remarks</mat-label>
+                      <input matInput formControlName="remarks">
+                    </mat-form-field>
+                  </div>
+
+                  <ng-container *ngIf="!imageUrl[i] && !newImageUrl[i]">
+                    <div class="col">
+                      <input type="file" class="file-input" hidden #fileInput (change)="onFileSelected($event, i)">
+                      <mat-icon class="file-upload-icon" (click)="fileInput.click()">cloud_upload</mat-icon>
+                      <p class="file-upload-text" (click)="fileInput.click()">Browse file to upload</p>
+                    </div>
+                  </ng-container>
+
+                  <ng-container *ngIf="imageUrl[i] && !newImageUrl[i]">
+                    <div class="col">
+                      <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="center center">
+                        <iframe [src]="imageUrl[i].url | safe" width="100%" height="300px"></iframe>
+                        <mat-icon style="color: red;" (click)="onDeleteUploadedImage(imageUrl[i].url, i)">delete</mat-icon>
+                      </div>
+                    </div>
+                  </ng-container>
+
+                  <ng-container *ngIf="!imageUrl[i] && newImageUrl[i]">
+                    <div class="col">
+                      <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="center center">
+                        <iframe [src]="newImageUrl[i] | safe" width="100%" height="300px"></iframe>
+                      </div>
+                    </div>
+                  </ng-container>
+
+                  <ng-container *ngIf="!newImageUrl[i] && !imageUrl[i]">
+                    <button mat-icon-button color="warn" type="button" (click)="removeData(i)">
+                      <mat-icon>remove_circle</mat-icon>
+                    </button>
+                  </ng-container>
+                </div>
+              </div>
+
+              <button mat-raised-button color="primary" (click)="addDoc()" [disabled]="!isImageUploaded()">New Doc</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button mat-stroked-button 
+                  color="basic" 
+                  class="cancel-btn"
+                  (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            CANCEL
+          </button>
+          
+          <button mat-raised-button 
+                  color="primary" 
+                  class="save-btn"
+                  (click)="onUpdate()"
+                  [disabled]="!piForm.valid || !isImageUploaded()">
+            <mat-icon>save</mat-icon>
+            UPDATE INVOICE
+          </button>
+        </div>
+      </form>
+    </div>
+  </mat-card-content>
+
+  <!-- Loading Overlay -->
+  @if(submitted){
+    <div class="loading-overlay">
+      <div class="loading-content">
+        <mat-spinner color="primary" diameter="60"></mat-spinner>
+        <p class="loading-text">Updating invoice...</p>
+      </div>
+    </div>
+  }
+</mat-card>

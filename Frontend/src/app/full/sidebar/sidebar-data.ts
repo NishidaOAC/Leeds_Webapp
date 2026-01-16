@@ -9,97 +9,56 @@ export const navItems: NavItem[] = [
     iconName: 'layout-grid-add',
     route: '/dashboard',
     bgcolor: 'primary',
+    roles: ['Super Administrator', 'Manager', 'user'] // All roles can see dashboard
   },
   {
     displayName: 'AddNewPayment',
     iconName: 'layout-grid-add',
-    route: '/dashboard/payments/addpayments',  
+    route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',
+    roles: ['Super Administrator', 'Manager', 'SalesExecutive', 'Key Account Manager'] // Only admin and manager can add payments
   },
   {
     displayName: 'Payments',
     iconName: 'layout-grid-add',
-    route: '/dashboard/payments',  
+    route: '/dashboard/payments',
     bgcolor: 'primary',
+    roles: ['Super Administrator', 'Manager', 'user', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // All roles can view payments
   },
   {
     displayName: 'Company',
     iconName: 'layout-grid-add',
-    route: '/dashboard/company',  
+    route: '/dashboard/company',
     bgcolor: 'primary',
+    roles: ['Super Administrator'] // Only admin can manage company
   },
   {
     displayName: 'Users',
     iconName: 'layout-grid-add',
-    route: '/dashboard/users',  
+    route: '/dashboard/users',
     bgcolor: 'primary',
+    roles: ['Super Administrator', 'Manager'] // Only admin can manage users
   },
   {
     displayName: 'Role',
     iconName: 'layout-grid-add',
-    route: '/dashboard/users/roles',  
+    route: '/dashboard/users/roles',
     bgcolor: 'primary',
+    roles: ['Super Administrator'] // Only admin can manage roles
   },
-  // {
-  //   displayName: 'Visits',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/visits',  
-  //   bgcolor: 'primary',
-  // },
-  
-  // {
-  //   displayName: 'Patients',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/patient',
-  //   bgcolor: 'primary',
-  // },
-
-  // {
-  //   navCap: 'Pharmacy',
-  // },
-  // {
-  //   displayName: 'Prescription',
-  //   iconName: 'message-dots',
-  //   route: '/dashboard/pharmacy/prescription',
-  //   bgcolor: 'primary'
-  // },
-  // {
-  //   displayName: 'Medicine',
-  //   iconName: 'message-dots',
-  //   route: '/dashboard/pharmacy/medicine',
-  //   bgcolor: 'primary'
-  // },
-  
-  // {
-  //   navCap: 'Admin',
-  // },
-  // {
-  //   displayName: 'Users',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/users',  
-  //   bgcolor: 'primary',
-  // },
-  // {
-  //   displayName: 'Role',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/roles',  
-  //   bgcolor: 'primary',
-  // },
-  // {
-  //   displayName: 'Designation',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/designations',  
-  //   bgcolor: 'primary',
-  // },
-  // {
-  //   displayName: 'Calendar',
-  //   iconName: 'calendar',
-  //   route: 'https://spike-angular-pro-main.netlify.app/apps/calendar',
-  //   bgcolor: 'error',
-  //   chip: true,
-  //   external: true,
-  //   chipClass: 'bg-light-primary text-primary',
-  //   chipContent: 'PRO',
-  // },
- 
+  {
+    displayName: 'Team',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/users/teams',
+    bgcolor: 'primary',
+    roles: ['Super Administrator', 'Manager'] // Admin and managers can manage teams
+  },
+  {
+    displayName: 'Report',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/payments/report',
+    bgcolor: 'primary',
+    roles: ['Super Administrator', 'Manager', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // Admin and managers can view reports
+  },
+  // Add other items with role restrictions...
 ];

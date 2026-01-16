@@ -33,7 +33,7 @@ export class RoleListComponent {
  
  
    ngOnInit() {
-    //  this.load();
+     this.load();
    }
  
    onTabChange(event: MatTabChangeEvent): void {

@@ -1,4 +1,5 @@
-<mat-tab-group class="horizontal-tabs" [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event.index)">
+<mat-tab-group class="horizontal-tabs" [selectedIndex]="selectedTabIndex" 
+(selectedTabChange)="onTabChange($event.index)" *ngIf="isViewReady">
   @if(roleName !=='Administrator'  && roleName !== 'Super Administrator'){
     <mat-tab>
       <mat-card style="margin-top: 20px;">

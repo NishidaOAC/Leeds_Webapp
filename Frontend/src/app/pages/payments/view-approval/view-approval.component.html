@@ -57,13 +57,13 @@
                       @if(data.admin || invoice.editButtonStatus) {
                         <button 
                           class="update-button" 
-                          [routerLink]="['/login/viewApproval/updatePI', invoice.id]"
+                          [routerLink]="['edit/', invoice.id]"
                         >
                           Update
                         </button>
                         <button 
                           class="delete-button" 
-                          (click)="deleteFunction(invoice.id)"
+                          (click)="deleteFunction(invoice)"
                         >
                           Delete
                         </button>
@@ -96,7 +96,7 @@
                       }
 
                       <!-- KAM Unavailable Button -->
-                      @if(!data.pageStatus && !data.sp && invoice.status === 'GENERATED') {
+                      @if(!data.pageStatus && data.am && invoice.status === 'GENERATED' ) {
                         <button 
                           mat-raised-button 
                           class="kam-unavailable-button"

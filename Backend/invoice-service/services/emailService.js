@@ -24,12 +24,9 @@ class EmailService {
    * Send status update email
    */
   async sendStatusUpdateEmail({ pi, status, remarks, user, toEmail }) {
-    console.log("=== STARTING STATUS UPDATE EMAIL ===");
-    
     try {
       // Input validation
       if (!toEmail) throw new Error('Recipient email is required');
-      if (!user?.email) throw new Error('Sender email is required');
       
       // Extract data
       const [supplier, customer] = await Promise.all([
@@ -68,9 +65,7 @@ class EmailService {
             .map(item => item.url);
           
           if (urls.length > 0) {
-            console.log(`Fetching ${urls.length} files from S3...`);
             attachments = await this.getAttachmentsFromS3(urls);
-            console.log(`Fetched ${attachments.length} attachments from S3`);
           }
         } catch (s3Error) {
           console.warn('S3 attachment fetch failed, sending email without attachments:', s3Error.message);
@@ -80,7 +75,7 @@ class EmailService {
 
       // Send email
       const mailOptions = {
-        from: `"Approval Management System" <${process.env.SMTP_USER}>`,
+        from: `Aeroassist - ${user.name} <${process.env.SMTP_USER}>`,
         to: toEmail,
         subject: this.getStatusMessage(pi.piNo, status),
         html: this.generateStatusUpdateTemplate(emailData),
@@ -104,10 +99,10 @@ class EmailService {
     }
   }
 
-  /**
+    /**
    * Send new PI creation email (for addPIKAM)
    */
-  async sendNewPIEmail({ 
+  async sendBankSlipEmail({ 
     piNo, 
     supplierName, 
     supplierPoNo, 
@@ -129,7 +124,151 @@ class EmailService {
   }) {
     try {
       const mailOptions = {
-        from: `Proforma Invoice System <${process.env.SMTP_USER}>`,
+        from: `Aeroassist - ${requestedBy} <${process.env.SMTP_USER}>`,
+        to: toEmail,
+        cc: ccEmails,
+        subject: `Payment Completed - ${piNo} / ${supplierPoNo}`,
+        html: this.generateNewPITemplate({
+          piNo,
+          supplierName,
+          supplierPoNo,
+          supplierSoNo,
+          supplierPrice,
+          supplierCurrency,
+          status,
+          paymentMode,
+          purpose,
+          customerName,
+          customerPoNo,
+          customerSoNo,
+          customerCurrency,
+          notes,
+          requestedBy,
+          action: 'BankSlip Added'
+        }),
+        attachments: attachments
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log(`New PI email sent successfully to ${toEmail}: ${result.messageId}`);
+      
+      return { success: true, messageId: result.messageId };
+      
+    } catch (error) {
+      console.error('New PI email sending failed:', error);
+      throw new Error(`Failed to send new PI email: ${error.message}`);
+    }
+  }
+
+  async sendUpdatedPIEmail({ 
+    piNo, 
+    supplierName, 
+    supplierPoNo, 
+    supplierSoNo, 
+    supplierPrice,
+    supplierCurrency,
+    status, 
+    paymentMode, 
+    purpose,
+    customerName,
+    customerPoNo,
+    customerSoNo,
+    customerCurrency,
+    poValue,
+    notes,
+    updatedBy,
+    toEmail,
+    ccEmails = [],
+    attachments = [],
+    action = 'updated'
+  }) {
+    try {
+      // Input validation
+      if (!toEmail) {
+        throw new Error('Recipient email is required for update email');
+      }
+
+      const actionText = action.charAt(0).toUpperCase() + action.slice(1);
+      const subject = `Proforma Invoice ${actionText} - ${piNo}`;
+
+      // Generate email HTML
+      const htmlContent = this.generateNewPITemplate({
+        piNo,
+        supplierName,
+        supplierPoNo,
+        supplierSoNo,
+        supplierPrice,
+        supplierCurrency,
+        status,
+        paymentMode,
+        purpose,
+        customerName,
+        customerPoNo,
+        customerSoNo,
+        poValue,
+        customerCurrency,
+        poValue,
+        notes,
+        action: 'Payment Request Updated',
+        updatedBy,
+        attachmentsCount: attachments.length,
+      });
+
+      // Prepare mail options
+      const mailOptions = {
+        from: `Aeroassist - ${updatedBy} <${process.env.EMAIL_USER}>`,
+        to: toEmail,
+        cc: ccEmails && ccEmails.length > 0 ? ccEmails.join(',') : undefined,
+        subject: subject,
+        html: htmlContent,
+        attachments: attachments
+      };
+
+      console.log(`Sending ${action} email for PI ${piNo} to ${toEmail} with ${attachments.length} attachments...`);
+      const result = await transporter.sendMail(mailOptions);
+      
+      console.log(`✅ ${actionText} email sent: ${result.messageId}`);
+      
+      return { 
+        success: true, 
+        messageId: result.messageId,
+        attachmentsCount: attachments.length
+      };
+      
+    } catch (error) {
+      console.error(`❌ Failed to send ${action} email:`, error.message);
+      throw new Error(`Failed to send ${action} email: ${error.message}`);
+    }
+  }
+
+
+  /**
+   * Send new PI creation email (for addPIKAM)
+   */
+  async sendNewPIEmail({ 
+    piNo, 
+    supplierName, 
+    supplierPoNo, 
+    supplierSoNo, 
+    supplierPrice,
+    supplierCurrency,
+    status, 
+    paymentMode, 
+    purpose,
+    customerName,
+    customerPoNo,
+    customerSoNo,
+    poValue,
+    customerCurrency,
+    notes,
+    requestedBy,
+    toEmail,
+    ccEmails = [],
+    attachments = []
+  }) {
+    try {
+      const mailOptions = {
+        from: `Aeroassist - ${requestedBy} <${process.env.SMTP_USER}>`,
         to: toEmail,
         cc: ccEmails,
         subject: `New Payment Request Generated - ${piNo} / ${supplierPoNo}`,
@@ -146,9 +285,11 @@ class EmailService {
           customerName,
           customerPoNo,
           customerSoNo,
+          poValue,
           customerCurrency,
           notes,
-          requestedBy
+          requestedBy,
+          action: 'New Payment Request Generated'
         }),
         attachments: attachments
       };
@@ -163,6 +304,8 @@ class EmailService {
       throw new Error(`Failed to send new PI email: ${error.message}`);
     }
   }
+
+  
 
   /**
    * Get notification message for status
@@ -192,12 +335,13 @@ class EmailService {
    * Generate HTML template for new PI creation
    */
   generateNewPITemplate(data) {
-    return this.generateEmailTemplate(data, 'New Payment Request');
+    return this.generateEmailTemplate(data, data.action);
   }
 
   /**
    * Generic HTML email template generator
    */
+  // ${data.requestedBy ? `<p><em>Request Generated By <strong>${data.requestedBy}</strong></em></p>` : ''}
   generateEmailTemplate(data, emailType = 'Proforma Invoice') {
     const isCustomerPurpose = data.purpose && data.purpose.toLowerCase().includes('customer');
     // const statusClass = this.getStatusClass(data.status);
@@ -242,8 +386,6 @@ class EmailService {
             <h2>${emailType}</h2>
           </div>
           <div class="content">
-            ${data.requestedBy ? `<p><em>Request Generated By <strong>${data.requestedBy}</strong></em></p>` : ''}
-            
             <div class="info-item">
               <span class="label">Entry Number:</span>
               <span class="value">${data.piNo}</span>
@@ -707,8 +849,6 @@ class EmailService {
    * Prepare email content for new PI (for addPIKAM)
    */
   async prepareNewPIEmailContent({ supplierId, customerId, urls }) {
-      console.log('prepareNewPIEmailContent called with urls:', urls);
-      
       const [supplier, customer] = await Promise.all([
         Company.findOne({ where: { id: supplierId } }),
         Company.findOne({ where: { id: customerId } })
@@ -716,8 +856,6 @@ class EmailService {
 
       // Prepare attachments from S3 - Pass the urls array directly
       const attachments = await this.getAttachmentsFromS3(urls);
-
-      console.log('Attachments prepared:', attachments.length);
       
       return { 
         supplier, 

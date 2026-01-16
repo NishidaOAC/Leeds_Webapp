@@ -75,6 +75,10 @@ export class InvoiceService {
     return this._http.patch(this.url + '/bankslip/' + id, data);
   }
 
+  updateKAM(data: any, id: number){
+    return this._http.patch(this.url + '/kamupdate/'+ id, data);
+  }
+  
   getPIStatusByPIId(id: number, search: string): Observable<PerformaInvoiceStatus[]>{
     return this._http.get<PerformaInvoiceStatus[]>(this.url + `/invoice-status/findbypi/?search=${search}&id=${id}`);
   }
@@ -83,13 +87,46 @@ export class InvoiceService {
     return this._http.post(this.url + '/invoice/fileupload', formData);
   }
 
+  reportExport(data: any){
+    return this._http.post<any[]>(this.url + '/download-excel', data);
+  }
+
   updatePIStatus(data: any){
     return this._http.post(this.url + '/invoice-status/updatestatus', data);
   }
   
-  updateKAM(data: any, id: number){
-    return this._http.patch(this.url + '/performaInvoice/kamupdate/'+ id, data);
+  updatePIBySE(data: any, id: number){
+    return this._http.patch(this.url + '/updateBySE/'+ id, data);
   }
+
+  updatePIByKAM(data: any, id: number){
+    return this._http.patch(this.url + '/updateByKAM/'+ id, data);
+  }
+
+  updatePIByAM(data: any, id: number){
+    return this._http.patch(this.url + '/updateByAM/'+ id, data);
+  }
+
+  updatePIByAdminSuperAdmin(data: any, id: number){
+    return this._http.patch(this.url + '/updatePIByAdminSuperAdmin/'+ id, data);
+  }
+
+  deleteInvoice(id: number) {
+    return this._http.delete(`${this.url}/${id}`);
+  }
+
+  getAdminReports(data: any){
+    return this._http.patch<any[]>(this.url + '/getforadminreport', data);
+  }
+  
+  getExcelLog(): Observable<any[]>{
+    return this._http.get<any[]>(this.url + '/excelLog/find');
+  }
+
+  deleteExcelLog(id: number){
+    return this._http.delete(this.url + '/excelLog/delete-excel/' + id);
+  }
+
 
 
 }

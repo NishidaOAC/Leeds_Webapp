@@ -482,16 +482,17 @@ exports.getUserById = async (req, res) => {
         id: userId,
         isActive: true
       },
-      attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt', 'updatedAt']
+      attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt', 'updatedAt'],
+      include: { model: Role }
     });
-
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found or inactive'
       });
     }
-
+    console.log(user,"1111111111");
+    
     return res.status(200).json({
       success: true,
       user
@@ -564,15 +565,19 @@ exports.bulkValidateUsers = async (req, res) => {
       where: {
         id: userIds
       },
-      attributes: ['id', 'email', 'name', 'roleId', 'isActive']
+      attributes: ['id', 'email', 'name', 'roleId', 'isActive'],
+      include: {model: Role}
     });
-
+    console.log(users);
+    
     const userMap = users.reduce((acc, user) => {
       acc[user.id] = {
         id: user.id,
         email: user.email,
         name: user.name,
         roleId: user.roleId,
+        roleName: user.Role.roleName,
+        abbreviation: user.Role.abbreviation,
         isActive: user.isActive,
         exists: true
       };

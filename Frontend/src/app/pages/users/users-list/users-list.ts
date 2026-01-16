@@ -62,8 +62,6 @@ export class UsersList {
     this.isLoading = true;
     this.ps.getAllUsers(this.pageIndex, this.pageSize, this.search).subscribe({
       next: (res: any) => {
-        console.log(res);
-        
         this.dataSource1 = res.items;
         this.totalRecords = res.count;
         this.isLoading = false;

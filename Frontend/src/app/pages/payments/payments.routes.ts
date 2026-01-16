@@ -22,4 +22,18 @@ export const routes: Routes = [
             c => c.ViewInvoicesComponent
         )
     },
+    {
+        path: 'edit/:id',
+        loadComponent: () =>
+        import('./add-approval/update-pi/update-pi.component').then(
+            c => c.UpdatePIComponent
+        )
+    },
+    {
+    path: 'report',
+    loadComponent: () =>
+        import('./approval-report/approval-report.component').then(
+        c => c.ApprovalReportComponent
+        )
+    }
 ];

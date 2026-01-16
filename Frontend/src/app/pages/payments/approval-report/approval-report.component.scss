@@ -1,0 +1,725 @@
+/* Main container styling */
+.page-container {
+  padding: 16px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* Invoice Card Styles */
+.invoice-card {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.invoice-card:hover {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Card Header */
+.card-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  font-size: 28px;
+  height: 28px;
+  width: 28px;
+  color: white;
+}
+
+.title-text {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+}
+
+/* Filters Toolbar */
+.filters-toolbar {
+  padding: 24px 24px 0;
+  background: white;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: flex-start; /* Align items at the top */
+}
+
+.filter-col {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Export button column */
+.filter-col-button {
+  flex: 0 0 auto; /* Don't grow, don't shrink */
+  min-width: auto; /* Remove minimum width */
+  display: flex;
+  align-items: flex-end; /* Align button at the bottom */
+}
+
+.button-container {
+  height: 100%;
+  display: flex;
+  align-items: flex-end; /* Align button at the bottom of the container */
+}
+
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  height: 56px; /* Match the height of form fields */
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(63, 81, 181, 0.2);
+}
+
+.export-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+}
+
+.export-icon {
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+}
+
+/* Alternative: If you prefer a smaller button, use this: */
+/* .export-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 48px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(63, 81, 181, 0.2);
+} */
+
+/* Alternative: Icon-only button version */
+/* .export-button-icon-only {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(63, 81, 181, 0.2);
+}
+
+.export-button-icon-only .export-icon {
+  margin: 0;
+} */
+
+/* Form field styling */
+mat-form-field.full-width {
+  width: 100%;
+}
+
+mat-form-field.mat-form-field-appearance-outline .mat-form-field-wrapper {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .filter-col {
+    min-width: 180px;
+  }
+  
+  .filter-col-button {
+    flex: 1 1 100%; /* On medium screens, take full width */
+    margin-top: 8px;
+  }
+  
+  .button-container {
+    justify-content: flex-end; /* Align button to the right */
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-toolbar {
+    padding: 16px 16px 0;
+  }
+  
+  .filter-col {
+    min-width: 100%;
+  }
+  
+  .filter-col-button {
+    flex: 1 1 100%;
+    margin-top: 8px;
+  }
+  
+  .button-container {
+    justify-content: center; /* Center button on mobile */
+  }
+  
+  .export-button {
+    width: 100%; /* Full width button on mobile */
+    justify-content: center;
+  }
+}
+
+/* If you want the button aligned exactly with the bottom of form fields */
+mat-form-field.mat-form-field-appearance-outline .mat-form-field-infix {
+  padding: 12px 0;
+  border-top: 0;
+}
+
+mat-form-field.mat-form-field-appearance-outline .mat-form-field-flex {
+  height: 56px; /* Set consistent height */
+  align-items: center;
+}
+
+/* Export button */
+.export-btn {
+  width: 48px;
+  height: 48px;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Table Section */
+.table-section {
+  padding: 0 24px 24px;
+  position: relative;
+  min-height: 400px;
+}
+
+/* Loader */
+.loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border-radius: 8px;
+}
+
+.loader-container {
+  text-align: center;
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Table Container */
+.table-container {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  background: white;
+  margin-bottom: 16px;
+}
+
+.invoices-table {
+  width: 100%;
+  background: transparent;
+}
+
+/* Table Headers */
+.table-header {
+  background: #f5f7fa;
+  padding: 16px;
+  font-weight: 600;
+  color: #37474f;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.sort-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  color: #9e9e9e;
+  margin-left: 4px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Table Rows */
+.table-row {
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.table-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* Table Cells */
+.table-cell {
+  padding: 16px;
+  font-size: 14px;
+  color: #424242;
+  vertical-align: middle;
+}
+
+/* Invoice No Cell */
+.invoice-no-cell {
+  font-weight: 600;
+}
+
+.invoice-no-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invoice-icon {
+  color: #3f51b5;
+  font-size: 20px;
+}
+
+.invoice-no {
+  color: #2196f3;
+}
+
+/* User Cell Styles */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0e0e0;
+}
+
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Status Cell */
+.status-cell {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.status-icon {
+  font-size: 14px;
+  height: 14px;
+  width: 14px;
+}
+
+/* Status Colors - Add these to your component TypeScript */
+.status-generated {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-kam-verified,
+.status-am-verified {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-kam-rejected,
+.status-am-rejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-bank-slip-issued {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+/* No Data Row */
+.no-data-row {
+  height: 200px;
+}
+
+.no-data-cell {
+  text-align: center;
+}
+
+.no-data-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #9e9e9e;
+  padding: 48px 0;
+}
+
+.no-data-content mat-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+  opacity: 0.5;
+}
+
+.no-data-content p {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Total Count Container */
+.total-count-container {
+  margin-bottom: 24px;
+}
+
+.total-count-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.total-count-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.total-count-icon {
+  font-size: 36px;
+  height: 36px;
+  width: 36px;
+}
+
+.total-count-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.total-count-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.total-count-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* Paginator */
+.paginator-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.custom-paginator {
+  border-radius: 8px;
+  background: #f8f9fa;
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.custom-paginator ::ng-deep .mat-paginator-container {
+  justify-content: center;
+}
+
+/* Divider */
+mat-divider {
+  margin: 24px 0;
+  border-top-color: #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 8px;
+  }
+  
+  .card-header {
+    padding: 16px;
+  }
+  
+  .title-text {
+    font-size: 20px;
+  }
+  
+  .filters-toolbar {
+    padding: 16px 16px 0;
+  }
+  
+  .table-section {
+    padding: 0 16px 16px;
+  }
+  
+  .filter-col {
+    min-width: 100%;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .invoices-table {
+    min-width: 600px;
+  }
+  
+  .table-cell {
+    padding: 12px;
+  }
+  
+  .total-count-card {
+    padding: 16px;
+  }
+  
+  .total-count-value {
+    font-size: 24px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-row {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .page-container {
+    background-color: #121212;
+  }
+  
+  .invoice-card {
+    background: #1e1e1e;
+    color: #ffffff;
+  }
+  
+  .table-container {
+    background: #2d2d2d;
+    border-color: #444;
+  }
+  
+  .table-header {
+    background: #2d2d2d;
+    color: #ffffff;
+    border-bottom-color: #444;
+  }
+  
+  .table-row:hover {
+    background-color: #3d3d3d;
+  }
+  
+  .user-name, .invoice-no {
+    color: #ffffff;
+  }
+  
+  .status-generated {
+    background: #0d47a1;
+    color: #bbdefb;
+  }
+  
+  .status-kam-verified,
+  .status-am-verified {
+    background: #1b5e20;
+    color: #a5d6a7;
+  }
+  
+  .status-kam-rejected,
+  .status-am-rejected {
+    background: #c62828;
+    color: #ffcdd2;
+  }
+  
+  .status-bank-slip-issued {
+    background: #4a148c;
+    color: #e1bee7;
+  }
+  
+  mat-form-field .mat-input-element {
+    color: #ffffff !important;
+  }
+}
+
+/* Avatar colors based on role */
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  border: 2px solid #e0e0e0;
+}
+
+.avatar-placeholder.sales-executive {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.avatar-placeholder.kam {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+.avatar-placeholder.manager {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  color: #333;
+}
+
+.avatar-placeholder.accountant {
+  background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+}
+
+/* User info styles */
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-role {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* No accountant assigned */
+.no-accountant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9e9e9e;
+  font-size: 13px;
+}
+
+.no-accountant mat-icon {
+  font-size: 20px;
+  color: #bdbdbd;
+}
+
+/* Status badge improvements */
+.status-text {
+  font-size: 11px;
+}
+
+.status-count {
+  font-size: 10px;
+  opacity: 0.8;
+  margin-left: 2px;
+}
+
+.status-payment-success {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #2e7d32;
+}
+
+/* Invoice details */
+.invoice-no-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invoice-icon {
+  color: #3f51b5;
+  font-size: 20px;
+}
+
+.invoice-no {
+  color: #2196f3;
+  font-weight: 600;
+  font-size: 14px;
+}

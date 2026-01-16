@@ -24,6 +24,8 @@ router.post('/saveByAM', authenticateToken, controller.addPIAM);
 
 router.get('/findbysp', authenticateToken, controller.getSalesTeamPIs);
 
+router.get('/report/sales-team', authenticateToken, controller.getSalesTeamPIReport);
+
 router.get('/findbkam', authenticateToken, controller.getKAMPIs)
 
 router.get('/findbyam', authenticateToken, controller.getAMPIs )
@@ -34,5 +36,22 @@ router.get('/findbyadmin', authenticateToken, controller.getPIByAdmin );
 
 router.get('/findbyid/:id', authenticateToken, controller.findPIById )
 
-router.patch('/bankslip/:id', authenticateToken, )
+router.patch('/bankslip/:id', authenticateToken, controller.addBankSlip )
+
+
+router.patch('/updateBySE/:id', authenticateToken, controller.updatePIBySE );
+
+router.patch('/updateByKAM/:id', authenticateToken, controller.updatePIKAM);
+
+router.patch('/updateByAM/:id', authenticateToken, controller.updatePIAM);
+
+router.delete('/:id', authenticateToken, controller.deleteInvoice)
+// Modified route handler with alternative approach
+router.patch('/getforadminreport', authenticateToken, controller.getAdminReports);
+
+router.patch('/kamupdate/:id', authenticateToken, controller.updateKAM );
+
+router.post('/download-excel', authenticateToken, controller.downloadExcel);
+
+// router.patch('/updatePIByAdminSuperAdmin/:id', authenticateToken, );
 module.exports = router;

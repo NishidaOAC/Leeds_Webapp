@@ -5,23 +5,26 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
+const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+const INVOICE_URL = process.env.INVOICE_SERVICE_URL || 'http://localhost:3002';
+const FILE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3003';
 app.use((req, res, next) => {
   console.log('GATEWAY HIT:', req.method, req.url);
   next();
 });
-app.use('/api/auth', createProxyMiddleware({ target: 'http://localhost:3001',  changeOrigin: true,
+app.use('/api/auth', createProxyMiddleware({ target: AUTH_URL,  changeOrigin: true,
     pathRewrite: {
       '^/api/auth': ''   // 🔥 REQUIRED
     }, timeout: 30000, proxyTimeout: 30000
   })
 );
-app.use('/api/payments', createProxyMiddleware({ target: 'http://localhost:3005',  changeOrigin: true,
+app.use('/api/payments', createProxyMiddleware({ target: INVOICE_URL,  changeOrigin: true,
     pathRewrite: {
       '^/api/payments': ''   // 🔥 REQUIRED
     }, timeout: 30000, proxyTimeout: 30000
   })
 );
-app.use('/api/file', createProxyMiddleware({ target: 'http://localhost:3003',  changeOrigin: true,
+app.use('/api/file', createProxyMiddleware({ target: FILE_URL,  changeOrigin: true,
     pathRewrite: {
       '^/api/file': ''   // 🔥 REQUIRED
     }, timeout: 30000, proxyTimeout: 30000

@@ -3,10 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "auth": "nodemon auth-service/index.js",
-    "payments": "nodemon invoice-service/index.js",
-    "gateway": "nodemon index.js",
-    "start:all": "concurrently -k \"npm run auth\" \"npm run payments\" \"npm run gateway\""
+    "dev": "node index.js",
+    "start": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",

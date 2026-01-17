@@ -5,116 +5,11 @@ const { Op } = require('sequelize');
 const { sequelize } = require('../config/database');
 const { findUsersByIds, getAllowedUserIdsForUser, getTeamUsers } = require('../utils/userFinder');
 const { getUserById } = require('../utils/userFinder');
-const nodemailer = require('nodemailer');
 const emailService = require('../services/emailService');
 const notificationService = require('../services/notificationService');
 const XLSX = require('xlsx');
-const ExcelJS = require('exceljs');
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    }
-});
+// Removed unused nodemailer/ExcelJS and legacy email signature helpers
 
-const getEmailSignature = async (userId, userName) => {
-    const roleId = await UserPosition.findOne({ where: { userId } });
-    const role = await Designation.findByPk(roleId?.designationId);
-    const designation = role ? role.designationName : 'Employee';
-
-    return `
-    <br><br>
-    Regards,
-    <table style="width:28%; font-family: Arial, sans-serif; font-size: 14px;">
-      <tr>
-          <td style="padding-right: 5px; padding-top: 25px; vertical-align: top;">
-              <img src="https://approval-management-data-s3.s3.ap-south-1.amazonaws.com/images/leeds_logo.png" alt="LEEDS Aerospace Logo" style="width: 180px;">
-              <p style="font-size: 8px; font-weight: bold; margin-top: 10px;padding-left: 0; font-style: italic; padding-right: 0;">
-                  ASA-100 & ISO 9001:2015 accredited<br>
-                  Compliant with FAA Advisory Circular 00-56B
-              </p>
-          </td>
-          <td style="border-left: 2px solid #e00d0d; padding-left: 10px; vertical-align: top;">
-              <strong style="font-size: 16px; color: #e00d0d;"> ${userName}</strong><br>
-              <a style="font-size: 12px;"> ${designation}</a>
-              <hr style="border: 1px solid black; margin: 5px 0;">
-             
-              <table style="font-size: 14px;">
-                  <tr>
-                      <td style="vertical-align: top;">
-                          <img src="https://img.icons8.com/material-outlined/24/000000/phone.png" style="vertical-align: middle; width: 15px;" alt="Phone Logo">
-                      </td>
-                      <td style="padding-left: 5px; font-size: 12px;">
-                          +971 42 325 872
-                      </td>
-                  </tr>
-                  <tr>
-                      <td style="vertical-align: top;">
-                          <img src="https://img.icons8.com/material-outlined/24/000000/email.png" style="vertical-align: middle; width: 15px;">
-                      </td>
-                      <td style="padding-left: 5px; ; font-size: 12px;">
-                          <a href="mailto:sales@leedsaerospace.com" style="color: black; text-decoration: none;">sales@leedsaerospace.com</a>
-                      </td>
-                  </tr>
-                  <tr>
-                      <td style="vertical-align: center;">
-                          <img src="https://img.icons8.com/material-outlined/24/000000/internet.png" style="vertical-align: middle;  width: 15px;">
-                      </td>
-                      <td style="padding-left: 5px; ; font-size: 12px;">
-                          <a href="https://www.leedsaerospace.com" style="color: black; text-decoration: none;">www.leedsaerospace.com</a>
-                      </td>
-                  </tr>
-                  <tr>
-                      <td style="vertical-align: center;">
-                          <img src="https://img.icons8.com/material-outlined/24/000000/marker.png" style="vertical-align: middle; padding-top: 5px;  width: 15px;">
-                      </td>
-                      <td style="padding-left: 5px; font-size: 11px; ">
-                          Premise#S202/06, ASC, MBRAH,
-                          Near Al Maktoum Airport,
-                          Dubai South, UAE
-                      </td>
-                  </tr>
-              </table>
-          </td>
-      </tr>
-      <tr>
-          <td colspan="2" style="font-size: 9px; color: #666; padding-top: 5px; text-align: justify;">
-              <div style="width: 100%;">
-                  <p>
-                      The content of this email is confidential and intended for the recipient specified in the message only. 
-                      It is strictly forbidden to share any part of this message with any third party without written consent 
-                      of the sender. If you received this message by mistake, please reply to this message and follow with its deletion, 
-                      so that we can ensure such a mistake does not occur in the future.
-                  </p>
-              </div>
-          </td>
-      </tr>
-    </table>`;
-};
-
-async function findFinanceMail() {
-    try {
-        const userPositions = await UserPosition.findAll({
-            include: [{
-                model: Designation,
-                where: { designationName: 'FINANCE MANAGER' },
-                attributes: []
-            }],
-            attributes: ['projectMailId']
-        });
-
-        if (!userPositions || userPositions.length === 0) {
-            return null;
-        }
-
-        return userPositions.map(user => user.projectMailId);
-
-    } catch (error) {
-        console.error("Error fetching finance manager emails:", error);
-        return null;
-    }
-}
 
 exports.dashboardCreditCard = async (req, res) => {
   try {
@@ -973,7 +868,6 @@ exports.addPIKAM = async (req, res) => {
 };
 
 exports.updatePIKAM = async (req, res) => {
-    const emailSignature = await getEmailSignature(req.user.id, req.user.name);
     
     let { 
         url, 
@@ -3390,10 +3284,7 @@ exports.updateKAM = async (req, res) => {
             return res.send('Please select Key Account Manager and proceed');
         }
 
-        // const kam = await UserPosition.findOne({
-        //     where: { userId: kamId },
-        //     include: [{ model: User, attributes: ['name'] }]
-        // });
+        // Legacy UserPosition lookup removed in favour of auth-service user API
 
         // if (!kam?.projectMailId) {
         //     return res.send("KAM project email is missing. Please inform the admin to add it.");

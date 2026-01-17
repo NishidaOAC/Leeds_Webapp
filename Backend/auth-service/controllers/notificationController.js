@@ -1,4 +1,4 @@
-const Notification = require('../models/Notification');
+const Notification = require('../models/notification');
 
 class NotificationController {
     // Create a new notification

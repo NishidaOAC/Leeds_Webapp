@@ -43,7 +43,7 @@ const initialize = async () => {
         await Role.bulkCreate(roleData);
     }
 };
-Role.sync({ force: true })
+Role.sync({ alter: true })
 .then(initialize)
 .catch(console.error);
 

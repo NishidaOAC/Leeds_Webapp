@@ -4,7 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: '*' }));
 const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 const INVOICE_URL = process.env.INVOICE_SERVICE_URL || 'http://localhost:3002';
 const FILE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3003';

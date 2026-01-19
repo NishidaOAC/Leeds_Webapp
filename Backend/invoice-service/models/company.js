@@ -25,11 +25,4 @@ const Company = sequelize.define('company',{
     freezeTableName: true,
     timestamps : true
 })
-
-Company.sync({ alter: true }).then(() => {
-    console.log('Tables synced successfully.');
-}).catch(err => {
-    console.error('Error syncing tables:', err);
-});
-
 module.exports = Company;

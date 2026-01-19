@@ -26,20 +26,28 @@ exports.dashboardCreditCard = async (req, res) => {
       req.query.pageSize !== 'undefined' &&
       req.query.page !== 'undefined'
     ) {
-      limit = parseInt(req.query.pageSize, 10);
-      offset = (parseInt(req.query.page, 10) - 1) * limit;
+        const page = Number(req.query.page);
+        const pageSize = Number(req.query.pageSize);
+
+        const limit =
+          Number.isInteger(pageSize) && pageSize > 0 ? pageSize : null;
+
+        const offset =
+          limit && Number.isInteger(page) && page > 0
+            ? (page - 1) * limit
+            : null;
     }
 
     // 1️⃣ Fetch invoices
-    const invoices = await PerformaInvoice.findAll({
-      where,
-      limit,
-      offset,
-      order: [['id', 'DESC']],
-      include: [{ model: PerformaInvoiceStatus }]
-    });
-
-    const totalCount = await PerformaInvoice.count({ where });
+    const { rows: invoices, count: totalCount } =
+      await PerformaInvoice.findAndCountAll({
+        where,
+        limit,
+        offset,
+        order: [['id', 'DESC']],
+        include: [{ model: PerformaInvoiceStatus }],
+        distinct: true
+      });
 
     // 2️⃣ Collect unique userIds
     const userIds = [
@@ -102,20 +110,28 @@ exports.dashboardWireTransfer = async (req, res) => {
       req.query.pageSize !== 'undefined' &&
       req.query.page !== 'undefined'
     ) {
-      limit = parseInt(req.query.pageSize, 10);
-      offset = (parseInt(req.query.page, 10) - 1) * limit;
+        const page = Number(req.query.page);
+        const pageSize = Number(req.query.pageSize);
+
+        const limit =
+          Number.isInteger(pageSize) && pageSize > 0 ? pageSize : null;
+
+        const offset =
+          limit && Number.isInteger(page) && page > 0
+            ? (page - 1) * limit
+            : null;
     }
 
     // 1️⃣ Fetch invoices (NO User includes)
-    const invoices = await PerformaInvoice.findAll({
-      where,
-      limit,
-      offset,
-      order: [['id', 'DESC']],
-      include: [{ model: PerformaInvoiceStatus }]
-    });
-
-    const totalCount = await PerformaInvoice.count({ where });
+    const { rows: invoices, count: totalCount } =
+      await PerformaInvoice.findAndCountAll({
+        where,
+        limit,
+        offset,
+        order: [['id', 'DESC']],
+        include: [{ model: PerformaInvoiceStatus }],
+        distinct: true
+      });
 
     // 2️⃣ Collect unique userIds
     const userIds = [

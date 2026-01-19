@@ -7,8 +7,6 @@ const { findUsersByIds, getAllowedUserIdsForUser, getTeamUsers } = require('../u
 const { getUserById } = require('../utils/userFinder');
 const emailService = require('../services/emailService');
 const notificationService = require('../services/notificationService');
-const XLSX = require('xlsx');
-const ExcelJS = require('exceljs');
 // Removed unused nodemailer/ExcelJS and legacy email signature helpers
 
 

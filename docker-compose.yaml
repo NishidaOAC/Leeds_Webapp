@@ -1,35 +1,19 @@
-version: "3.8"
-
 services:
   api-gateway:
-    image: node:18-alpine
+    build: ./Backend
     container_name: api-gateway
-    working_dir: /app
-    volumes:
-      - ./Backend:/app
-    command: sh -c "npm install && node index.js"
     ports:
       - "3000:3000"
     env_file:
       - ./Backend/.env
-    environment:
-      AUTH_SERVICE_URL: http://auth-service:3001
-      INVOICE_SERVICE_URL: http://invoice-service:3002
-      FILE_SERVICE_URL: http://file-service:3003
     depends_on:
       - auth-service
       - invoice-service
       - file-service
-      - rabbitmq
-      - redis
 
   auth-service:
-    image: node:18-alpine
+    build: ./Backend/auth-service
     container_name: auth-service
-    working_dir: /app
-    volumes:
-      - ./Backend/auth-service:/app
-    command: sh -c "npm install && node index.js"
     ports:
       - "3001:3001"
     env_file:
@@ -37,20 +21,12 @@ services:
     environment:
       DB_HOST: postgres-auth
       DB_PORT: 5432
-      REDIS_HOST: redis
-      RABBITMQ_HOST: rabbitmq
     depends_on:
       - postgres-auth
-      - rabbitmq
-      - redis
 
   invoice-service:
-    image: node:18-alpine
+    build: ./Backend/invoice-service
     container_name: invoice-service
-    working_dir: /app
-    volumes:
-      - ./Backend/invoice-service:/app
-    command: sh -c "npm install && node index.js"
     ports:
       - "3002:3002"
     env_file:
@@ -58,22 +34,12 @@ services:
     environment:
       DB_HOST: postgres-invoice
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://auth-service:3001
-      FILE_SERVICE_URL: http://file-service:3003
-      REDIS_HOST: redis
-      RABBITMQ_HOST: rabbitmq
     depends_on:
       - postgres-invoice
-      - rabbitmq
-      - redis
 
   file-service:
-    image: node:18-alpine
+    build: ./Backend/file-service
     container_name: file-service
-    working_dir: /app
-    volumes:
-      - ./Backend/file-service:/app
-    command: sh -c "npm install && node index.js"
     ports:
       - "3003:3003"
     env_file:
@@ -81,17 +47,11 @@ services:
     environment:
       DB_HOST: postgres-file
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://auth-service:3001
-      REDIS_HOST: redis
-      RABBITMQ_HOST: rabbitmq
     depends_on:
       - postgres-file
-      - rabbitmq
-      - redis
 
   postgres-auth:
     image: postgres:15
-    container_name: postgres-auth
     environment:
       POSTGRES_DB: leeds_payment_auth_db
       POSTGRES_USER: oac_softwares
@@ -101,7 +61,6 @@ services:
 
   postgres-invoice:
     image: postgres:15
-    container_name: postgres-invoice
     environment:
       POSTGRES_DB: leeds_payment_invoice_db
       POSTGRES_USER: oac_softwares
@@ -111,7 +70,6 @@ services:
 
   postgres-file:
     image: postgres:15
-    container_name: postgres-file
     environment:
       POSTGRES_DB: leeds_payment_file_db
       POSTGRES_USER: oac_softwares
@@ -121,14 +79,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
 
   redis:
     image: redis:7
-    container_name: redis
     ports:
       - "6379:6379"
 

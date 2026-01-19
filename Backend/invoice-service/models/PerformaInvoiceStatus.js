@@ -10,7 +10,7 @@ const PerformaInvoiceStatus = sequelize.define('PerformaInvoiceStatus', {
   changedBy: DataTypes.INTEGER,
 });
 
-PerformaInvoiceStatus.sync({ force: true }).then(() => {
+PerformaInvoiceStatus.sync({ alter: true }).then(() => {
     console.log('Tables synced successfully.');
 }).catch(err => {
     console.error('Error syncing tables:', err);

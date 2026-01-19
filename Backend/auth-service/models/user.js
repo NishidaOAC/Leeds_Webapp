@@ -188,7 +188,7 @@ const initializeSystem = async () => {
 };
 
 
-User.sync({ force: true })
+User.sync({ alter: true })
 .then(initializeSystem)
 .catch(console.error);
 

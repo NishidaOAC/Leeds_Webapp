@@ -26,7 +26,7 @@ const Company = sequelize.define('company',{
     timestamps : true
 })
 
-Company.sync({ force: true }).then(() => {
+Company.sync({ alter: true }).then(() => {
     console.log('Tables synced successfully.');
 }).catch(err => {
     console.error('Error syncing tables:', err);

@@ -22,7 +22,7 @@ const sendApprovalRequestEmail = async ({
   dashboardLink
 }) => {
   const mailOptions = {
-    from: `"AeroAssist Fintech" <${process.env.SMTP_FROM}>`,
+    from: `"AeroAssist" <>`,
     to,
     subject: 'New User Registration Requires Approval',
     html: `
@@ -76,7 +76,7 @@ const sendApprovalRequestEmail = async ({
 
 const sendUserConfirmationEmail = async ({ to, userName, adminEmail }) => {
   const mailOptions = {
-    from: `"AeroAssist Fintech" <${process.env.SMTP_FROM}>`,
+    from: `"AeroAssist" <>`,
     to,
     subject: 'Registration Received - Pending Approval',
     html: `

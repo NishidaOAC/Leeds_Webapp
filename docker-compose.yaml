@@ -6,6 +6,10 @@ services:
       - "3000:3000"
     env_file:
       - ./Backend/.env
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:3001
+      INVOICE_SERVICE_URL: http://invoice-service:3002
+      FILE_SERVICE_URL: http://file-service:3003
     depends_on:
       - auth-service
       - invoice-service
@@ -34,6 +38,8 @@ services:
     environment:
       DB_HOST: postgres-invoice
       DB_PORT: 5432
+      AUTH_SERVICE_URL: http://auth-service:3001
+      FILE_SERVICE_URL: http://file-service:3003
     depends_on:
       - postgres-invoice
 

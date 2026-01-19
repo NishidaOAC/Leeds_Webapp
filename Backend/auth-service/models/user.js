@@ -22,55 +22,44 @@ const User = sequelize.define('user', {
   },
   empNo: {
     type: DataTypes.STRING,
-    unique: true,
-    field: 'emp_no'
+    unique: true
   },
   roleId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 1,
-    field: 'role_id'
+    defaultValue: 1
   },
   isActive: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false, // Default to false for new registrations
-    field: 'is_active'
+    defaultValue: false,
   },
   status: {
     type: DataTypes.ENUM('pending_approval', 'approved', 'rejected', 'suspended'),
-    defaultValue: 'pending_approval',
-    field: 'status'
+    defaultValue: 'pending_approval'
   },
   approvedBy: {
     type: DataTypes.INTEGER,
-    field: 'approved_by',
     allowNull: true
   },
   approvedAt: {
     type: DataTypes.DATE,
-    field: 'approved_at',
     allowNull: true
   },
   lastLogin: {
-    type: DataTypes.DATE,
-    field: 'last_login'
+    type: DataTypes.DATE
   },
   failedLoginAttempts: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,
-    field: 'failed_login_attempts'
+    defaultValue: 0
   },
   passwordChangedAt: {
-    type: DataTypes.DATE,
-    field: 'password_changed_at'
+    type: DataTypes.DATE
   },
   resetPasswordToken: {
-    type: DataTypes.STRING,
-    field: 'reset_password_token'
+    type: DataTypes.STRING
   },
   resetPasswordExpires: {
-    type: DataTypes.DATE,
-    field: 'reset_password_expires'
+    type: DataTypes.DATE
   }
 }, {
   // ... rest of the model configuration

@@ -37,7 +37,7 @@ services:
     depends_on:
       - postgres-invoice
 
-  file-service:
+  file-service:                      # ✅ MOVED INSIDE services
     build: ./Backend/file-service
     container_name: file-service
     ports:
@@ -47,8 +47,13 @@ services:
     environment:
       DB_HOST: postgres-file
       DB_PORT: 5432
+      AUTH_SERVICE_URL: http://auth-service:3001
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
     depends_on:
       - postgres-file
+      - rabbitmq
+      - redis
 
   postgres-auth:
     image: postgres:15

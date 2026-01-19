@@ -1,5 +1,4 @@
 const { sequelize } = require('../config/database');
-const User = require('../../auth-service/models/user');
 const PerformaInvoice = require('./PerformaInvoice');
 const PerformaInvoiceStatus = require('./PerformaInvoiceStatus');
 const Company = require('./company');

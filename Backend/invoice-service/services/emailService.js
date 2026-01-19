@@ -787,7 +787,7 @@ class EmailService {
       }
 
       const response = await axios.post(
-        `${process.env.AUTH_SERVICE_URL}/api/users/bulk`,
+        `${process.env.AUTH_SERVICE_URL}/users/bulk-validate`,
         { userIds },
         {
           headers,

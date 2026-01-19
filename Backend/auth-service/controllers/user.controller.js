@@ -8,10 +8,8 @@ const jwt = require('jsonwebtoken');
 exports.getByRolename = async (req, res) => {
   try {
     const users = await User.findAll({
-      include: { model: Role, where: [{ role_name: req.params.roleName} ] }
+      include: { model: Role, where: [{ roleName: req.params.roleName} ] }
     });
-    console.log(users,"11111111111111");
-    
     res.send(users);
   } catch (error) {
     res.send(error.message );

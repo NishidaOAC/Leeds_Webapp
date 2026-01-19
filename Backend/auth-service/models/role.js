@@ -30,19 +30,4 @@ const Role = sequelize.define('Role', {
   updatedAt: 'updated_at'
 });
 
-const roleData =[ 
-    {roleName : 'Super Administrator', abbreviation: 'SA'},
-    {roleName : 'Administrator', abbreviation: 'A'}
-]
-
-const initialize = async () => {
-    const role = await Role.findAll();
-    if (!role.length) {
-        await Role.bulkCreate(roleData);
-    }
-};
-Role.sync({ alter: true })
-.then(initialize)
-.catch(console.error);
-
 module.exports = Role;

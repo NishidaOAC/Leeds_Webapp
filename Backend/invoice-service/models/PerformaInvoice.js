@@ -31,10 +31,4 @@ const PerformaInvoice = sequelize.define('PerformaInvoice',{
     notes:  { type: DataTypes.TEXT }
 })
 
-PerformaInvoice.sync({ alter: true }).then(() => {
-    console.log('Tables synced successfully.');
-}).catch(err => {
-    console.error('Error syncing tables:', err);
-});
-
 module.exports = PerformaInvoice;

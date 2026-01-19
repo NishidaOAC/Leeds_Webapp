@@ -10,7 +10,7 @@ const notRoutes = require('./routes/notificationRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const { sequelize, testConnection } = require('./config/database');
 const { publishEvent } = require('./utils/eventPublisher');
-
+const initializeSystem = require('./models/initializeSystem');
 // Initialize logger
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -106,7 +106,8 @@ async function startServer() {
     }
 
     // Sync database models
-    // await sequelize.sync({ alter: true });
+    await sequelize.sync();
+    await initializeSystem();
     logger.info('Database models synchronized');
 
     // Connect to RabbitMQ

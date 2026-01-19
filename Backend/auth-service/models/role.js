@@ -5,8 +5,7 @@ const Role = sequelize.define('Role', {
   roleName: {
     type: DataTypes.STRING,
     unique: true,
-    allowNull: false,
-    field: 'role_name'
+    allowNull: false
   },  
   abbreviation: {
     type: DataTypes.STRING,
@@ -22,8 +21,7 @@ const Role = sequelize.define('Role', {
   },
   isActive: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true,
-    field: 'is_active'
+    defaultValue: true
   }
 }, {
   tableName: 'roles',

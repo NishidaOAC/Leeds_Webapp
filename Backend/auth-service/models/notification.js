@@ -8,11 +8,7 @@ const User = require('./user')
 const Notification = sequelize.define('notification', {
     userId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: User, 
-            key: 'id',
-        },
+        allowNull: false
     },
     message: {
         type: DataTypes.TEXT,

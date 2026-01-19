@@ -27,7 +27,7 @@ const TeamMember = sequelize.define(
   { freezeTableName: true }
 );
 
-Team.sync({ force: true })
+Team.sync({ alter: true })
   .then(() => {
     console.log('Team table synced successfully.');
   })

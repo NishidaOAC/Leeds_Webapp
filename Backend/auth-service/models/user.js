@@ -21,8 +21,7 @@ const User = sequelize.define('user', {
     allowNull: false
   },
   empNo: {
-    type: DataTypes.STRING,
-    unique: true
+    type: DataTypes.STRING
   },
   roleId: {
     type: DataTypes.INTEGER,

@@ -53,7 +53,7 @@ exports.getAllUsers = async (req, res) => {
     // Fetch paginated data
     const users = await User.findAll({
       where: whereClause,
-      order: [['id']],
+      order: [['empNo']],
       include: [
         { model: Role, attributes: ['id', 'roleName'] }
       ],
@@ -96,18 +96,13 @@ exports.addUser = async (req, res) => {
   try {
     // FIXED: Use Op.or for OR logic instead of AND
     const userExist = await User.findOne({
-      where: { 
-        [Op.or]: [
-          { email: email },
-          { empNo: empNo }
-        ]
-      }
+      where: { empNo: empNo }
     });
     
     if (userExist) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email or employee number'
+        message: 'User already exists with this employee number'
       });
     }
 
@@ -247,21 +242,21 @@ exports.updateUser = async (req, res) => {
     }
 
     // Check if email or empNo is being changed and if they already exist (excluding current user)
-    if (email && email !== user.email) {
-      const emailExists = await User.findOne({
-        where: {
-          email: email,
-          id: { [Op.ne]: id } // Exclude current user
-        }
-      });
+    // if (email && email !== user.email) {
+    //   const emailExists = await User.findOne({
+    //     where: {
+    //       email: email,
+    //       id: { [Op.ne]: id } // Exclude current user
+    //     }
+    //   });
       
-      if (emailExists) {
-        return res.status(400).json({
-          success: false,
-          message: 'Another user already exists with this email'
-        });
-      }
-    }
+    //   if (emailExists) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: 'Another user already exists with this email'
+    //     });
+    //   }
+    // }
 
     // Prepare update data
     const updateData = {

@@ -233,7 +233,7 @@ exports.addUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
-  const { name, email, roleId, status, isActive } = req.body;
+  const { name, email, roleId, status, isActive, empNo } = req.body;
 
   try {
     // Find the user to update
@@ -269,7 +269,8 @@ exports.updateUser = async (req, res) => {
       email: email !== undefined ? email : user.email,
       roleId: roleId !== undefined ? roleId : user.roleId,
       status: status !== undefined ? status : user.status,
-      isActive: isActive !== undefined ? isActive : user.isActive
+      isActive: isActive !== undefined ? isActive : user.isActive,
+      empNo: empNo !== undefined ? empNo : user.empNo
     };
 
     // Handle approval logic

@@ -6,7 +6,6 @@ const Role = require('./role');
 const User = sequelize.define('user', { 
   email: { 
     type: DataTypes.STRING,
-    unique: true,
     allowNull: false,
     validate: {
       isEmail: true
@@ -21,7 +20,8 @@ const User = sequelize.define('user', {
     allowNull: false
   },
   empNo: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    unique: true
   },
   roleId: {
     type: DataTypes.INTEGER,

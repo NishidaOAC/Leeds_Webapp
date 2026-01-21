@@ -75,7 +75,7 @@
                           mat-raised-button 
                           class="approve-button"
                           [disabled]="
-                            (data.roleName === 'Key Account Manager' && invoice.status === 'KAM VERIFIED') ||
+                            (data.roleName === 'KAM' && invoice.status === 'KAM VERIFIED') ||
                             (data.roleName === 'Manager' && invoice.status === 'AM VERIFIED')
                           "
                           (click)="verified('approved', invoice.piNo, invoice.salesPerson?.name, invoice.id, invoice.status)"
@@ -86,7 +86,7 @@
                           mat-raised-button 
                           class="reject-button"
                           [disabled]="
-                            (data.roleName === 'Key Account Manager' && invoice.status === 'KAM REJECTED') ||
+                            (data.roleName === 'KAM' && invoice.status === 'KAM REJECTED') ||
                             (data.roleName === 'Manager' && invoice.status === 'AM REJECTED')
                           "
                           (click)="verified('rejected', invoice.piNo, invoice.addedBy.name, invoice.id, invoice.status)"

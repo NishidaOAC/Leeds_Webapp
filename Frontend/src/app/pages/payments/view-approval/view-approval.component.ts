@@ -95,9 +95,7 @@ export class ViewApprovalComponent {
     this.submittingForm = true;
     if (this.data.roleName === 'SalesExecutive') {
       apiCall = this.invoiceService.getPIBySP(this.data.status, this.filterValue, this.currentPage, this.pageSize);
-    } else if (this.data.roleName === 'Team Lead') {
-      apiCall = this.invoiceService.getPIBySP(this.data.status, this.filterValue, this.currentPage, this.pageSize);
-    } else if (this.data.roleName === 'Key Account Manager') {
+    } else if (this.data.roleName === 'KAM') {
       if (Array.isArray(this.data.status)) {
         const statusArray = this.data.status;
         const allInvoices: any[] = [];
@@ -106,8 +104,6 @@ export class ViewApprovalComponent {
         statusArray.forEach((status: any )=> {
           this.invoiceService.getPIByKAM(status, this.filterValue, this.currentPage, this.pageSize)
             .subscribe((res: any) => {
-              console.log(res);
-              
               allInvoices.push(...res.items);
               this.totalItems = (this.totalItems || 0) + res.count;
               completedCalls++;
@@ -154,7 +150,7 @@ export class ViewApprovalComponent {
     } else if (this.data.roleName === 'Accountant') {
       this.pageStatus = false
       apiCall = this.invoiceService.getPIByMA(this.data.status, this.filterValue, this.currentPage, this.pageSize);
-    } else if (this.data.roleName === 'Administrator' || this.data.roleName === 'Super Administrator') {
+    } else if (this.data.roleName === 'Admin' || this.data.roleName === 'Super Administrator') {
       apiCall = this.invoiceService.getPIByAdmin(this.data.status, this.filterValue, this.currentPage, this.pageSize);
     }
 
@@ -263,8 +259,6 @@ export class ViewApprovalComponent {
   deleteFunction(invoice: PerformaInvoice){
     if (confirm(`Are you sure you want to delete ${invoice.piNo}?`)) {
         this.deleteSub = this.invoiceService.deleteInvoice(invoice.id).subscribe((res)=>{
-          console.log(res);
-          
           this.snackBar.open("PI deleted successfully...","" ,{duration:3000})
           this.getInvoices()
         },(error=>{
@@ -294,8 +288,6 @@ export class ViewApprovalComponent {
   dialogSub!: Subscription;
   verified(value: string, piNo: string, sp: string, id: number, stat: string){
     let status = this.data.status;
-    console.log(status, stat);
-    
     if(stat === 'INITIATED' && value === 'approved') status = 'AM APPROVED';
     else if(stat === 'INITIATED' && value === 'rejected') status = 'AM DECLINED';
     if((status === 'GENERATED' || (Array.isArray(status) && status.includes('KAM VERIFIED'))) && value === 'approved') status = 'KAM VERIFIED';
@@ -308,8 +300,6 @@ export class ViewApprovalComponent {
     });
 
     this.dialogSub = dialogRef.afterClosed().subscribe(result => {
-      console.log(result);
-      
       this.submittingForm = true;
       if(result){
         const data = {
@@ -322,8 +312,6 @@ export class ViewApprovalComponent {
         }
 
         this.verifiedSub = this.invoiceService.updatePIStatus(data).subscribe((res) => {
-          console.log(res);
-          
           this.getInvoices()
           this.snackBar.open(`Invoice ${piNo} updated to ${status}...`,"" ,{duration:3000})
           this.router.navigateByUrl('login/viewApproval/view')
@@ -349,8 +337,6 @@ export class ViewApprovalComponent {
           const data = {
             kamId: result.newKam
           }
-          console.log(invoiceId, data);
-          
           this.kamUpdateSub = this.invoiceService.updateKAM(data, invoiceId).subscribe(res =>{
             this.submittingForm = false;
             this.snackBar.open(`KAM is changed...`,"" ,{duration:3000})

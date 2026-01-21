@@ -23,10 +23,8 @@ const sequelize = new Sequelize(
 async function testConnection() {
   try {
     await sequelize.authenticate();
-    console.log('Invocie Service: Database connection established successfully.');
     return true;
   } catch (error) {
-    console.error('Invocie Service: Unable to connect to database:', error);
     return false;
   }
 }

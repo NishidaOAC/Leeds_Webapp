@@ -13,6 +13,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { AddUser } from "./add-user/add-user";
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { Subscription } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 
 @Component({
   selector: 'app-users-list',
@@ -120,5 +123,17 @@ export class UsersList {
   onFormSaved(){
     this.tabGroup.selectedIndex = 0;
     this.load()
+  }
+  
+  private dialog = inject(MatDialog);
+  dialogSub!: Subscription;
+  resetPassword(id: number, empNo: string, username: string){
+    const dialogRef = this.dialog.open(ResetPasswordComponent, {
+      width: '450px',
+      data: {id: id, paswordReset: false, username: username, empNo: empNo}
+    });
+    this.dialogSub = dialogRef.afterClosed().subscribe(() => {
+
+    })
   }
 }

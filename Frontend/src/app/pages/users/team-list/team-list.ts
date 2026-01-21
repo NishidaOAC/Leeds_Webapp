@@ -69,7 +69,6 @@ export class TeamList {
      this.isLoading = true;
      this.service.getTeams().subscribe({
        next: (res: any) => {
-        console.log(res);
          this.dataSource1.data = res;
         //  this.totalRecords = res.count;
          this.isLoading = false;

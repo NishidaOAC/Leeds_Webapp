@@ -11,9 +11,9 @@ exports.getRoles = async (req, res) => {
 }
 
 exports.addRole = async (req, res) => {
-  const { roleName, abbreviation } = req.body;
+  const { roleName, abbreviation, power } = req.body;
     try {
-          const role = new Role({ roleName, abbreviation });
+          const role = new Role({ roleName, abbreviation, power });
           await role.save();
           
           res.send(role);

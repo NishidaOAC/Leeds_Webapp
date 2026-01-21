@@ -135,6 +135,11 @@
                             (click)="openUser(element)" class="action-btn view-btn">
                       <mat-icon>visibility</mat-icon>
                     </button>
+                    
+                    <button mat-mini-fab color="accent" matTooltip="Reset Password" 
+                            (click)="resetPassword(element.id, element.empNo, element.name)" class="action-btn edit-btn">
+                      <mat-icon>password</mat-icon>
+                    </button>
                     <button mat-mini-fab color="accent" matTooltip="Edit User" 
                             (click)="editUser(element)" class="action-btn edit-btn">
                       <mat-icon>edit</mat-icon>

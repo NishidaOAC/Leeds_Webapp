@@ -91,8 +91,6 @@ export class AppSideRegisterComponent {
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Registration error:', error);
-        
         // Handle specific error cases
         if (error.status === 409) {
           if (error.error?.message?.includes('email')) {

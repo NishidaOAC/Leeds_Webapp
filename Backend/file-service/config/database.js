@@ -23,7 +23,6 @@ const sequelize = new Sequelize(
 async function testConnection() {
   try {
     await sequelize.authenticate();
-    console.log('Auth Service: Database connection established successfully.');
     return true;
   } catch (error) {
     console.error('Auth Service: Unable to connect to database:', error);

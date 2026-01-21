@@ -16,7 +16,7 @@ export class UsersServices {
     return this.http.get<User[]>(`${this.apiUrl}/findbyroleName/${roleName}`);
   }
   getAllUsers(page?: number, limit?: number, search?: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/find?page=${page}&limit=${limit}&search=${search}`);
+    return this.http.get<any[]>(`${this.apiUrl}/find?page=${page}&pageSize=${limit}&search=${search}`);
   }
 
   // ➕ Add new user
@@ -34,16 +34,17 @@ export class UsersServices {
     return this.http.patch<any>(`${this.apiUrl}/update/${id}`, user);
   }
 
-  // 🔍 Get single user
+  resetPassword(id: number, data: any){
+    return this.http.patch(this.apiUrl + `/resetpassword/${id}`, data)
+  }
+
   getUserById(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
-
-
-
-  // 🔍 Get single user
-  getDoctors(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/doctors`);
+  getLeaders(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/leaders`);
   }
-
+  getMembers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/members`);
+  }
 }

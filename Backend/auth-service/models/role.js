@@ -12,6 +12,11 @@ const Role = sequelize.define('Role', {
     unique: true,
     allowNull: false
   },
+  power: {
+    type: DataTypes.ENUM('Admin','SalesExecutive','KAM','Manager','Accountant'),
+    allowNull: false,
+    defaultValue: 'Admin'
+  },
   description: {
     type: DataTypes.TEXT
   },

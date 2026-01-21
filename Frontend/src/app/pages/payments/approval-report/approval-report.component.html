@@ -25,22 +25,21 @@
 
           <div class="filter-col">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Added By</mat-label>
-              <mat-select #id (selectionChange)="getAdded(id.value)">
-                <mat-option *ngFor="let item of Users" [value]="item.id">
-                  {{ item.name }}
+              <mat-label>Team Wise</mat-label>
+              <mat-select [(value)]="teamId" (selectionChange)="getTeamWise($event)" [disabled]="isTeamDisabled || isDisabled">
+                <mat-option *ngFor="let item of teams" [value]="item.id">
+                  {{ item.teamName }}
                 </mat-option>
-                <mat-option value="">All Users</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
 
           <div class="filter-col">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Team Wise</mat-label>
-              <mat-select (selectionChange)="getTeamWise($event)">
-                <mat-option *ngFor="let item of teams" [value]="item.id">
-                  {{ item.teamName }}
+              <mat-label>Added By</mat-label>
+              <mat-select [(value)]="addedBy" #id (selectionChange)="getAdded(id.value)" [disabled]="isTeamDisabled">
+                <mat-option *ngFor="let item of Users" [value]="item.id">
+                  {{ item.name }}
                 </mat-option>
               </mat-select>
             </mat-form-field>

@@ -19,8 +19,6 @@ exports.findUsersByIds = async (userIds = [], authHeader) => {
         timeout: 10000 // 10 second timeout
       }
     );
-    console.log(response);
-    
     // Handle the response format from our auth service
     if (response.success && response.users) {
       // Transform to map keyed by userId (only active users)
@@ -34,6 +32,7 @@ exports.findUsersByIds = async (userIds = [], authHeader) => {
             roleId: user.roleId,
             roleName: user.roleName,
             abbreviation: user.abbreviation,
+            power: user.power,
             isActive: user.isActive
           };
         }
@@ -43,7 +42,6 @@ exports.findUsersByIds = async (userIds = [], authHeader) => {
 
     return {};
   } catch (error) {
-    console.error('User lookup failed:', error.message);
     return {}; // 🔥 never break dashboard APIs
   }
 };
@@ -70,8 +68,6 @@ exports.validateToken = async (token) => {
 
     return data;
   } catch (error) {
-    console.error('Token validation failed:', error.message);
-    
     // Return a consistent error format
     if (error.response) {
       return error.response.data;
@@ -107,8 +103,6 @@ exports.getUserById = async (userId, authHeader) => {
 
     return data;
   } catch (error) {
-    console.error(`Failed to fetch user ${userId}:`, error.message);
-    
     if (error.response) {
       return error.response.data;
     }
@@ -137,7 +131,6 @@ exports.checkUserStatus = async (userId) => {
 
     return data;
   } catch (error) {
-    console.error(`Failed to check user status ${userId}:`, error.message);
     return {
       success: false,
       message: 'Failed to check user status'
@@ -156,7 +149,6 @@ exports.getAllowedUserIdsForUser = async (userId, authHeader) => {
     });
 
     const teams = response.data;
-    console.log(teams, "teamaaaaaa");
     
     if (!Array.isArray(teams)) {
       return [userId];
@@ -188,14 +180,12 @@ exports.getAllowedUserIdsForUser = async (userId, authHeader) => {
 
     return Array.from(ids);
   } catch (error) {
-    console.error('Failed to fetch teams from auth service:', error.message);
     return [userId];
   }
 };
 
 exports.getTeamUsers = async (teamId, authToken) => {
     try {
-        console.log(teamId, "teamIdaaaaa");
         if (!teamId ) {
             throw new Error('Either team must be provided');
         }
@@ -213,7 +203,6 @@ exports.getTeamUsers = async (teamId, authToken) => {
             },
             timeout: 10000
         });
-        console.log(response.data, "response.dataaaaaa");
         // Validate response
         if (!response.data) {
             throw new Error('No data received from user database');
@@ -225,15 +214,7 @@ exports.getTeamUsers = async (teamId, authToken) => {
             : response.data.users || response.data.data || [];
 
     } catch (error) {
-        console.error('Error fetching team users:', {
-            message: error.message,
-            teamId,
-            apiUrl: process.env.AUTH_SERVICE_URL,
-            status: error.response?.status,
-            data: error.response?.data
-        });
-
-        // Handle specific error cases
+        // Handle secific error cases
         if (error.code === 'ECONNREFUSED') {
             throw new Error(`User database connection refused at ${AUTH_SERVICE_URL}`);
         }

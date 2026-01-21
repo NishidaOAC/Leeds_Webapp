@@ -43,7 +43,6 @@ class FileController {
       });
       
     } catch (error) {
-      console.error('Upload error:', error);
       next(error);
     }
   }
@@ -89,7 +88,6 @@ class FileController {
       });
       
     } catch (error) {
-      console.error('Bank slip upload error:', error);
       next(error);
     }
   };
@@ -138,8 +136,6 @@ class FileController {
 
   deleteByUrl = async (req, res) => {
     const { key } = req.query;
-    console.log('key', key);
-    
     try {
       if (!key) {
         return res.status(400).json({ 
@@ -153,8 +149,6 @@ class FileController {
       res.json(result);
       
     } catch (error) {
-      console.error('Error in deleteByUrl:', error);
-      
       res.status(500).json({ 
         success: false, 
         message: error.message 

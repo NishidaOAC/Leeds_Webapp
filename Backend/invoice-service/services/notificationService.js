@@ -38,8 +38,6 @@ class NotificationClient {
         message: 'Notification created successfully'
       };
     } catch (error) {
-      console.error('Failed to create notification:', error.message);
-      
       if (error.response) {
         return {
           success: false,
@@ -74,7 +72,6 @@ class NotificationClient {
         data: response.data
       };
     } catch (error) {
-      console.error('Failed to fetch notifications:', error.message);
       return {
         success: false,
         message: 'Failed to fetch notifications'
@@ -96,7 +93,6 @@ class NotificationClient {
         data: response.data
       };
     } catch (error) {
-      console.error('Failed to mark notification as read:', error.message);
       return {
         success: false,
         message: 'Failed to update notification'
@@ -126,19 +122,11 @@ class NotificationClient {
 
     async handleStatusNotification({ pi, status, kamId, amId, accountantId, user }) {
     try {
-      console.log('Handling status notification for PI:', {
-        piNo: pi.piNo,
-        status: status,
-        kamId: kamId,
-        amId: amId,
-        accountantId: accountantId
-      });
 
       // Determine notification recipients based on status
       const recipients = this.getNotificationRecipients(status, pi, kamId, amId, accountantId);
       
       if (recipients.length === 0) {
-        console.log('No recipients found for status notification');
         return { success: true, message: 'No recipients to notify' };
       }
 
@@ -155,7 +143,6 @@ class NotificationClient {
       const successful = results.filter(r => r.status === 'fulfilled').length;
       const failed = results.filter(r => r.status === 'rejected').length;
       
-      console.log(`Status notifications sent: ${successful} successful, ${failed} failed`);
       
       return {
         success: true,
@@ -165,7 +152,6 @@ class NotificationClient {
       };
 
     } catch (error) {
-      console.error('Error in handleStatusNotification:', error);
       return {
         success: false,
         error: error.message

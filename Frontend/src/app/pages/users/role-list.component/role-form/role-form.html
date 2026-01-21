@@ -47,6 +47,20 @@
             }
           </mat-form-field>
 
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Power *</mat-label>
+            <mat-select formControlName="power" placeholder="Select power">
+              @for (p of powers; track $index) {
+                <mat-option [value]="p">{{ p }}</mat-option>
+              }
+            </mat-select>
+            @if (roleForm.get('power')?.hasError('required')) {
+              <mat-error>
+                Power is required
+              </mat-error>
+            }
+          </mat-form-field>
+
           <!-- Access Permissions -->
           <!-- <div class="full-width">
             <label class="section-label">Access Permissions</label>

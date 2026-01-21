@@ -3,8 +3,6 @@ const Notification = require('../models/notification');
 class NotificationController {
     // Create a new notification
     async createNotification(req, res) {
-        console.log("NOtificationsss.....");
-        
         try {
             const { userId, message, type = 'GENERAL', isRead = false, metadata } = req.body;
 
@@ -35,7 +33,6 @@ class NotificationController {
                 data: notification
             });
         } catch (error) {
-            console.error('Error creating notification:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -75,7 +72,6 @@ class NotificationController {
                 }
             });
         } catch (error) {
-            console.error('Error fetching notifications:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -107,7 +103,6 @@ class NotificationController {
                 data: notification
             });
         } catch (error) {
-            console.error('Error marking notification as read:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -139,7 +134,6 @@ class NotificationController {
                 message: `Marked ${updatedCount} notifications as read`
             });
         } catch (error) {
-            console.error('Error marking all notifications as read:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -168,7 +162,6 @@ class NotificationController {
                 message: 'Notification deleted successfully'
             });
         } catch (error) {
-            console.error('Error deleting notification:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -194,7 +187,6 @@ class NotificationController {
                 count
             });
         } catch (error) {
-            console.error('Error getting unread count:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',

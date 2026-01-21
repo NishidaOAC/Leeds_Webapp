@@ -56,8 +56,6 @@ class EmailService {
       // Handle attachments
       let attachments = [];
       if (pi.url && Array.isArray(pi.url)) {
-        console.log(`Processing ${pi.url.length} URL objects for attachments`);
-        
         try {
           // Extract URLs
           const urls = pi.url
@@ -82,10 +80,6 @@ class EmailService {
         attachments: attachments
       };
 
-      console.log(`Sending email to ${toEmail} with ${attachments.length} attachments...`);
-      const result = await transporter.sendMail(mailOptions);
-      
-      console.log(`✅ Email sent: ${result.messageId}, Attachments: ${attachments.length}`);
       
       return { 
         success: true, 
@@ -150,8 +144,6 @@ class EmailService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log(`New PI email sent successfully to ${toEmail}: ${result.messageId}`);
-      
       return { success: true, messageId: result.messageId };
       
     } catch (error) {
@@ -223,11 +215,6 @@ class EmailService {
         html: htmlContent,
         attachments: attachments
       };
-
-      console.log(`Sending ${action} email for PI ${piNo} to ${toEmail} with ${attachments.length} attachments...`);
-      const result = await transporter.sendMail(mailOptions);
-      
-      console.log(`✅ ${actionText} email sent: ${result.messageId}`);
       
       return { 
         success: true, 

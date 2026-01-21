@@ -46,8 +46,6 @@ export class AuthService {
   }
 
   private showError(message: string) {
-    // Implement your error notification here
-    console.error('Login Error:', message);
     alert(message); // Or use a toast service
   }
 
@@ -79,5 +77,10 @@ export class AuthService {
   getCurrentUser(): any {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
+  }
+  
+  getUserPower(): string | null {
+    const user = this.getCurrentUser();
+    return user && user.power ? user.power : null;
   }
 }

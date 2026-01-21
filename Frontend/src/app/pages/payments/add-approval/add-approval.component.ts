@@ -27,6 +27,7 @@ import { SafePipe } from "../../../../assets/pipes/safe.pipe";
 import { UsersServices } from '../../users/users.service';
 import { FileService } from '../file-service';
 import { DesignationServices } from '../../users/role-list.component/designation.service';
+import { AddCompanyComponent } from '../../company/add-company/add-company.component';
 @Component({
   selector: 'app-add-approval',
   standalone: true,
@@ -62,8 +63,9 @@ export class AddApprovalComponent {
     this.getAccountants();
     const token: any = localStorage.getItem('user');
     const user = JSON.parse(token)
-    const roleId = user.roleId
-    this.getRoleById(roleId)
+    this.roleName = user.power;
+    
+    this.getRoleById()
     this.addDoc()
   }
   
@@ -107,15 +109,15 @@ export class AddApprovalComponent {
   }
 
   add(type: string){
-    // const name = this.filterValue;
-    // const dialogRef = this.dialog.open(AddCompanyComponent, {
-    //   data: {type : type, name: name}
-    // });
+    const name = this.filterValue;
+    const dialogRef = this.dialog.open(AddCompanyComponent, {
+      data: {type : type, name: name}
+    });
 
-    // dialogRef.afterClosed().subscribe(() => {
-    //   this.getSuppliers()
-    //   this.getCustomers()
-    // })
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSuppliers()
+      this.getCustomers()
+    })
   }
 
   public getCustomers(): void {
@@ -132,17 +134,15 @@ export class AddApprovalComponent {
   am: boolean = false;
   ma: boolean = false;
   private designationService = inject(DesignationServices);
-  getRoleById(id: number){
-    this.roleSub = this.designationService.getRoleById(id).subscribe(role => {
-      console.log(role);
-      
-      this.roleName = role.abbreviation;
-      if(this.roleName === 'SE') this.sp = true;
+  getRoleById(){
+    // this.roleSub = this.designationService.getRoleById(id).subscribe(role => {
+      // this.roleName = role.abbreviation;
+      if(this.roleName === 'SalesExecutive') this.sp = true;
       if(this.roleName === 'KAM') this.kamb = true;
-      if(this.roleName === 'AM') this.am = true;
+      if(this.roleName === 'Manager') this.am = true;
       if(this.roleName === 'Accountant') this.ma = true;
-      if(this.roleName === 'Team Lead') this.sp = true;
-    })
+      if(this.roleName === 'Admin') this.sp = true;
+    // })
 
   }
 
@@ -152,9 +152,6 @@ export class AddApprovalComponent {
     this.kamSub = this.loginService.getUserByRoleName('Key Account Manager')
       .subscribe(users => {
         this.kam = users;
-        console.log(this.kam);
-        console.log(this.sp);
-        
       });
   }
   amSub!: Subscription;
@@ -321,16 +318,13 @@ export class AddApprovalComponent {
               this.preloadImage(fileUrl, i);
             }
           } else {
-            console.error('No fileUrl in response:', response);
             alert('Upload succeeded but no file URL returned');
           }
         } else {
-          console.error('Upload not successful:', response);
           alert(response?.message || 'Upload failed');
         }
       },
       error: (error) => {
-        console.error('Upload error:', error);
         if (error.status === 413) {
           alert('File is too large. Please select a smaller file.');
         } else {
@@ -338,7 +332,6 @@ export class AddApprovalComponent {
         }
       },
       complete: () => {
-        console.log('Upload completed');
       }
     });
   }
@@ -347,12 +340,9 @@ export class AddApprovalComponent {
   preloadImage(url: string, index: number): void {
     const img = new Image();
     img.onload = () => {
-      console.log(`✅ Image ${index} loaded successfully`);
-      // You could trigger UI update here if needed
     };
     img.onerror = (error) => {
       console.error(`❌ Image ${index} failed to load:`, error);
-      console.log('URL that failed:', url);
     };
     img.src = url;
   }
@@ -361,8 +351,6 @@ export class AddApprovalComponent {
   ivNum: string = '';
   generateInvoiceNumber() {
     this.invSub = this.invoiceService.getPI().subscribe((res: any) => {
-      console.log(res);
-      
       if (res.items.length > 0) {
         const maxId = res.items.reduce((prevMax: any, inv: any) => {
           const idNumber = parseInt(inv.piNo.replace(/\D/g, ''), 10);
@@ -396,21 +384,17 @@ export class AddApprovalComponent {
   onSubmit() {
     this.submitted = true;
     let submitMethod;
-    console.log(this.piForm.getRawValue());
-    
-    if (this.roleName === 'SE' || this.roleName === 'Team Lead') {
+    if (this.roleName === 'SalesExecutive') {
         submitMethod = this.invoiceService.addPI(this.piForm.getRawValue());
     } else if (this.roleName === 'KAM') {
         submitMethod = this.invoiceService.addPIByKAM(this.piForm.getRawValue());
-    } else if (this.roleName === 'AM') {
+    } else if (this.roleName === 'Manager') {
         submitMethod = this.invoiceService.addPIByAM(this.piForm.getRawValue());
     }
 
     if (submitMethod) {
         this.submit = submitMethod.subscribe({
             next: (invoice: any) => {
-                console.log(invoice);
-                
                 const piNo = invoice?.pi.piNo;
                 if (piNo) {
                     this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, "", { duration: 3000 });
@@ -444,7 +428,6 @@ export class AddApprovalComponent {
     this.piForm.get('kamId')?.setValue("")
     this.piForm.get('amId')?.setValue("")
     this.piForm.get('accountantId')?.setValue("")
-    console.log(this.piForm.get('paymentMode')?.value, this.sp, this.roleName);
     
   }
 

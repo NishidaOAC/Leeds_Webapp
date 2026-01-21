@@ -11,7 +11,6 @@ class EventPublisher {
     try {
       // Skip RabbitMQ if not configured (for development)
       if (!process.env.RABBITMQ_HOST || process.env.RABBITMQ_HOST === 'localhost') {
-        console.log('RabbitMQ disabled for development');
         this.isConnected = false;
         return;
       }
@@ -25,10 +24,7 @@ class EventPublisher {
       await this.channel.assertExchange('user_events', 'topic', { durable: true });
       
       this.isConnected = true;
-      console.log('✅ Event publisher connected to RabbitMQ');
     } catch (error) {
-      console.log('⚠️  RabbitMQ not available, continuing without event publishing');
-      console.log('💡 To enable RabbitMQ: docker run -d -p 5672:5672 -p 15672:15672 rabbitmq:3-management');
       this.isConnected = false;
     }
   }
@@ -43,7 +39,6 @@ class EventPublisher {
         
         // If still not connected, just log and continue
         if (!this.isConnected || !this.channel) {
-          console.log(`ℹ️  Event skipped (RabbitMQ not available): ${eventType}`);
           return;
         }
       }
@@ -62,7 +57,6 @@ class EventPublisher {
         { persistent: true }
       );
 
-      console.log(`✅ Event published: ${eventType}`);
     } catch (error) {
       console.log(`⚠️  Failed to publish event ${eventType}:`, error.message);
       // Don't throw error, just log and continue

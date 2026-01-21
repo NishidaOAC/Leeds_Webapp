@@ -20,17 +20,7 @@ class AuthController {
         });
       }
 
-      // Check if user already exists
-      const existingUser = await User.findOne({ 
-        where: { email: data.email } 
-      });
-      
-      if (existingUser) {
-        return res.status(409).json({ 
-          success: false, 
-          message: 'User already exists with this email' 
-        });
-      }
+      // Skip duplicate email check to allow same email
 
       // Check if empNo already exists
       if (data.empNo) {
@@ -132,7 +122,6 @@ class AuthController {
       });
 
     } catch (error) {
-      console.error('Registration error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Registration failed',
@@ -229,7 +218,8 @@ class AuthController {
         data: {
           user: {
             ...userResponse,
-            role: role ? role.roleName : 'User'
+            role: role ? role.roleName : 'User',
+            power: role ? role.power : 'Admin'
           },
           token,
           refreshToken
@@ -237,7 +227,6 @@ class AuthController {
       });
 
     } catch (error) {
-      console.error('Login error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Login failed',
@@ -265,7 +254,6 @@ class AuthController {
       });
 
     } catch (error) {
-      console.error('Logout error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Logout failed' 
@@ -382,7 +370,6 @@ class AuthController {
       });
 
     } catch (error) {
-      console.error('Get user error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Failed to get user information' 
@@ -445,7 +432,6 @@ class AuthController {
       });
 
     } catch (error) {
-      console.error('Change password error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Failed to change password' 

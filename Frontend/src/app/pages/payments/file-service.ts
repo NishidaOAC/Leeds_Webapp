@@ -29,7 +29,6 @@ export class FileService {
         return EMPTY;
       }),
       catchError(error => {
-        console.error('Upload error:', error);
         return throwError(() => error);
       })
     );

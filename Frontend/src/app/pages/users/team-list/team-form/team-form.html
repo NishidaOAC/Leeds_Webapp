@@ -42,7 +42,7 @@
                         Add New User
                     </mat-option>
                     <mat-divider></mat-divider>
-                    @for (user of users; track user.id) {
+                    @for (user of leaders; track user.id) {
                     @if (user.name !== 'HR Admin' && user.name !== 'Approval Admin' && user.name !== 'Super Admin') {
                         <mat-option [value]="user.id">
                         {{ user.name }}

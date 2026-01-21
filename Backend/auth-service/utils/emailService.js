@@ -150,10 +150,8 @@ const sendEmail = async (fromEmail, emailPassword, toEmail, subject, html) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully to:', toEmail);
     return info;
   } catch (error) {
-    console.error('Failed to send email:', error.message);
     throw error;
   }
 };

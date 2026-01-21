@@ -3,11 +3,7 @@ const { User } = require('../models');
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
-    console.log(authHeader);
-    
     const token = authHeader && authHeader.split(' ')[1];
-    console.log(token,"tokentokentokentoken");
-    
     if (!token) {
       return res.status(401).json({ 
         success: false, 
@@ -16,8 +12,6 @@ const authenticateToken = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded,"decodeddd");
-    
     // Check if user exists and is active
     const user = await User.findOne({
       where: { 
@@ -25,8 +19,6 @@ const authenticateToken = async (req, res, next) => {
         isActive: true 
       }
     });
-    console.log(user, "useruseruseruseruseruseruser");
-    
     if (!user) {
       return res.status(401).json({ 
         success: false, 
@@ -44,8 +36,6 @@ const authenticateToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Auth Middleware Error:', error);
-
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,

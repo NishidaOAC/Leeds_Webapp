@@ -35,8 +35,7 @@ export class AppNavItemComponent implements OnChanges, OnInit {
   ngOnInit(): void {
     const token: any = localStorage.getItem('user')
     const user = JSON.parse(token)
-    this.role = user.role
-    console.log(this.role);
+    this.role = user.power
   }
 
    hasAccess(item: NavItem): boolean {

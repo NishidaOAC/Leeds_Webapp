@@ -155,16 +155,12 @@ export class UpdatePIComponent {
   index!: number;
   clickedForms: boolean[] = [];
   addDoc(data?:any){
-    console.log(data);
-    
     this.doc().push(this.newDoc(data));
     this.clickedForms.push(false);
     this.cdr.detectChanges();
   }
 
   newDoc(initialValue?: any): FormGroup {
-    console.log(initialValue);
-    
     return this.fb.group({
       url: [initialValue?initialValue.url : '', Validators.required],
       remarks: [initialValue?initialValue.remarks : ''],
@@ -195,9 +191,9 @@ export class UpdatePIComponent {
 
     const token: any = localStorage.getItem('user')
     const user = JSON.parse(token)
-
-    const roleId = user.roleId
-    this.getRoleById(roleId)
+    this.roleName = user.power;
+    // const roleId = user.roleId
+    this.getRoleById()
     this.getSuppliers();
     this.getCustomers()
   }
@@ -309,7 +305,6 @@ export class UpdatePIComponent {
     };
     img.onerror = (error) => {
       console.error(`❌ Image ${index} failed to load:`, error);
-      console.log('URL that failed:', url);
     };
     img.src = url;
   }
@@ -328,17 +323,16 @@ export class UpdatePIComponent {
   ma: boolean = false;
   admin: boolean =false;
   private roleService = inject(DesignationServices);
-  getRoleById(id: number){
-    this.roleSub = this.roleService.getRoleById(id).subscribe(role => {
-      this.roleName = role.roleName;
+  getRoleById(){
+    // this.roleSub = this.roleService.getRoleById(id).subscribe(role => {
+    //   this.roleName = role.roleName;
       if(this.roleName === 'SalesExecutive') this.sp = true;
-      if(this.roleName === 'Key Account Manager') this.kamb = true;
+      if(this.roleName === 'KAM') this.kamb = true;
       if(this.roleName === 'Manager') this.am = true;
       if(this.roleName === 'Accountant') this.ma = true;
-      if(this.roleName === 'Team Lead') this.sp = true;
-      if(this.roleName === 'Administrator'||this.roleName === 'Super Administrator') this.admin = true;
+      if(this.roleName === 'Admin'||this.roleName === 'Super Administrator') this.admin = true;
 
-    })
+    // })
   }
 
   amSub!: Subscription;
@@ -363,15 +357,13 @@ export class UpdatePIComponent {
   onUpdate() {
       let updateMethod;
       this.submitted = true;
-      console.log(this.piForm.getRawValue());
-      
       if (this.roleName === 'SalesExecutive') {
         updateMethod = this.invoiceService.updatePIBySE(this.piForm.getRawValue(), this.id);
-      } else if (this.roleName === 'Key Account Manager') {
+      } else if (this.roleName === 'KAM') {
         updateMethod = this.invoiceService.updatePIByKAM(this.piForm.getRawValue(), this.id);
       } else if (this.roleName === 'Manager') {
         updateMethod = this.invoiceService.updatePIByAM(this.piForm.getRawValue(), this.id);
-      } else if (this.roleName === 'Administrator' || this.roleName === 'Super Administrator') {
+      } else if (this.roleName === 'Admin' || this.roleName === 'Super Administrator') {
         updateMethod = this.invoiceService.updatePIByAdminSuperAdmin(this.piForm.getRawValue(), this.id);
       }
 
@@ -382,10 +374,7 @@ export class UpdatePIComponent {
 
           this.upload = updateMethod.subscribe({
               next: (invoice: any) => {
-                console.log(invoice);
-                
                   const piNo = invoice?.piNo;
-
                   if (piNo) {
                       this.snackBar.open(`Proforma Invoice ${piNo} Updated successfully...`, "", { duration: 3000 });
                       this.submitted = false;
@@ -413,8 +402,6 @@ export class UpdatePIComponent {
     this.editStatus = true;
     this.piSub = this.invoiceService.getPIById(id).subscribe(pi => {
       const inv = pi;
-      console.log(pi);
-      
       let purposeArray = inv.purpose;
       if (typeof inv.purpose === 'string') {
         purposeArray = inv.purpose.split(',').map((p: any) => p.trim());
@@ -455,8 +442,6 @@ export class UpdatePIComponent {
 
   deleteSub!: Subscription;
   onDeleteUploadedImage(url: string, i: number){
-    console.log(url);
-    
     this.deleteSub = this.fileService.deleteUploadByurl(url).subscribe(()=>{
       this.newImageUrl[i] = '';
       this.imageUrl[i] = '';

@@ -60,7 +60,6 @@ exports.getCompanies = async (req, res) => {
       res.json(company);
     }
   } catch (error) {
-    console.error('Error fetching companies:', error);
     res.status(500).send(error.message);
   }
 };

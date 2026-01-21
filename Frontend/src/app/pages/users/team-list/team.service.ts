@@ -32,5 +32,11 @@ export class TeamService {
     return this.http.get(`${this.apiUrl}/findbyid/${id}`);
   }
 
+  getTeamByLeaderId(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/leader/${id}`);
+  }
 
+  getTeamMembersByTeam(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}/members`);
+  }
 }

@@ -82,8 +82,6 @@ export class AddUser implements OnInit{
       }else{
         this.userService.createUser(this.userForm.value).subscribe({
           next: (res) => {
-            console.log(res);
-            
             setTimeout(() => {
               this.isLoading = false;
               this.userForm.reset();

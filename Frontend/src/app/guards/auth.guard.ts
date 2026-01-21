@@ -10,7 +10,6 @@ export class AuthGuard  {
 
   constructor(private loginService: AuthService, private router: Router){}
   canActivate(route: ActivatedRouteSnapshot,state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    console.log(this.loginService.isAuthenticated());
     
       if(this.loginService.isAuthenticated()){
         return true;

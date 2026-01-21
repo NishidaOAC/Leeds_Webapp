@@ -20,15 +20,16 @@ export class Payments {
   currentPage: number = 1;
   private readonly route = inject(ActivatedRoute);
   private refreshSub!: Subscription;
+  role!: string;
   ngOnInit(): void {
     const token: any = localStorage.getItem('user')
     const user = JSON.parse(token)
-    
-    const roleId = user.roleId
+    this.role = user.role;
+    this.roleName = user.power;
     this.refreshSub = interval(5000).subscribe(() => {
-      this.getRoleById(roleId);
+      this.getRoleById();
     });
-    this.getRoleById(roleId);
+    this.getRoleById();
   }
 
   @ViewChildren('viewApproval') viewApprovalComponents!: QueryList<ViewApprovalComponent>;
@@ -52,14 +53,12 @@ export class Payments {
   private roleService = inject(DesignationServices);
   isViewReady = false;
   private cdr = inject(ChangeDetectorRef);
-  getRoleById(id: number){
-    this.roleSub = this.roleService.getRoleById(id).subscribe(role => {
-      this.roleName = role.roleName;
+  getRoleById(){
       if(!this.isSubmitted){
-        if(this.roleName === 'SalesExecutive' || this.roleName === 'Team Lead') { 
+        if(this.roleName === 'SalesExecutive') { 
           this.status = 'GENERATED'; this.sp = true; this.header = 'REJECTED'; this.pendingHeader='GENERATED'
          }
-        if(this.roleName === 'Key Account Manager') { 
+        if(this.roleName === 'KAM') { 
           this.status = 'GENERATED'; this.kam = true; this.header = 'AM REJECTED'; this.pendingHeader='GENERATED'
         }
         if(this.roleName === 'Manager') { 
@@ -68,8 +67,8 @@ export class Payments {
         if(this.roleName === 'Accountant') { 
           this.status = 'AM VERIFIED'; this.ma = true; this.pendingHeader='VERIFIED'
         }
-        if(this.roleName === 'Administrator' || this.roleName === 'Super Administrator') { this.admin = true, this.status = '' }
-        if(this.roleName === 'Team Lead') { this.teamLead = true }
+        if(this.roleName === 'Admin' || this.roleName === 'Super Administrator') { this.admin = true, this.status = '' }
+        if(this.role === 'Team Lead') { this.teamLead = true }
       }else{
         this.status = '';
         this.pageStatus = false;
@@ -110,7 +109,6 @@ export class Payments {
       } else {
         this.updateActiveTab();
       }
-    })
   }
     private initializeTabs(): void {
     const tabIndex = this.invoiceService.getState('tabIndex');

@@ -15,7 +15,6 @@ const authLimiter = rateLimit({
 // Public routes
 router.post('/register', AuthController.register);
 router.post('/login', (req, res, next) => {
-  console.log('LOGIN ROUTE HIT');
   next();
 }, AuthController.login);
 
@@ -40,8 +39,11 @@ router.get('/users/:userId', UserController.getUserById);
 router.get('/users/:userId/status', UserController.validateUserStatus);
 router.post('/users/bulk-validate', UserController.bulkValidateUsers);
 router.post('/refresh-token', UserController.refreshToken);
+router.patch('/resetpassword/:id', authenticateToken, UserController.resetPassword);
 // router.get('/users/:id', authenticateToken, AuthController.getUserById);
 // router.put('/users/:id', authenticateToken, AuthController.updateUser);
 // router.delete('/users/:id', authenticateToken, AuthController.deleteUser);
 
+router.get('/leaders', authenticateToken, UserController.getTeamLeaders);
+router.get('/members', authenticateToken, UserController.getTeamMembers);
 module.exports = router;

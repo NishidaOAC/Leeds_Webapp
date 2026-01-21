@@ -9,8 +9,6 @@ export const TokenInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
 
   const token = localStorage.getItem('token');
-  console.log(token);
-  
   const cloned = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;

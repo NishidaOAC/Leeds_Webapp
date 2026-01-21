@@ -99,8 +99,6 @@ async function startServer() {
   try {
     // Test database connection
     const dbConnected = await testConnection();
-    console.log(dbConnected);
-    
     if (!dbConnected) {
       logger.warn('Database connection failed. Starting server anyway...');
     }
@@ -112,8 +110,6 @@ async function startServer() {
 
     // Connect to RabbitMQ
     await publishEvent('SERVICE_STARTED', { service: 'auth-service' });
-    console.log(PORT);
-    
     app.listen(PORT, () => {
       logger.info(`Auth Service running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);

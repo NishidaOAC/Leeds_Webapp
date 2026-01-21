@@ -83,8 +83,6 @@ export class CompanyComponent {
     this.isLoading = true;
     this.ps.getCompany(this.search, this.pageIndex, this.pageSize).subscribe({
       next: (res: any) => {
-        console.log(res);
-        
         this.dataSource1 = res.items;
         this.totalRecords = res.count;
         this.isLoading = false;

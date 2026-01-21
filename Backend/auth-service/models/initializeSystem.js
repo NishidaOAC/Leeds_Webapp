@@ -3,8 +3,6 @@ const Role = require('../models/role');
 const User = require('../models/user');
 
 module.exports = async function initializeSystem() {
-  console.log('🚀 Initializing system...');
-
   let role = await Role.findOne({
     where: { roleName: 'Super Administrator' }
   });
@@ -17,7 +15,6 @@ module.exports = async function initializeSystem() {
       permissions: ['*'],
       isActive: true
     });
-    console.log('✅ Super Admin role created');
   }
 
   const userExists = await User.findOne({
@@ -36,9 +33,5 @@ module.exports = async function initializeSystem() {
       status: 'approved',
       isActive: true
     });
-
-    console.log('✅ Super Admin user created');
   }
-
-  console.log('🎉 Initialization completed');
 };

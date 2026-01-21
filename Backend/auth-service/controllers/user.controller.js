@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const { sendEmail } = require('../utils/emailService');
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
+const { sequelize } = require('../config/database');
 
 
 exports.getByRolename = async (req, res) => {
@@ -22,7 +23,6 @@ exports.getAllUsers = async (req, res) => {
     let whereClause;
     let limit;
     let offset;
-
     if (req.query.search && req.query.search !== 'undefined') {
       const searchTerm = req.query.search.replace(/\s+/g, '').trim().toLowerCase();
       whereClause = {
@@ -31,6 +31,10 @@ exports.getAllUsers = async (req, res) => {
             [Op.or]: [
               sequelize.where(
                 sequelize.fn('LOWER', sequelize.fn('REPLACE', sequelize.col('name'), ' ', '')),
+                { [Op.like]: `%${searchTerm}%` }
+              ),
+              sequelize.where(
+                sequelize.fn('LOWER', sequelize.fn('REPLACE', sequelize.col('empNo'), ' ', '')),
                 { [Op.like]: `%${searchTerm}%` }
               ),
               sequelize.where(
@@ -49,7 +53,7 @@ exports.getAllUsers = async (req, res) => {
         offset = (parseInt(req.query.page, 10) - 1) * limit;
       }
     }
-
+    
     // Fetch paginated data
     const users = await User.findAll({
       where: whereClause,
@@ -128,8 +132,6 @@ exports.addUser = async (req, res) => {
         const emailSubject = `Welcome to LeedsAeroSpace Payment App`;
         const fromEmail = process.env.EMAIL_USER;
         const emailPassword = process.env.EMAIL_PASSWORD;
-        console.log(fromEmail, emailPassword);
-        
         const frontEndUrl = process.env.FRONT_END || 'http://localhost:4200';
         
         // Simple HTML email
@@ -173,7 +175,6 @@ exports.addUser = async (req, res) => {
         
         if (fromEmail && emailPassword) {
           await sendEmail(fromEmail, emailPassword, email, emailSubject, html);
-          console.log(`Welcome email sent to ${email}`);
         } else {
           console.warn('Email credentials not configured, skipping email send');
         }
@@ -195,8 +196,6 @@ exports.addUser = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error creating user:', error.message);
-    
     // Handle Sequelize validation errors
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
@@ -311,8 +310,6 @@ exports.updateUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating user:', error.message);
-    
     // Handle Sequelize validation errors
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
@@ -407,7 +404,8 @@ exports.validateToken = async (req, res) => {
         ],
         isActive: true
       },
-      attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt']
+      attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt'],
+      include: [{ model: Role, attributes: ['id','roleName','abbreviation','power'] }]
     });
 
     if (!user) {
@@ -425,7 +423,13 @@ exports.validateToken = async (req, res) => {
         email: user.email,
         name: user.name,
         roleId: user.roleId,
-        isActive: user.isActive
+        isActive: user.isActive,
+        role: user.Role ? {
+          id: user.Role.id,
+          roleName: user.Role.roleName,
+          abbreviation: user.Role.abbreviation,
+          power: user.Role.power
+        } : null
       },
       tokenInfo: {
         expiresIn: decoded.exp ? new Date(decoded.exp * 1000) : null,
@@ -434,8 +438,6 @@ exports.validateToken = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Token validation error:', error);
-
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -485,15 +487,12 @@ exports.getUserById = async (req, res) => {
         message: 'User not found or inactive'
       });
     }
-    console.log(user,"1111111111");
-    
     return res.status(200).json({
       success: true,
       user
     });
 
   } catch (error) {
-    console.error('Get user error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch user',
@@ -533,7 +532,6 @@ exports.validateUserStatus = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Validate status error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to validate user status'
@@ -562,8 +560,6 @@ exports.bulkValidateUsers = async (req, res) => {
       attributes: ['id', 'email', 'name', 'roleId', 'isActive'],
       include: {model: Role}
     });
-    console.log(users);
-    
     const userMap = users.reduce((acc, user) => {
       acc[user.id] = {
         id: user.id,
@@ -572,6 +568,7 @@ exports.bulkValidateUsers = async (req, res) => {
         roleId: user.roleId,
         roleName: user.Role.roleName,
         abbreviation: user.Role.abbreviation,
+        power: user.Role.power,
         isActive: user.isActive,
         exists: true
       };
@@ -596,7 +593,6 @@ exports.bulkValidateUsers = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Bulk validation error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to validate users'
@@ -660,8 +656,6 @@ exports.refreshToken = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Refresh token error:', error);
-
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -680,6 +674,80 @@ exports.refreshToken = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to refresh token'
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+    const { password } = req.body;
+    try {
+        // If password is provided, hash it
+        let hashedPassword;
+        if (password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+
+        // Update the user record
+        const updatedUser = await User.update(
+            { password: hashedPassword }, 
+            { where: { id: req.params.id } }
+        )
+
+        if (updatedUser[0] === 1) { 
+            res.json({ message: 'User updated successfully', updatedUser });
+        } else {
+            res.json({ message: 'User not found' });
+        }
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+exports.getTeamLeaders = async (req, res) => {
+  try {
+    const role = await Role.findOne({
+      where: {
+        abbreviation: 'TL'
+      }
+    });
+    console.log(role.id);
+    const users = await User.findAll({
+      where: {
+        roleId: role.id
+      }
+    });
+    res.send(users);
+    
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch team leaders'
+    });
+  }
+};
+
+exports.getTeamMembers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      include: [
+        {
+          model: Role,
+          where: {
+            power: 'SalesExecutive',
+            abbreviation: { [Op.ne]: 'TL' }
+          },
+          attributes: [] // remove if you want role data in response
+        }
+      ]
+    });
+
+    res.json(users);
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch team members'
     });
   }
 };

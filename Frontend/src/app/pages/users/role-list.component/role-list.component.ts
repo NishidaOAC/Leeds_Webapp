@@ -28,7 +28,7 @@ export class RoleListComponent {
    roles: any[] = [];
    loading = true;
    dataSource1 = new MatTableDataSource<any>([]);
-   displayedColumns1 = ['role', 'abbreviation', 'actions'];
+   displayedColumns1 = ['role', 'abbreviation', 'power', 'actions'];
    constructor(private ps: DesignationServices, private router: Router) {}
  
  
@@ -64,8 +64,6 @@ export class RoleListComponent {
      this.isLoading = true;
      this.ps.getRoles().subscribe({
        next: (res: any) => {
-        console.log(res);
-        
          this.dataSource1.data = res;
         //  this.totalRecords = res.count;
          this.isLoading = false;

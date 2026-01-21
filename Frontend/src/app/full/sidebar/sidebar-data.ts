@@ -9,56 +9,56 @@ export const navItems: NavItem[] = [
     iconName: 'layout-grid-add',
     route: '/dashboard',
     bgcolor: 'primary',
-    roles: ['Super Administrator', 'Manager', 'user'] // All roles can see dashboard
+    roles: ['Admin', 'Manager', 'user'] // All roles can see dashboard
   },
   {
     displayName: 'AddNewPayment',
     iconName: 'layout-grid-add',
     route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',
-    roles: ['Super Administrator', 'Manager', 'SalesExecutive', 'Key Account Manager'] // Only admin and manager can add payments
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'Key Account Manager'] // Only admin and manager can add payments
   },
   {
     displayName: 'Payments',
     iconName: 'layout-grid-add',
     route: '/dashboard/payments',
     bgcolor: 'primary',
-    roles: ['Super Administrator', 'Manager', 'user', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // All roles can view payments
+    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // All roles can view payments
   },
   {
     displayName: 'Company',
     iconName: 'layout-grid-add',
     route: '/dashboard/company',
     bgcolor: 'primary',
-    roles: ['Super Administrator'] // Only admin can manage company
+    roles: ['Admin'] // Only admin can manage company
   },
   {
     displayName: 'Users',
     iconName: 'layout-grid-add',
     route: '/dashboard/users',
     bgcolor: 'primary',
-    roles: ['Super Administrator', 'Manager'] // Only admin can manage users
+    roles: ['Admin', 'Manager'] // Only admin can manage users
   },
   {
     displayName: 'Role',
     iconName: 'layout-grid-add',
     route: '/dashboard/users/roles',
     bgcolor: 'primary',
-    roles: ['Super Administrator'] // Only admin can manage roles
+    roles: ['Admin'] // Only admin can manage roles
   },
   {
     displayName: 'Team',
     iconName: 'layout-grid-add',
     route: '/dashboard/users/teams',
     bgcolor: 'primary',
-    roles: ['Super Administrator', 'Manager'] // Admin and managers can manage teams
+    roles: ['Admin', 'Manager'] // Admin and managers can manage teams
   },
   {
     displayName: 'Report',
     iconName: 'layout-grid-add',
     route: '/dashboard/payments/report',
     bgcolor: 'primary',
-    roles: ['Super Administrator', 'Manager', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // Admin and managers can view reports
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // Admin and managers can view reports
   },
   // Add other items with role restrictions...
 ];

@@ -76,7 +76,7 @@ export class TeamForm {
 
   ngOnInit(): void {
     this.getUsers();
-    
+    this.getLeaders();
   }
 
   manageUser(){
@@ -85,10 +85,16 @@ export class TeamForm {
   users: User[] = [];
   private userService = inject(UsersServices);
   getUsers() {
-    this.userService.getAllUsers().subscribe((result) => {
+    this.userService.getMembers().subscribe((result) => {
       this.users = result;
-      console.log(this.users);
-      
+    })
+  }
+
+  leaders: User[] = [];
+  private leadService = inject(UsersServices);
+  getLeaders() {
+    this.leadService.getLeaders().subscribe((result) => {
+      this.leaders = result;
     })
   }
 
@@ -131,8 +137,6 @@ export class TeamForm {
       if (this.isEdit && this.teamId) {
         this.teamService.updateTeam(this.teamId, teamData).subscribe({
           next: (response: any) => {
-            console.log(response);
-            
             this.isLoading = false;
             this.teamForm.reset();
             this.formSaved.emit();

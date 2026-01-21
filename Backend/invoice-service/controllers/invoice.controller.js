@@ -89,7 +89,6 @@ exports.dashboardCreditCard = async (req, res) => {
     }
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -176,7 +175,6 @@ exports.dashboardWireTransfer = async (req, res) => {
     }
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -492,8 +490,6 @@ exports.addPI = async (req, res) => {
                 }
             });
         } catch (notificationError) {
-            // Log the error but don't fail the main operation
-            console.error('Failed to create notification:', notificationError.message);
             // You might want to implement a retry mechanism or queue for failed notifications
         }
 
@@ -502,7 +498,6 @@ exports.addPI = async (req, res) => {
             message: 'Proforma Invoice saved successfully and email sent.'
         });
     } catch (error) {
-        console.error('Error in addPI:', error);
         res.status(500).send(error.message);
     }
 }
@@ -554,7 +549,6 @@ exports.updatePIBySE = async (req, res) => {
             }
         }
     } catch (error) {
-        console.error('Error getting user info:', error);
         return res.status(500).send(error.message);
     }
 
@@ -695,7 +689,6 @@ exports.updatePIBySE = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in updatePIBySE:', error);
         res.status(500).send(error.message);
     }
 };
@@ -734,8 +727,6 @@ exports.addPIKAM = async (req, res) => {
     try {
         // 1. Get recipient information (using auth service since users are in different DB)
         const am = await emailService.getRecipientInfo(amId, req.headers.authorization);
-        console.log(am);
-        
         if (!am || !am.email) {
             return res.status(400).json({ 
                 success: false, 
@@ -873,7 +864,6 @@ exports.addPIKAM = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in addPIKAM:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Failed to create proforma invoice',
@@ -941,7 +931,6 @@ exports.updatePIKAM = async (req, res) => {
         notificationRecipientId = amId;
 
     } catch (error) {
-        console.error('Error getting AM info:', error);
         return res.status(500).json({
             success: false,
             message: error.message
@@ -1090,7 +1079,6 @@ exports.updatePIKAM = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in updatePIKAM:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -1334,7 +1322,6 @@ exports.updatePIAM = async (req, res) => {
                 }
             }
         } catch (error) {
-            console.error('Error getting recipient info:', error);
             return res.status(500).json({
                 success: false,
                 message: error.message
@@ -1488,7 +1475,6 @@ exports.updatePIAM = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in updatePIAM:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -1650,7 +1636,6 @@ exports.updatePIAdmin = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in updatePIAccountant:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -1753,7 +1738,6 @@ exports.getPIByAdmin = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error in getPIByAdmin:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -1856,7 +1840,6 @@ exports.getPIByMA = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error in getAccountantPI:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -2003,7 +1986,6 @@ exports.getAMPIs = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error in getAMPIs:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch AM invoices',
@@ -2299,7 +2281,6 @@ exports.getSalesTeamPIs = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error in getSalesTeamPIs:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch sales team invoices',
@@ -2553,8 +2534,6 @@ exports.findPIById = async (req, res) => {
       try {
         const authHeader = req.headers['authorization'];
         usersMap = await findUsersByIds(userIdsArray, authHeader);
-        
-        console.log(`Fetched ${Object.keys(usersMap).length} users from auth service`);
       } catch (error) {
         console.error('Error fetching users from auth service:', error.message);
         // Continue with empty usersMap - users will show as IDs
@@ -2616,7 +2595,6 @@ exports.addBankSlip = async (req, res) => {
                 };
 
                 await s3.deleteObject(deleteParams).promise();
-                console.log(`Old bank slip deleted: ${fileKey}`);
             } catch (error) {
                 console.error('Error deleting old bank slip:', error);
                 return res.status(500).json({ error: error.message });
@@ -2674,8 +2652,6 @@ exports.addBankSlip = async (req, res) => {
         
         const authHeader = req.headers['authorization'];
         const usersMap = await findUsersByIds(userIdsArray, authHeader);
-        console.log(usersMap);
-        
         // 6️⃣ Check for missing user emails
         const missingEmails = userRoles
             .filter(user => {
@@ -2702,11 +2678,8 @@ exports.addBankSlip = async (req, res) => {
                 return userInfo?.email;
             })
             .filter(Boolean);
-          console.log(recipientEmails,"recipientEmails");
-          
         // Get finance emails for CC
         const financeEmails = await emailService.findFinanceEmails();
-            console.log(financeEmails, "financeEmails");
             
         // 8️⃣ Prepare email content using EmailService
         if (recipientEmails.length > 0) {
@@ -2791,8 +2764,6 @@ exports.addBankSlip = async (req, res) => {
                     subject: emailSubject
                 });
 
-                console.log(`Bank slip ${message} email sent successfully to ${recipientEmails.length} recipients`);
-
             } catch (emailError) {
                 console.error('Failed to send bank slip email:', emailError);
                 // Don't fail the whole operation if email fails
@@ -2811,9 +2782,6 @@ exports.addBankSlip = async (req, res) => {
             status: newStat,
             createdBy: req.user?.id || 'system'
         });
-
-        console.log(`Notifications created for ${userIds.size} users`);
-
         // 🔟 Format response with user details
         const formattedPI = {
             ...pi.toJSON(),
@@ -2854,8 +2822,6 @@ exports.addBankSlip = async (req, res) => {
 };
  
 exports.deleteInvoice = async(req,res)=>{
-  console.log("delete invoice", req.params.id);
-  
   try {
     // Find the invoice first
     const invoice = await PerformaInvoice.findOne({
@@ -2868,17 +2834,6 @@ exports.deleteInvoice = async(req,res)=>{
         message: 'PerformaInvoice with that ID not found'
       });
     }
-
-    // Debug: Log what's actually in the fields
-    console.log("Invoice data:", {
-      id: invoice.id,
-      url: invoice.url,
-      urlType: typeof invoice.url,
-      urlIsArray: Array.isArray(invoice.url),
-      bankSlip: invoice.bankSlip,
-      bankSlipType: typeof invoice.bankSlip
-    });
-
     // Helper function to safely extract URLs
     const extractUrlFromValue = (value) => {
       if (!value) return null;
@@ -2939,9 +2894,6 @@ exports.deleteInvoice = async(req,res)=>{
       }
     }
     
-    // Log what we're trying to delete
-    console.log(`Found ${filesToDelete.length} files to delete:`, filesToDelete);
-    
     // Delete all files from file service - USE QUERY PARAMETER
     const deletePromises = filesToDelete.map(async (fileUrl) => {
       try {
@@ -2951,7 +2903,6 @@ exports.deleteInvoice = async(req,res)=>{
           headers: { 'Content-Type': 'application/json' },
           timeout: 5000
         });
-        console.log(`Successfully deleted file: ${fileUrl}`);
         return { 
           success: true, 
           fileUrl, 
@@ -3030,22 +2981,19 @@ exports.getAdminReports = async (req, res) => {
                 return res.json([]);
             }
         }
-        console.log(teamUserIds, "teamUserIdsaaaaa11111111111");
-        // Build where clause including team filter if applicable
-        const whereClause = buildWhereClause(req.body, teamUserIds);
+        const whereClause = buildWhereClause(
+            req.body,
+            teamUserIds,
+            req.user && req.user.role ? req.user.role.power : null,
+            req.user ? req.user.id : null
+        );
         
         // Fetch invoices
         const invoices = await PerformaInvoice.findAll({
             where: whereClause,
             include: [
                 { model: Company, as: 'suppliers' }, 
-                { model: Company, as: 'customers' }, 
-                // Remove User model includes since we'll fetch from external service
-                // { model: User, as: 'addedBy', attributes: ['name', 'email'] },
-                // { model: User, as: 'salesPerson', attributes: ['name', 'email'] },
-                // { model: User, as: 'kam', attributes: ['name', 'email'] },
-                // { model: User, as: 'am', attributes: ['name', 'email'] },
-                // { model: User, as: 'accountant', attributes: ['name', 'email'] }
+                { model: Company, as: 'customers' }
             ],
             order: [['createdAt', 'DESC']],
             raw: true, // Get raw data for easier manipulation
@@ -3143,7 +3091,7 @@ exports.getAdminReports = async (req, res) => {
 };
 
 // Helper function to build where clause
-function buildWhereClause(filters, teamUserIds = []) {
+function buildWhereClause(filters, teamUserIds = [], rolePower = null, userId = null) {
   const {
     invoiceNo,
     addedBy,
@@ -3161,18 +3109,27 @@ function buildWhereClause(filters, teamUserIds = []) {
     };
   }
 
-  // 👤 Team-based restriction
   if (teamUserIds.length > 0) {
     where.addedById = { [Op.in]: teamUserIds };
   }
 
-  // 👤 Specific addedBy filter (within team)
   if (addedBy) {
     if (teamUserIds.length > 0 && !teamUserIds.includes(Number(addedBy))) {
-      // Force empty result safely
       where.addedById = -1;
     } else {
       where.addedById = addedBy;
+    }
+  }
+
+  if (rolePower && userId) {
+    if (rolePower === 'SalesExecutive') {
+      where.salesPersonId = userId;
+    } else if (rolePower === 'KAM') {
+      where.kamId = userId;
+    } else if (rolePower === 'Manager') {
+      where.amId = userId;
+    } else if (rolePower === 'Accountant') {
+      where.accountantId = userId;
     }
   }
 
@@ -3385,8 +3342,6 @@ exports.updateKAM = async (req, res) => {
 exports.downloadExcel = async (req, res) => {
   const data = req.body.invoices;
   const { startDate, endDate, status, addedBy, invoiceNo } = req.body;
-  
-  console.log(`Exporting ${data?.length || 0} invoices...`);
   
   // Validate required data
   if (!data || !Array.isArray(data)) {
@@ -3639,8 +3594,6 @@ exports.downloadExcel = async (req, res) => {
     
     // Send the file
     res.send(buffer);
-    
-    console.log(`Excel report generated successfully: ${filename} (${data.length} records)`);
 
   } catch (error) {
     console.error('Error generating Excel report:', error);

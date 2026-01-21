@@ -9,7 +9,6 @@ const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 const INVOICE_URL = process.env.INVOICE_SERVICE_URL || 'http://localhost:3002';
 const FILE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3003';
 app.use((req, res, next) => {
-  console.log('GATEWAY HIT:', req.method, req.url);
   next();
 });
 app.use('/api/auth', createProxyMiddleware({ target: AUTH_URL,  changeOrigin: true,

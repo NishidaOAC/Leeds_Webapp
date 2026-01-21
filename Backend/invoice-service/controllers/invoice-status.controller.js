@@ -16,8 +16,6 @@ exports.updatePIStatus = async ({
     if (!pi) {
       return { success: false, message: 'Proforma Invoice not found.' };
     }
-    console.log(pi,"pi founded");
-    
     // Validate URLs
     if (!Array.isArray(pi.url) || pi.url.length === 0) {
       return { success: false, message: 'Proforma Invoice does not have an associated file or the URL is invalid.' };
@@ -48,7 +46,6 @@ exports.updatePIStatus = async ({
     };
 
   } catch (error) {
-    console.error('Error updating PI status:', error);
     return { success: false, message: error.message };
   }
 };

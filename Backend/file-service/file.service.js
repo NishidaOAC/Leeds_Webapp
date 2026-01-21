@@ -27,13 +27,8 @@ class FileService {
         Bucket: this.bucketName,
         Key: cleanKey
       };
-
-      console.log('Deleting file with key:', cleanKey);
-      
       // Delete from S3
       await this.s3.deleteObject(params).promise();
-      
-      console.log('✅ File deleted successfully from S3');
       
       // Optional: Delete from database if you store metadata
       // await this.deleteFileMetadataByKey(cleanKey);
@@ -45,8 +40,6 @@ class FileService {
       };
       
     } catch (error) {
-      console.error('❌ Failed to delete file:', error.message);
-      
       // Handle specific S3 errors
       if (error.code === 'NoSuchKey') {
         throw new Error(`File not found with key: ${s3Key}`);
@@ -107,15 +100,10 @@ class FileService {
         ACL: 'public-read',
         Metadata: s3Metadata
       };
-
-      console.log('Uploading file with metadata:', s3Metadata);
       
       // Upload to S3
       const s3Response = await this.s3.upload(params).promise();
       
-      console.log('✅ Upload successful!');
-      console.log('Location:', s3Response.Location);
-
       // Store file metadata in database (all types preserved here)
       const fileInfo = {
         fileId,
@@ -225,14 +213,8 @@ class FileService {
         Metadata: s3Metadata
       };
 
-      console.log('Uploading bank slip with metadata:', s3Metadata);
-      
       // Upload to S3
       const s3Response = await this.s3.upload(params).promise();
-      
-      console.log('✅ Bank slip upload successful!');
-      console.log('Location:', s3Response.Location);
-
       // Store bank slip metadata in database
       const fileInfo = {
         fileId,
@@ -328,13 +310,7 @@ class FileService {
       
       const acl = await this.s3.getObjectAcl(aclParams).promise();
       
-      console.log('Object ACL Grants:');
-      acl.Grants.forEach((grant, index) => {
-        console.log(`  Grant ${index + 1}:`);
-        console.log(`    Permission: ${grant.Permission}`);
-        console.log(`    Grantee Type: ${grant.Grantee.Type}`);
-        console.log(`    Grantee URI: ${grant.Grantee.URI || 'N/A'}`);
-        console.log(`    Grantee ID: ${grant.Grantee.ID || 'N/A'}`);
+      acl.Grants.forEach((grant, index) => {;
       });
       
       // Check for public read grant
@@ -482,9 +458,6 @@ class FileService {
   }
 
   async getFileMetadata(fileId) {
-    // Implement database retrieval logic
-    // Example: return await FileModel.findOne({ fileId });
-    console.log('Getting file metadata for:', fileId);
     return null; // Replace with actual implementation
   }
 

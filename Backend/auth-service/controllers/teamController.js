@@ -1,7 +1,6 @@
 const { Team, TeamLeader, TeamMember, User } = require('../models');
 
 exports.createTeam = async (req, res) => {
-    console.log(req.body,"createTeam");
   try {
     const { teamName, teamLeaders, teamMembers } = req.body;
     
@@ -53,8 +52,6 @@ exports.createTeam = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Create team error:', error);
-    
     // Handle specific errors
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
@@ -81,14 +78,11 @@ exports.createTeam = async (req, res) => {
 }
 
 exports.getTeams = async (req, res) => {
-    console.log("getTeams");
-    
     try {
         const team = await Team.findAll({include: [
             { model: TeamLeader, attributes: ['userId'], include: [{model: User, attributes: ['name']}] },
             { model: TeamMember, attributes: ['userId'], include: [{model: User, attributes: ['name']}] }]
         });
-        console.log(team);
         
         res.send(team);
     } catch (error) {
@@ -135,7 +129,6 @@ exports.getTeamById = async (req, res) => {
 
     res.json(team);
   } catch (error) {
-    console.error('Error fetching team by id:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch team',
@@ -144,6 +137,36 @@ exports.getTeamById = async (req, res) => {
   }
 };
 
+exports.getTeamByLeaderId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const team = await TeamLeader.findOne({
+      where: { userId: id },
+      include: [
+        {
+          model: Team,
+          attributes: ['id'],
+        },
+      ]
+    });
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team not found'
+      });
+    }
+
+    res.json(team);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch team',
+      error: error.message
+    });
+  }
+};
 
 exports.updateTeam = async (req, res) => {
     try {
@@ -205,7 +228,6 @@ exports.updateTeam = async (req, res) => {
             data: updatedTeam
         });
     } catch (error) {
-        console.error('Update team error:', error);
         return res.status(500).json({
             success: false,
             error: 'Internal server error',
@@ -234,7 +256,6 @@ exports.deleteTeam = async (req, res) => {
 
         return res.status(204).json();
     } catch (error) {
-        console.error('Delete team error:', error);
         return res.status(500).json({
             status: "error",
             message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -265,7 +286,6 @@ exports.getTeamMembersByLeader = async (req, res) => {
         ...memberTeams.map(t => t.teamId)
       ])
     ];
-    console.log(teamIds, "teamIds");
     
     if (!teamIds.length) {
       return res.json({
@@ -280,8 +300,6 @@ exports.getTeamMembersByLeader = async (req, res) => {
       where: { teamId: teamIds },
       attributes: ['userId']
     });
-    console.log(members, "members");
-    
     // 5️⃣ Include leaders also (optional but recommended)
     const leaders = await TeamLeader.findAll({
       where: { teamId: teamIds },
@@ -303,7 +321,55 @@ exports.getTeamMembersByLeader = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching team members:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch team members'
+    });
+  }
+};
+
+exports.getTeamMembersByTeam = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // 1️⃣ Get teams where user is a LEADER
+    const team = await Team.findByPk(id, {
+      include: [
+        {
+          model: TeamLeader,
+          include: [User]
+        },
+        {
+          model: TeamMember,
+          include: [User]
+        }
+      ]
+    });
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team not found'
+      });
+    }
+    // 🔹 Extract leaders
+    const leaders = team.TeamLeaders.map(tl => ({
+      ...tl.user.get({ plain: true }),
+      role: 'LEADER'
+    }));
+
+    // 🔹 Extract members
+    const members = team.TeamMembers.map(tm => ({
+      ...tm.user.get({ plain: true }),
+      role: 'MEMBER'
+    }));
+
+    // 🔹 Merge both arrays
+    const teamMembers = [...leaders, ...members];
+    return res.status(200).json({
+      success: true,
+      teamId: team.id,
+      members: teamMembers
+    });
+  } catch (error) {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch team members'

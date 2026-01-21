@@ -11,8 +11,6 @@ router.post('/updatestatus', authenticateToken, async (req, res) => {
   try {
     const { performaInvoiceId, remarks, amId, accountantId, status, kamId } = req.body;
     const user = req.user;
-    console.log(user,"usersssssssssss");
-    
     // Call controller to update status
     const result = await controller.updatePIStatus({
       performaInvoiceId,
@@ -51,7 +49,6 @@ router.post('/updatestatus', authenticateToken, async (req, res) => {
       amId: amId || pi.amId,
       accountantId: accountantId || pi.accountantId
     }).then(emailResult => {
-      console.log('Email sent successfully:', emailResult);
     }).catch(error => {
       console.error('Email sending failed:', error);
     });

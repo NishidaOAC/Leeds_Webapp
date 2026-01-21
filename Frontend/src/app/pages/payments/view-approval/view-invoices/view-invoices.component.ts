@@ -90,8 +90,6 @@ export class ViewInvoicesComponent {
   private designationService = inject(DesignationServices);
   getRoleById(id: number, piId: number){
     this.roleSub = this.designationService.getRoleById(id).subscribe(role => {
-      console.log(role);
-      
       this.roleName = role.roleName;
       this.getPiById(piId)
 
@@ -137,15 +135,11 @@ export class ViewInvoicesComponent {
   signedUrl!: any[];
   getPiById(id: number){
     this.piSub = this.invoiceService.getPIById(id).subscribe(pi => {
-      console.log(pi);
-      
       this.pi = pi;
       this.piNo = pi.piNo;
 
       const signedUrlsWithType = pi.url.map((signedUrl: any) => {
         const url = signedUrl.url;
-        console.log(url);
-        
         const fileType = url.split('.').pop().split('?')[0];
         return {
             url: url,
@@ -177,8 +171,6 @@ export class ViewInvoicesComponent {
   status: PerformaInvoiceStatus[] = [];
   getPiStatusByPiId(id: number){
     this.statusSub = this.invoiceService.getPIStatusByPIId(id, this.filterValue).subscribe(status => {
-      console.log(status);
-      
       this.status = status;
     });
   }

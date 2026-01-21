@@ -58,6 +58,7 @@ export class FullComponent implements OnInit {
   }
 
   username: string;
+  role!: string;
   constructor(
     private router: Router,
     private breakpointObserver: BreakpointObserver,
@@ -65,6 +66,8 @@ export class FullComponent implements OnInit {
         const token: any = localStorage.getItem('user')
         let user = JSON.parse(token)
         this.username = user.name;
+        this.role = user.role
+        
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW])

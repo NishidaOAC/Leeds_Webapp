@@ -1,6 +1,4 @@
 const errorMiddleware = (err, req, res, next) => {
-  console.error('Error:', err);
-
   // Handle specific error types
   if (err.name === 'MulterError') {
     if (err.message === 'File too large') {

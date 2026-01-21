@@ -57,7 +57,7 @@ export class ApprovalReportComponent {
 
   selectedTab: string = '';
   header: string = 'Invoices';
-dataSource: any;
+  dataSource: any;
   onTabClick(tabName: string) {
     this.selectedTab = tabName;
   }
@@ -69,10 +69,39 @@ dataSource: any;
 
   user!: number;
   isSubmitted: boolean = false;
+  roleName!: string;
+  role!: string;
   ngOnInit() {
     this.getUsers()
     this.getTeam()
     this.getByFilter()
+    const token: any = localStorage.getItem('user')
+    const user = JSON.parse(token)
+    this.roleName = user.power;
+    this.role = user.role;
+    this.checkRole(user.id)
+    this.currentUser = user;
+    this.applySalesExecutiveAutoFilters();
+    
+  }
+
+  isTeamDisabled: boolean = false;
+  isDisabled: boolean = false;
+  checkRole(id: number){
+    if(this.roleName === 'SalesExecutive'){
+        if(this.role === 'Team Lead'){
+          this.teamService.getTeamByLeaderId(id).subscribe(res=>{
+            if(res){
+              this.isDisabled = true;
+              this.teamId = res.teamId;
+              this.getByFilter()
+            }
+          })
+        }else {
+          this.addedBy = id;
+          this.isTeamDisabled = true;
+        }
+    }
   }
 
   private teamService = inject(TeamService);
@@ -80,6 +109,8 @@ dataSource: any;
   getTeam(){
     this.teamService.getTeams().subscribe(res=>{
       this.teams = res;
+      this.applySalesExecutiveAutoFilters();
+      
     })
   }
   teamId!: number;
@@ -112,7 +143,9 @@ dataSource: any;
 
   getTeamWise(event: MatSelectChange) {
     this.teamId = event.value;
-    console.log(this.teamId);
+    this.teamService.getTeamMembersByTeam(this.teamId).subscribe((res: any)=>{
+      this.Users = res.members;
+    })
     
     this.getByFilter()
   }
@@ -146,7 +179,6 @@ dataSource: any;
     this.getByFilter()
   }
 
-  filteredUsers: User[] = [];
   usersSub!: Subscription;
   Users: User[] = [];
   getUsers() {
@@ -156,6 +188,35 @@ dataSource: any;
   }
 
   private datePipe = inject(DatePipe);
+  currentUser: any;
+  applySalesExecutiveAutoFilters() {
+    if (!this.currentUser) return;
+    const power = String(this.roleName || '').trim();
+    const isSalesExec = power === 'SalesExecutive' || power === 'SalesExceutive';
+    if (!isSalesExec) return;
+    const userRole = String(this.role || '').trim();
+    if (userRole === 'Team Lead' || userRole === 'TeamLeader' || userRole === 'TeamLead') {
+      const teamIdFromUser = (this.currentUser as any).teamId;
+      let resolvedTeamId = teamIdFromUser;
+      if (!resolvedTeamId && Array.isArray(this.teams) && this.teams.length > 0) {
+        const team = this.teams.find((t: any) => {
+          const leaders = t.TeamLeaders || t.teamLeaders || [];
+          return leaders.some((ldr: any) => {
+            const uid = typeof ldr === 'number' ? ldr : ldr.userId;
+            return uid === this.currentUser.id;
+          });
+        });
+        if (team) resolvedTeamId = team.id;
+      }
+      if (resolvedTeamId) {
+        this.teamId = resolvedTeamId;
+        this.getByFilter();
+      }
+    } else {
+      this.addedBy = this.currentUser.id;
+      this.getByFilter();
+    }
+  }
   makeExcel() {
     const data = {
       invoices: this.invoices,
@@ -181,7 +242,6 @@ dataSource: any;
     if (data.endDate) options.endDate = data.endDate;
 
     this.downloadProformaExcel(data.invoices, options).catch(error => {
-      console.error('Error downloading Excel:', error);
       alert(`Error downloading Excel: ${error.message || 'Unknown error'}`);
     });
   }
@@ -196,8 +256,6 @@ dataSource: any;
       endDate?: string;
     }
   ): Promise<string> {
-    console.log(`Exporting ${data?.length || 0} invoices...`);
-
     // Validate data
     if (!data || !Array.isArray(data)) {
       throw new Error('Invalid data format. Expected an array of invoices.');
@@ -256,7 +314,6 @@ dataSource: any;
       return this.saveExcelFile(buffer, data.length);
       
     } catch (error) {
-      console.error('Error generating Excel report:', error);
       throw error instanceof Error ? error : new Error('Failed to generate Excel report');
     }
   }
@@ -558,11 +615,7 @@ dataSource: any;
     link.click();
     document.body.removeChild(link);
     
-    // Clean up URL object
     window.URL.revokeObjectURL(url);
-    
-    console.log(`Excel report generated successfully: ${filename} (${recordCount} records)`);
-    
     return filename;
   }
 

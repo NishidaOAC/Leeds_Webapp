@@ -14,11 +14,11 @@ export class AuthGuard  {
       if(this.loginService.isAuthenticated()){
         return true;
       }
-      // else{
-        // alert('please login first')
-        // this.router.navigate(['']);
+      else{
+        alert('please login first')
+        this.router.navigate(['']);
         return true;
-      // }
+      }
     }
 
 }

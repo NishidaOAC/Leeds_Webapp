@@ -67,7 +67,7 @@ export class FullComponent implements OnInit {
         let user = JSON.parse(token)
         this.username = user.name;
         this.role = user.role
-        
+        console.log(this.role)
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW])
@@ -92,8 +92,10 @@ export class FullComponent implements OnInit {
   }
 
   logout(){
-      localStorage.removeItem('jwt');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
+
       this.router.navigate(['/']);  
   }
   ngOnInit(): void { }

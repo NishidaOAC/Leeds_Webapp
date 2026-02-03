@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
+const { initScheduler } = require('./scheduler/backupTask');
 
 const app = express();
 app.use(cors({ origin: '*' }));
@@ -48,6 +49,7 @@ app.get('/api/test', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+initScheduler();
 app.listen(PORT, () => {
   console.log(`🚀 API Gateway running at http://localhost:${PORT}`);
 });

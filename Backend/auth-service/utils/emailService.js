@@ -22,7 +22,7 @@ const sendApprovalRequestEmail = async ({
   dashboardLink
 }) => {
   const mailOptions = {
-    from: `"AeroAssist" <>`,
+    from: `"AeroAssist" <${fromEmail}>`,
     to,
     subject: 'New User Registration Requires Approval',
     html: `
@@ -76,7 +76,7 @@ const sendApprovalRequestEmail = async ({
 
 const sendUserConfirmationEmail = async ({ to, userName, adminEmail }) => {
   const mailOptions = {
-    from: `"AeroAssist" <>`,
+    from: `"AeroAssist" <${fromEmail}>`,
     to,
     subject: 'Registration Received - Pending Approval',
     html: `
@@ -98,22 +98,13 @@ const sendUserConfirmationEmail = async ({ to, userName, adminEmail }) => {
                      padding: 15px; border-radius: 4px; margin: 20px 0;">
             <p style="color: #856404; margin: 0;">
               <strong>Status:</strong> Pending Approval<br>
-              <strong>Next Steps:</strong> Your account will be reviewed by an administrator.
+              <strong>Next Step:</strong> An administrator will review your account details.
             </p>
           </div>
-          
+
           <p style="color: #555;">
-            Once your account is approved, you will receive another email with 
-            instructions on how to access the system.
-          </p>
-          
-          <p style="color: #555;">
-            If you have any questions, please contact your administrator at 
-            <a href="mailto:${adminEmail}" style="color: #1c4768;">${adminEmail}</a>.
-          </p>
-          
-          <p style="color: #555;">
-            Estimated approval time: 24-48 hours
+            You will receive another email once your account has been activated.
+            If you have any questions, please contact your administrator at <a href="mailto:${adminEmail}">${adminEmail}</a>.
           </p>
         </div>
         
@@ -129,36 +120,67 @@ const sendUserConfirmationEmail = async ({ to, userName, adminEmail }) => {
   return transporter.sendMail(mailOptions);
 };
 
-// In your sendEmail function, ensure attachments is properly handled:
-const sendEmail = async (fromEmail, emailPassword, toEmail, subject, html) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 587,
-      secure: false,
-      auth: {
-        user: fromEmail,
-        pass: emailPassword
-      }
-    });
+const sendForgotPasswordRequestToManager = async ({
+  to,
+  adminName,
+  userName,
+  userEmail,
+  empNo,
+  requestedAt,
+  dashboardLink
+}) => {
+  const mailOptions = {
+    from: `"AeroAssist" <${fromEmail}>`,
+    to,
+    subject: 'Password Reset Request from Employee',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #1c4768; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">AeroAssist Fintech</h1>
+          <p style="color: #e0e0e0; margin: 10px 0 0;">Password Reset Request</p>
+        </div>
+        
+        <div style="padding: 30px; background-color: #f9f9f9;">
+          <h2 style="color: #333;">Action Required: Password Reset</h2>
+          <p style="color: #555;">Hello ${adminName},</p>
+          <p style="color: #555;">An employee has requested a password reset. Please review the details below and take appropriate action.</p>
+          
+          <div style="background-color: white; border-left: 4px solid #d9534f; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #d9534f; margin-top: 0;">Employee Details:</h3>
+            <p><strong>Name:</strong> ${userName}</p>
+            <p><strong>Email:</strong> ${userEmail}</p>
+            <p><strong>Employee Number:</strong> ${empNo || 'Not provided'}</p>
+            <p><strong>Requested At:</strong> ${requestedAt}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${dashboardLink}" 
+               style="background-color: #1c4768; color: white; padding: 12px 30px; 
+                      text-decoration: none; border-radius: 4px; display: inline-block;
+                      font-weight: bold; font-size: 16px;">
+              Go to Dashboard
+            </a>
+          </div>
+          
+          <p style="color: #666;">
+            Please verify the identity of the employee before resetting their password.
+          </p>
+        </div>
+        
+        <div style="background-color: #f0f0f0; padding: 15px; text-align: center; 
+                    color: #666; font-size: 12px;">
+          <p>AeroAssist Fintech Security</p>
+          <p>This is an automated message, please do not reply.</p>
+        </div>
+      </div>
+    `
+  };
 
-    const mailOptions = {
-      from: `"LeedsAeroSpace Payment App" <${fromEmail}>`,
-      to: toEmail,
-      subject: subject,
-      html: html
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    return info;
-  } catch (error) {
-    throw error;
-  }
+  return transporter.sendMail(mailOptions);
 };
-
 
 module.exports = {
   sendApprovalRequestEmail,
   sendUserConfirmationEmail,
-  sendEmail
+  sendForgotPasswordRequestToManager
 };

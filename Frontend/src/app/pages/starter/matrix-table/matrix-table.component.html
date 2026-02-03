@@ -1,195 +1,197 @@
 <body>
-    <div class="dashboard-container">
-        <!-- WIRE TRANSFER Section -->
-        @if (wtInvoices.length) {
-            <div class="matrix-section wire-transfer-section">
-                <div class="section-header">
-                    <h3><i class="material-icons">swap_horiz</i> WIRE TRANSFER</h3>
-                    <span class="badge">{{wtInvoices.length}} entries</span>
-                </div>
-                
-                <div class="scrollable-table">
-                    <table class="matrix-table">
-                        <thead>
-                            <tr>
-                                <th>Entry #</th>
-                                <th>Customer</th>
-                                <th>Attempt</th>
-                                <th>SP</th>
-                                <th>KAM</th>
-                                <th>AM</th>
-                                <th>Slip</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (item of wtInvoices; track $index) {
-                                <tr class="matrix-row">
-                                    <td class="entry-cell">
-                                        <a class="invoice-link" 
-                                           [routerLink]="['/dashboard/payments/open', item.id]" 
-                                           (click)="$event.preventDefault(); openInvoice(item.id)">
-                                            <i class="material-icons">receipt</i>
-                                            {{ item.piNo }}
-                                        </a>
-                                    </td>
-                                    <td class="customer-cell">
-                                        <span class="customer-name">
-                                            {{ item.customers?.companyName ?? 'To Stock' }}
-                                        </span>
-                                    </td>
-                                    <td class="attempt-cell">
-                                        <span class="attempt-badge">{{ item.count }}</span>
-                                    </td>
-                                    
-                                    @if (isGenerated(item, 'GENERATED')) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else { 
-                                        <td class="status-cell empty-cell">-</td> 
-                                    }
-            
-                                    @if (isGenerated(item, 'KAM REJECTED') && item.status === 'KAM REJECTED') {
-                                        <td class="status-cell cross-cell">
-                                            <span class="cross-icon">✗</span>
-                                        </td>
-                                    } @else if (isGenerated(item, 'KAM VERIFIED')) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else {
-                                        <td class="status-cell empty-cell">-</td>
-                                    }
-                
-                                    @if (isGenerated(item, 'AM REJECTED') && item.status === 'AM REJECTED') {
-                                        <td class="status-cell cross-cell">
-                                            <span class="cross-icon">✗</span>
-                                        </td>
-                                    } @else if (isGenerated(item, 'AM VERIFIED')) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else { 
-                                        <td class="status-cell empty-cell">-</td> 
-                                    }
-                
-                                    @if (isGenerated(item, 'BANK SLIP ISSUED')) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else { 
-                                        <td class="status-cell empty-cell">-</td> 
-                                    }
+    @if(invoices && wtInvoices){
+        <div class="dashboard-container">
+            <!-- WIRE TRANSFER Section -->
+            @if (wtInvoices.length) {
+                <div class="matrix-section wire-transfer-section">
+                    <div class="section-header">
+                        <h3><i class="material-icons">swap_horiz</i> WIRE TRANSFER</h3>
+                        <span class="badge">{{wtInvoices.length}} entries</span>
+                    </div>
+                    
+                    <div class="scrollable-table">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th>Entry #</th>
+                                    <th>Customer</th>
+                                    <th>Attempt</th>
+                                    <th>SP</th>
+                                    <th>KAM</th>
+                                    <th>AM</th>
+                                    <th>Slip</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @for (item of wtInvoices; track $index) {
+                                    <tr class="matrix-row">
+                                        <td class="entry-cell">
+                                            <a class="invoice-link" 
+                                            [routerLink]="['/dashboard/payments/open', item.id]" 
+                                            (click)="$event.preventDefault(); openInvoice(item.id)">
+                                                <i class="material-icons">receipt</i>
+                                                {{ item.piNo }}
+                                            </a>
+                                        </td>
+                                        <td class="customer-cell">
+                                            <span class="customer-name">
+                                                {{ item.customers?.companyName ?? 'To Stock' }}
+                                            </span>
+                                        </td>
+                                        <td class="attempt-cell">
+                                            <span class="attempt-badge">{{ item.count }}</span>
+                                        </td>
+                                        
+                                        @if (isGenerated(item, 'GENERATED')) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else { 
+                                            <td class="status-cell empty-cell">-</td> 
+                                        }
                 
-                <div class="pagination-container">
-                    <mat-paginator [length]="wtTotalItems" 
-                                   [pageSize]="wtPageSize" 
-                                   [pageIndex]="wtCurrentPage - 1"
-                                   (page)="onPageChangedWT($event)" 
-                                   [pageSizeOptions]="[10, 20, 30, 40, 50, 100]"
-                                   class="custom-paginator">
-                    </mat-paginator>
+                                        @if (isGenerated(item, 'KAM REJECTED') && item.status === 'KAM REJECTED') {
+                                            <td class="status-cell cross-cell">
+                                                <span class="cross-icon">✗</span>
+                                            </td>
+                                        } @else if (isGenerated(item, 'KAM VERIFIED')) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else {
+                                            <td class="status-cell empty-cell">-</td>
+                                        }
+                    
+                                        @if (isGenerated(item, 'AM REJECTED') && item.status === 'AM REJECTED') {
+                                            <td class="status-cell cross-cell">
+                                                <span class="cross-icon">✗</span>
+                                            </td>
+                                        } @else if (isGenerated(item, 'AM VERIFIED')) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else { 
+                                            <td class="status-cell empty-cell">-</td> 
+                                        }
+                    
+                                        @if (isGenerated(item, 'BANK SLIP ISSUED')) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else { 
+                                            <td class="status-cell empty-cell">-</td> 
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="pagination-container">
+                        <mat-paginator [length]="wtTotalItems" 
+                                    [pageSize]="wtPageSize" 
+                                    [pageIndex]="wtCurrentPage - 1"
+                                    (page)="onPageChangedWT($event)" 
+                                    [pageSizeOptions]="[10, 20, 30, 40, 50, 100]"
+                                    class="custom-paginator">
+                        </mat-paginator>
+                    </div>
                 </div>
-            </div>
-        }
+            }
 
-        <!-- CREDIT CARD Section -->
-        @if (roleName !== 'Accountant' && invoices.length) {
-            <div class="matrix-section credit-card-section">
-                <div class="section-header">
-                    <h3><i class="material-icons">credit_card</i> CREDIT CARD</h3>
-                    <span class="badge">{{invoices.length}} entries</span>
-                </div>
-                
-                <div class="scrollable-table">
-                    <table class="matrix-table">
-                        <thead>
-                            <tr>
-                                <th>Entry #</th>
-                                <th>Customer</th>
-                                <th>Attempt</th>
-                                <th>INITIATED</th>
-                                <th>AM APPROVED</th>
-                                <th>COMPLETED</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (item of invoices; track $index) {
-                                <tr class="matrix-row">
-                                    <td class="entry-cell">
-                                        <a class="invoice-link" 
-                                           [routerLink]="['/dashboard/payments', item.id]" 
-                                           (click)="$event.preventDefault(); openInvoice(item.id)">
-                                            <i class="material-icons">receipt</i>
-                                            {{ item.piNo }}
-                                        </a>
-                                    </td>
-                                    <td class="customer-cell">
-                                        <span class="customer-name">
-                                            {{ item.customers?.companyName ?? 'To Stock' }}
-                                        </span>
-                                    </td>
-                                    <td class="attempt-cell">
-                                        <span class="attempt-badge">{{ item.count }}</span>
-                                    </td>
-                                    
-                                    @if (isGenerated(item, 'INITIATED')) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else {
-                                        <td class="status-cell empty-cell">-</td>
-                                    }
-                                    
-                                    @if (isGenerated(item, 'AM REJECTED') && (item.status === 'AM REJECTED')) {
-                                        <td class="status-cell cross-cell">
-                                            <span class="cross-icon">✗</span>
-                                        </td>
-                                    } @else if (isGenerated(item, 'AM APPROVED')) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else {
-                                        <td class="status-cell empty-cell">-</td>
-                                    }
-            
-                                    @if (isGenerated(item, ['CARD PAYMENT SUCCESS'])) {
-                                        <td class="status-cell check-cell">
-                                            <span class="check-icon">✓</span>
-                                        </td>
-                                    } @else { 
-                                        <td class="status-cell empty-cell">-</td> 
-                                    }
+            <!-- CREDIT CARD Section -->
+            @if (roleName !== 'Accountant' && invoices.length) {
+                <div class="matrix-section credit-card-section">
+                    <div class="section-header">
+                        <h3><i class="material-icons">credit_card</i> CREDIT CARD</h3>
+                        <span class="badge">{{invoices.length}} entries</span>
+                    </div>
+                    
+                    <div class="scrollable-table">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th>Entry #</th>
+                                    <th>Customer</th>
+                                    <th>Attempt</th>
+                                    <th>INITIATED</th>
+                                    <th>AM APPROVED</th>
+                                    <th>COMPLETED</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @for (item of invoices; track $index) {
+                                    <tr class="matrix-row">
+                                        <td class="entry-cell">
+                                            <a class="invoice-link" 
+                                            [routerLink]="['/dashboard/payments', item.id]" 
+                                            (click)="$event.preventDefault(); openInvoice(item.id)">
+                                                <i class="material-icons">receipt</i>
+                                                {{ item.piNo }}
+                                            </a>
+                                        </td>
+                                        <td class="customer-cell">
+                                            <span class="customer-name">
+                                                {{ item.customers?.companyName ?? 'To Stock' }}
+                                            </span>
+                                        </td>
+                                        <td class="attempt-cell">
+                                            <span class="attempt-badge">{{ item.count }}</span>
+                                        </td>
+                                        
+                                        @if (isGenerated(item, 'INITIATED')) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else {
+                                            <td class="status-cell empty-cell">-</td>
+                                        }
+                                        
+                                        @if (isGenerated(item, 'AM REJECTED') && (item.status === 'AM REJECTED')) {
+                                            <td class="status-cell cross-cell">
+                                                <span class="cross-icon">✗</span>
+                                            </td>
+                                        } @else if (isGenerated(item, 'AM APPROVED')) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else {
+                                            <td class="status-cell empty-cell">-</td>
+                                        }
                 
-                <div class="pagination-container">
-                    <mat-paginator [length]="totalItems" 
-                                   [pageSize]="pageSize" 
-                                   [pageIndex]="currentPage - 1"
-                                   (page)="onPageChanged($event)" 
-                                   [pageSizeOptions]="[10, 20, 30, 40, 50, 100]"
-                                   class="custom-paginator">
-                    </mat-paginator>
+                                        @if (isGenerated(item, ['CARD PAYMENT SUCCESS'])) {
+                                            <td class="status-cell check-cell">
+                                                <span class="check-icon">✓</span>
+                                            </td>
+                                        } @else { 
+                                            <td class="status-cell empty-cell">-</td> 
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="pagination-container">
+                        <mat-paginator [length]="totalItems" 
+                                    [pageSize]="pageSize" 
+                                    [pageIndex]="currentPage - 1"
+                                    (page)="onPageChanged($event)" 
+                                    [pageSizeOptions]="[10, 20, 30, 40, 50, 100]"
+                                    class="custom-paginator">
+                        </mat-paginator>
+                    </div>
                 </div>
-            </div>
-        }
+            }
 
-        <!-- No Data Message -->
-        @if (!wtInvoices.length && (roleName === 'Accountant' || !invoices.length)) {
-            <div class="no-data-message">
-                <i class="material-icons">inbox</i>
-                <h4>No payment data available</h4>
-                <p>Start by creating a new payment entry</p>
-            </div>
-        }
-    </div>
+            <!-- No Data Message -->
+            @if (!wtInvoices.length && (roleName === 'Accountant' || !invoices.length)) {
+                <div class="no-data-message">
+                    <i class="material-icons">inbox</i>
+                    <h4>No payment data available</h4>
+                    <p>Start by creating a new payment entry</p>
+                </div>
+            }
+        </div>
+    }
 </body>

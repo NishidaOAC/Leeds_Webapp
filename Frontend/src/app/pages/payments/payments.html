@@ -1,6 +1,6 @@
 <mat-tab-group class="horizontal-tabs" [selectedIndex]="selectedTabIndex" 
 (selectedTabChange)="onTabChange($event.index)" *ngIf="isViewReady">
-  @if(roleName !=='Administrator'  && roleName !== 'Super Administrator'){
+  @if(roleName !=='Admin'){
     <mat-tab>
       <mat-card style="margin-top: 20px;">
         <ng-template mat-tab-label>
@@ -29,17 +29,17 @@
     </mat-tab>
   }
 
-  @if (roleName !== 'Administrator' && roleName !== 'Super Administrator') {
+  <!-- @if (roleName !== 'Administrator' && roleName !== 'Super Administrator') { -->
     <mat-tab>
       <ng-template mat-tab-label>
         COMPLETED
       </ng-template>
       <app-view-approval #viewApproval></app-view-approval>
     </mat-tab>  
-  }
+  <!-- } -->
 
 
-  @if (roleName !== 'Accountant' && roleName !== 'Administrator'  && roleName !== 'Super Administrator'){
+  @if (roleName !== 'Accountant' && roleName !== 'Admin'){
     <mat-tab>
       <ng-template mat-tab-label>
         {{header}}

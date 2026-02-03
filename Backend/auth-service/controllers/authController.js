@@ -1,9 +1,72 @@
 const { User, Role } = require('../models');
 const authValidation = require('../validations/authValidation');
 const { publishEvent } = require('../utils/eventPublisher');
-const { sendApprovalRequestEmail, sendUserConfirmationEmail } = require('../utils/emailService');
+const { sendApprovalRequestEmail, sendUserConfirmationEmail, sendForgotPasswordRequestToManager } = require('../utils/emailService');
 
 class AuthController {
+  // Request password reset (sends email to manager)
+  static async requestPasswordReset(req, res) {
+    try {
+      const {  empNo } = req.body;
+
+      if (!empNo) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide employee number'
+        });
+      }
+
+      // Find user
+      const query = {};
+      if (empNo) query.empNo = empNo;
+
+      const user = await User.findOne({ where: query });
+
+      if (!user) {
+        // Return success even if user not found to prevent enumeration
+        return res.status(200).json({
+          success: true,
+          message: 'If the account exists, a request has been sent to the administrator.'
+        });
+      }
+
+      // Find super admins
+      // const superAdmins = await User.findAll({
+      //   where: { 
+      //     roleId: 1, // Assuming roleId 1 is super admin
+      //     isActive: true 
+      //   },
+      //   attributes: ['id', 'email', 'name']
+      // });
+
+      // if (superAdmins.length > 0) {
+        // Send email to all admins (or just one, but usually all for redundancy)
+        // for (const admin of superAdmins) {
+          await sendForgotPasswordRequestToManager({
+            to: process.env.MANAGER_EMAIL,
+            userName: user.name,
+            userEmail: user.email,
+            empNo: user.empNo,
+            requestedAt: new Date().toLocaleString(),
+            dashboardLink: `${process.env.FRONTEND_URL}/dashboard/users` // Direct to users list
+          });
+        // }
+      // }
+
+      return res.status(200).json({
+        success: true,
+        message: 'If the account exists, a request has been sent to the administrator.'
+      });
+
+    } catch (error) {
+      console.error('Request Password Reset Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
   // Register new user
   static async register(req, res) {
     try {

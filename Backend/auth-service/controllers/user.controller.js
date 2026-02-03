@@ -1,6 +1,6 @@
 const { User, Role } = require("../models");
 const bcrypt = require('bcryptjs');
-const { sendEmail } = require('../utils/emailService');
+const { sendEmail, sendPasswordResetEmail } = require('../utils/emailService');
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const { sequelize } = require('../config/database');
@@ -185,14 +185,14 @@ exports.addUser = async (req, res) => {
     }
 
     // Return user without password
-    const userResponse = await User.findByPk(user.id, {
-      attributes: { exclude: ['password'] }
-    });
+    // const userResponse = await User.findByPk(user.id, {
+    //   attributes: { exclude: ['password'] }
+    // });
 
     res.status(201).json({
       success: true,
       message: 'User created successfully',
-      data: userResponse
+      data: user
     });
     
   } catch (error) {
@@ -462,44 +462,44 @@ exports.validateToken = async (req, res) => {
   }
 };
 
-exports.getUserById = async (req, res) => {
-  try {
-    const { userId } = req.params;
+// exports.getUserById = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
+//     if (!userId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'User ID is required'
+//       });
+//     }
 
-    const user = await User.findOne({
-      where: {
-        id: userId,
-        isActive: true
-      },
-      attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt', 'updatedAt'],
-      include: { model: Role }
-    });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found or inactive'
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      user
-    });
+//     const user = await User.findOne({
+//       where: {
+//         id: userId,
+//         isActive: true
+//       },
+//       attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt', 'updatedAt'],
+//       include: { model: Role }
+//     });
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'User not found or inactive'
+//       });
+//     }
+//     return res.status(200).json({
+//       success: true,
+//       user
+//     });
 
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch user',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch user',
+//       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+//     });
+//   }
+// };
 
 exports.validateUserStatus = async (req, res) => {
   try {
@@ -600,9 +600,6 @@ exports.bulkValidateUsers = async (req, res) => {
   }
 };
 
-/**
- * Refresh token validation
- */
 exports.refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -681,23 +678,35 @@ exports.refreshToken = async (req, res) => {
 exports.resetPassword = async (req, res) => {
     const { password } = req.body;
     try {
-        // If password is provided, hash it
-        let hashedPassword;
-        if (password) {
-            hashedPassword = await bcrypt.hash(password, 10);
+        if (!password) {
+            return res.status(400).json({ message: 'Password is required' });
         }
 
-        // Update the user record
-        const updatedUser = await User.update(
-            { password: hashedPassword }, 
+        const user = await User.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const plainPassword = password;
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+        await User.update(
+            { password: hashedPassword, passwordChangedAt: new Date() }, 
             { where: { id: req.params.id } }
-        )
+        );
 
-        if (updatedUser[0] === 1) { 
-            res.json({ message: 'User updated successfully', updatedUser });
-        } else {
-            res.json({ message: 'User not found' });
+        try {
+            await sendPasswordResetEmail({
+              to: user.email,
+              userName: user.name,
+              empNo: user.empNo,
+              password: plainPassword
+            });
+        } catch (emailErr) {
+            console.warn('Password reset email failed:', emailErr.message);
         }
+
+        res.json({ message: 'Password reset successfully' });
     } catch (err) {
         res.status(400).json({ message: err.message });
     }

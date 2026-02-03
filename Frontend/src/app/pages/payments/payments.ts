@@ -26,6 +26,7 @@ export class Payments {
     const user = JSON.parse(token)
     this.role = user.role;
     this.roleName = user.power;
+    console.log(this.roleName);
     this.refreshSub = interval(5000).subscribe(() => {
       this.getRoleById();
     });

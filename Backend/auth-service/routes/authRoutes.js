@@ -18,8 +18,8 @@ router.post('/login', (req, res, next) => {
   next();
 }, AuthController.login);
 
+router.post('/forgot-password', AuthController.requestPasswordReset);
 // router.post('/refresh-token', AuthController.refreshToken);
-// router.post('/forgot-password', authLimiter, AuthController.forgotPassword);
 // router.post('/reset-password', authLimiter, AuthController.resetPassword);
 
 // Protected routes
@@ -35,12 +35,10 @@ router.patch('/update/:id', authenticateToken, UserController.updateUser);
 router.delete('/delete/:id',  authenticateToken, UserController.deleteUser);
 
 router.get('/validate', UserController.validateToken);
-router.get('/users/:userId', UserController.getUserById);
 router.get('/users/:userId/status', UserController.validateUserStatus);
 router.post('/users/bulk-validate', UserController.bulkValidateUsers);
 router.post('/refresh-token', UserController.refreshToken);
 router.patch('/resetpassword/:id', authenticateToken, UserController.resetPassword);
-// router.get('/users/:id', authenticateToken, AuthController.getUserById);
 // router.put('/users/:id', authenticateToken, AuthController.updateUser);
 // router.delete('/users/:id', authenticateToken, AuthController.deleteUser);
 

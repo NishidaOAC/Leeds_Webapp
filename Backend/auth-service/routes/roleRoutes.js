@@ -12,6 +12,6 @@ router.patch('/:id', authenticateToken, RoleController.updateRole );
 
 router.delete('/:id', authenticateToken, RoleController.deleteRole );
 
-router.get('/findbyid/:id', authenticateToken, RoleController.getRoleById );
+// router.get('/findbyid/:id', authenticateToken, RoleController.getRoleById );
 
 module.exports = router;

@@ -12,13 +12,13 @@
           <div class="user-profile">
                 <a href="/" class="logodark">
       <img
-        src="./assets/images/logos/fintech_logo.png" width="230"
+        src="./assets/images/logos/fintech_logo.jpeg" width="230"
         alt="logo"
       />
     </a>
               <div class="user-info">
                   <div class="username">{{username}}</div>
-                  <div class="user-role">{{role}}</div>
+                  @if (role) { <div class="user-role">{{role}}</div> }
               </div>
               <button class="logout-btn" (click)="logout()">
                   <i class="material-icons">logout</i>
@@ -31,25 +31,6 @@
           }
         </mat-nav-list>
       </ng-scrollbar>
-      <div class="p-24">
-        <div class="bg-light-secondary d-flex align-items-center gap-4 rounded p-20 m-t-20">
-          <div>
-            <!-- <h5 class="f-s-16 f-w-600 m-b-8">
-              Store <br> 
-            </h5> -->
-            <a href="https://costsheet.anjalyayurvedics.com/"
-              target="_blank" class="d-flex justify-content-center bg-secondary">
-                <img
-                  src="./assets/images/logos/QB.png"
-                  class="align-middle m-2" width="50"
-                  alt="logo"
-                />
-              <!-- Check -->
-            </a>
-          </div>
-
-        </div>
-      </div>
     </div>
   </mat-sidenav>
 
@@ -75,7 +56,7 @@
 
     <div class="p-16 p-t-8 p-b-30 text-center">
       Design & Developed by <a class="text-decoration-none" href="https://www.anjalyayurvedics.com/"
-        target="_blank">Anjaly Ayurvedics</a>
+        target="_blank">Onboard Aero Consultant</a>
     </div>
 
   </mat-sidenav-content>

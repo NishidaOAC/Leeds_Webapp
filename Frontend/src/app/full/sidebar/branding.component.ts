@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   template: `
     <a href="/" class="logodark">
       <img
-        src="./assets/images/logos/fintech_logo.png" width="230"
+        src="./assets/images/logos/fintech_logo.jpeg" width="230"
         alt="logo"
       />
     </a>

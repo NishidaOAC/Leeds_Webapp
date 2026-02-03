@@ -22,6 +22,15 @@ export class AuthService {
     );
   }
 
+  requestPasswordReset(identifier: string): Observable<any> {
+    return this.http.post<any>(`${this.url}/forgot-password`, { empNo: identifier }).pipe(
+      catchError(err => {
+        this.showError(err.error?.message || 'Password reset request failed');
+        return throwError(() => err);
+      })
+    );
+  }
+
   // Alternative method if you want to keep userName parameter
   loginWithUsername(username: string, password: string): Observable<any> {
     // Check if username is an email

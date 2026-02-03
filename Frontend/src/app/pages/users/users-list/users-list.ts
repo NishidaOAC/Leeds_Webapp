@@ -32,7 +32,6 @@ export class UsersList {
   displayedColumns1 = ['user', 'username', 'role', 'actions'];
   constructor(private ps: UsersServices, private router: Router) {}
 
-
   ngOnInit() {
     this.load();
   }
@@ -65,6 +64,8 @@ export class UsersList {
     this.isLoading = true;
     this.ps.getAllUsers(this.pageIndex, this.pageSize, this.search).subscribe({
       next: (res: any) => {
+        console.log(res);
+        
         this.dataSource1 = res.items;
         this.totalRecords = res.count;
         this.isLoading = false;

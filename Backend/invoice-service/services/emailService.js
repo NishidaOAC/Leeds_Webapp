@@ -50,7 +50,8 @@ class EmailService {
         customerCurrency: pi.customerCurrency,
         poValue: pi.poValue,
         notes: remarks || pi.notes,
-        requestedBy: user.name
+        requestedBy: user.name,
+        requestedByDesignation: (user.role && (user.role.roleName || user.role.abbreviation)) || null
       };
 
       // Handle attachments
@@ -112,6 +113,7 @@ class EmailService {
     customerCurrency,
     notes,
     requestedBy,
+    requestedByDesignation,
     toEmail,
     ccEmails = [],
     attachments = []
@@ -138,6 +140,7 @@ class EmailService {
           customerCurrency,
           notes,
           requestedBy,
+          requestedByDesignation,
           action: 'BankSlip Added'
         }),
         attachments: attachments
@@ -169,6 +172,7 @@ class EmailService {
     poValue,
     notes,
     updatedBy,
+    updatedByDesignation,
     toEmail,
     ccEmails = [],
     attachments = [],
@@ -203,6 +207,7 @@ class EmailService {
         notes,
         action: 'Payment Request Updated',
         updatedBy,
+        updatedByDesignation,
         attachmentsCount: attachments.length,
       });
 
@@ -249,6 +254,7 @@ class EmailService {
     customerCurrency,
     notes,
     requestedBy,
+    requestedByDesignation,
     toEmail,
     ccEmails = [],
     attachments = []
@@ -276,6 +282,7 @@ class EmailService {
           customerCurrency,
           notes,
           requestedBy,
+          requestedByDesignation,
           action: 'New Payment Request Generated'
         }),
         attachments: attachments
@@ -333,6 +340,14 @@ class EmailService {
     const isCustomerPurpose = data.purpose && data.purpose.toLowerCase().includes('customer');
     // const statusClass = this.getStatusClass(data.status);
     const statusBadge = this.getStatusBadgeText(data.status);
+    const sigName = data.requestedBy || data.updatedBy || null;
+    const sigDesignation = data.requestedByDesignation || data.updatedByDesignation || null;
+    const signatureBlock = sigName ? `
+            <div style="margin-top: 20px; padding-top: 12px; border-top: 1px dashed #ccc;">
+              <p style="margin:0;color:#555;"><strong>${sigName}</strong>${sigDesignation ? `, ${sigDesignation}` : ''}</p>
+              <p style="margin:0;color:#777;font-size:12px;">LeedsAeroSpace Payment App</p>
+            </div>
+          ` : '';
     return `
       <!DOCTYPE html>
       <html>
@@ -466,6 +481,7 @@ class EmailService {
             <p style="margin-top: 20px; font-style: italic;">
               Please find the attached documents related to this Proforma Invoice.
             </p>
+            ${signatureBlock}
           </div>
           <div class="footer">
             <p>This is an automated notification from the Approval Management System.</p>

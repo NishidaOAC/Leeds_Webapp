@@ -38,9 +38,6 @@ export class UsersServices {
     return this.http.patch(this.apiUrl + `/resetpassword/${id}`, data)
   }
 
-  getUserById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
-  }
   getLeaders(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/leaders`);
   }

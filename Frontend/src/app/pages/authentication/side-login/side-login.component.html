@@ -1,109 +1,108 @@
 <div class="blank-layout-container justify-content-center align-items-center bg-light">
   <div class="position-relative row w-100 h-100 bg-gredient justify-content-center">
     <div class="col-lg-4 d-flex align-items-center">
-<mat-card class="auth-card boxed-auth" style="background-color: #1c4768;">
-  <mat-card-content class="p-32">
-    <!-- Logo Section -->
-    <div class="auth-header text-center mb-40">
-      <a [routerLink]="['/dashboard']" class="logo-link">
-        <img 
-          src="../../../../assets/images/logos/fintech_logo.png" 
-          class="auth-logo align-middle" 
-          alt="AeroAssist Fintech Logo" 
-          width="350"
-        />
-      </a>
-    </div>
+      <mat-card class="auth-card boxed-auth">
+        <mat-card-content class="p-32">
+          <!-- Logo Section -->
+          <div class="auth-header text-center mb-40">
+            <a [routerLink]="['/dashboard']" class="logo-link">
+              <img 
+                src="../../../../assets/images/logos/fintech_logo.jpeg" 
+                class="auth-logo align-middle" 
+                alt="AeroAssist Fintech Logo" 
+                width="350"
+              />
+            </a>
+          </div>
 
-    <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="submit()" class="login-form">
-      <!-- Username Field -->
-      <div class="form-field mb-24">
-        <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
-          Username
-        </mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <input 
-            matInput 
-            formControlName="empNo" 
-            placeholder="Enter your username"
-            aria-label="Username"
-          />
-          <mat-icon matSuffix class="text-muted">person</mat-icon>
-          @if(loginForm.get('userName')?.hasError('required') && loginForm.get('userName')?.touched){
-            <mat-error class="error-message">
-              <mat-icon class="error-icon">error</mat-icon>
-              Username is required
-            </mat-error>
-          }
-        </mat-form-field>
-      </div>
+          <!-- Login Form -->
+          <form [formGroup]="loginForm" (ngSubmit)="submit()" class="login-form">
+            <!-- Username Field -->
+            <div class="form-field mb-24">
+              <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
+                Username
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100">
+                <input 
+                  matInput 
+                  formControlName="empNo" 
+                  placeholder="Enter your username"
+                  aria-label="Username"
+                />
+                <mat-icon matSuffix class="text-muted">person</mat-icon>
+                @if(loginForm.get('userName')?.hasError('required') && loginForm.get('userName')?.touched){
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Username is required
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
 
-      <!-- Password Field -->
-      <div class="form-field mb-24">
-        <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
-          Password
-        </mat-label>
-        <mat-form-field appearance="outline" class="w-100" color="primary">
-          <input 
-            matInput 
-            type="password" 
-            formControlName="password" 
-            placeholder="Enter your password"
-            aria-label="Password"
-          />
-          <mat-icon matSuffix class="text-muted">lock</mat-icon>
-          @if(loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched){
-            <mat-error class="error-message">
-              <mat-icon class="error-icon">error</mat-icon>
-              Password is required
-            </mat-error>
-          }
-        </mat-form-field>
-      </div>
+            <!-- Password Field -->
+            <div class="form-field mb-24">
+              <mat-label class="form-label f-s-14 f-w-500 m-b-8 d-block text-white">
+                Password
+              </mat-label>
+              <mat-form-field appearance="outline" class="w-100" color="primary">
+                <input 
+                  matInput 
+                  type="password" 
+                  formControlName="password" 
+                  placeholder="Enter your password"
+                  aria-label="Password"
+                />
+                <mat-icon matSuffix class="text-muted">lock</mat-icon>
+                @if(loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched){
+                  <mat-error class="error-message">
+                    <mat-icon class="error-icon">error</mat-icon>
+                    Password is required
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
 
-      <!-- Remember Me & Forgot Password -->
-      <div class="form-options d-flex align-items-center justify-content-between mb-32">
-        <mat-checkbox color="primary" class="remember-checkbox">
-          <span class="checkbox-label text-white f-s-14">Remember this Device</span>
-        </mat-checkbox>
-        <a 
-          [routerLink]="['/forgot-password']"
-          class="forgot-password-link text-primary f-w-500 text-decoration-none f-s-14"
-          aria-label="Forgot Password"
-        >
-          Forgot Password?
-        </a>
-      </div>
+            <!-- Remember Me & Forgot Password -->
+            <div class="form-options d-flex align-items-center justify-content-between mb-32">
+              <mat-checkbox color="primary" class="remember-checkbox" formControlName="rememberMe">
+                <span class="checkbox-label f-s-14" style="color: #567da4;">Remember Me</span>
+              </mat-checkbox>
+              <a (click)="openForgotPasswordDialog()"
+                class="forgot-password-link text-decoration-none f-s-14" style="color: #567da4;"
+                aria-label="Forgot Password"
+              >
+                Forgot Password?
+              </a>
+            </div>
 
-      <!-- Submit Button -->
-      <button 
-        mat-flat-button 
-        class="submit-btn w-100" 
-        type="submit"
-        [disabled]="loginForm.invalid"
-        aria-label="Sign In"
-      >
-        <span class="btn-text f-w-500">Sign In</span>
-      </button>
-    </form>
+            <!-- Submit Button -->
+            <button style="background-color: #567da4;"
+              mat-flat-button 
+              class="submit-btn w-100" 
+              type="submit"
+              [disabled]="loginForm.invalid"
+              aria-label="Sign In"
+            >
+              <span class="btn-text f-w-500">Sign In</span>
+            </button>
+          </form>
 
-    <!-- Optional: Registration Link (Commented) -->
-    
-    <div class="auth-footer text-center m-t-32">
-      <span class="footer-text text-white f-w-400 f-s-14">
-        New to Spike?
-        <a 
-          [routerLink]="['/register']" 
-          class="register-link text-primary f-w-500 text-decoration-none f-s-14 m-l-4"
-        >
-          Create an account
-        </a>
-      </span>
-    </div>
-   
-  </mat-card-content>
-</mat-card>
+          <!-- Optional: Registration Link (Commented) -->
+          
+          <!-- <div class="auth-footer text-center m-t-32">
+            <span class="footer-text text-white f-w-400 f-s-14">
+              New to Spike?
+              <a 
+                [routerLink]="['/register']" 
+                class="register-link text-primary f-w-500 text-decoration-none f-s-14 m-l-4"
+              >
+                Create an account
+              </a>
+            </span>
+          </div> -->
+        
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 </div>

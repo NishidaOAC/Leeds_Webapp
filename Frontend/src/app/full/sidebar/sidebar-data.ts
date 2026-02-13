@@ -12,7 +12,7 @@ export const navItems: NavItem[] = [
     roles: ['Admin', 'Manager', 'user'] // All roles can see dashboard
   },
   {
-    displayName: 'AddNewPayment',
+    displayName: 'NewPayment',
     iconName: 'layout-grid-add',
     route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',

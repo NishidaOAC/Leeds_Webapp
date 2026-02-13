@@ -60,8 +60,7 @@ export class MatrixTableComponent implements OnInit, OnDestroy{
   piSub!: Subscription;
   getCCPi(){
     this.piSub = this.invoiceServices.getDashboardCCPI(this.searchText, this.currentPage, this.pageSize).subscribe((invoice: any) => {
-      this.invoices = invoice;
-      console.log(this.invoices);
+      this.invoices = invoice.items;
       this.totalItems = invoice.count;
     });
   }
@@ -70,8 +69,7 @@ export class MatrixTableComponent implements OnInit, OnDestroy{
   wtpiSub!: Subscription;
   getWTPi(){
     this.wtpiSub = this.invoiceServices.getDashboardWTPI(this.searchText, this.wtCurrentPage, this.wtPageSize).subscribe((invoice: any) => {
-      this.wtInvoices = invoice;
-      console.log(this.wtInvoices);
+      this.wtInvoices = invoice.items;
       this.wtTotalItems = invoice.count;
     });
   }

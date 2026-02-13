@@ -1,3 +1,4 @@
+
 const { PerformaInvoice, PerformaInvoiceStatus, Company } = require('../models');
 const { publishEvent } = require('../utils/eventPublisher');
 const axios = require('axios');
@@ -29,10 +30,10 @@ exports.dashboardCreditCard = async (req, res) => {
         const page = Number(req.query.page);
         const pageSize = Number(req.query.pageSize);
 
-        const limit =
+        limit =
           Number.isInteger(pageSize) && pageSize > 0 ? pageSize : null;
 
-        const offset =
+        offset =
           limit && Number.isInteger(page) && page > 0
             ? (page - 1) * limit
             : null;
@@ -112,15 +113,15 @@ exports.dashboardWireTransfer = async (req, res) => {
         const page = Number(req.query.page);
         const pageSize = Number(req.query.pageSize);
 
-        const limit =
+        limit =
           Number.isInteger(pageSize) && pageSize > 0 ? pageSize : null;
 
-        const offset =
+        offset =
           limit && Number.isInteger(page) && page > 0
             ? (page - 1) * limit
             : null;
     }
-
+    
     // 1️⃣ Fetch invoices (NO User includes)
     const { rows: invoices, count: totalCount } =
       await PerformaInvoice.findAndCountAll({
@@ -163,7 +164,7 @@ exports.dashboardWireTransfer = async (req, res) => {
         addedBy: usersMap[i.addedById] || null,
       };
     });
-
+    
     // 5️⃣ Response
     if (limit !== undefined) {
       res.json({

@@ -53,5 +53,5 @@ router.patch('/kamupdate/:id', authenticateToken, controller.updateKAM );
 
 router.post('/download-excel', authenticateToken, controller.downloadExcel);
 
-// router.patch('/updatePIByAdminSuperAdmin/:id', authenticateToken, );
+router.patch('/updatePIByAdminSuperAdmin/:id', authenticateToken, controller.updatePIAdmin);
 module.exports = router;

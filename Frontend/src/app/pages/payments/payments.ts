@@ -26,7 +26,6 @@ export class Payments {
     const user = JSON.parse(token)
     this.role = user.role;
     this.roleName = user.power;
-    console.log(this.roleName);
     this.refreshSub = interval(5000).subscribe(() => {
       this.getRoleById();
     });
@@ -54,7 +53,14 @@ export class Payments {
   private roleService = inject(DesignationServices);
   isViewReady = false;
   private cdr = inject(ChangeDetectorRef);
+  
+  // Track if status was set by user tab interaction
+  private statusSetByUser: boolean = false;
+  
   getRoleById(){
+      // Only set default status if not set by user yet
+      const shouldSetDefaultStatus = !this.statusSetByUser && !this.status;
+      
       if(!this.isSubmitted){
         if(this.roleName === 'SalesExecutive') { 
           this.status = 'GENERATED'; this.sp = true; this.header = 'REJECTED'; this.pendingHeader='GENERATED'
@@ -68,10 +74,19 @@ export class Payments {
         if(this.roleName === 'Accountant') { 
           this.status = 'AM VERIFIED'; this.ma = true; this.pendingHeader='VERIFIED'
         }
-        if(this.roleName === 'Admin' || this.roleName === 'Super Administrator') { this.admin = true, this.status = '' }
+        if(this.roleName === 'Admin' || this.roleName === 'Super Administrator') { 
+          this.admin = true; 
+          // Only set status to default if not set by user yet
+          if (shouldSetDefaultStatus) {
+            this.status = '';
+          }
+        }
         if(this.role === 'Team Lead') { this.teamLead = true }
       }else{
-        this.status = '';
+        // Only set status to default if not set by user yet
+        if (shouldSetDefaultStatus) {
+          this.status = '';
+        }
         this.pageStatus = false;
         if(this.roleName === 'Sales Executive') { 
           this.sp = true; this.header = 'REJECTED'; this.pendingHeader='GENERATED'
@@ -129,6 +144,9 @@ export class Payments {
   private updateActiveTab(): void {
     // Update the currently active tab with new data
     setTimeout(() => {
+      if (!localStorage.getItem('JWT_TOKEN')) {
+        return;
+      }
       if (this.viewApprovalComponents.length > this.selectedTabIndex) {
         const activeComponent = this.viewApprovalComponents.toArray()[this.selectedTabIndex];
         if (activeComponent) {
@@ -253,30 +271,29 @@ export class Payments {
         } 
         break;
 
-        case 'Administrator':
-          case 'Super Administrator':
-            switch (event) {
-              case 0:
-                this.data.status = '';
-                this.data.pageStatus = true;
-                break;
-              case 1:
-                this.data.status = '';
-                this.data.pageStatus = false;
-                break;
-              default:
-                this.data.status = '';
-                this.data.pageStatus = false;
-                break;
-            }
+      case 'Super Administrator':
+        switch (event) {
+          case 0:
+            this.data.status = 'GENERATED';
+            this.data.pageStatus = true;
             break;
-        default:
+          case 1:
+            this.data.status = '';
+            this.data.pageStatus = false;
+            break;
+          default:
+            this.data.status = '';
+            this.data.pageStatus = false;
+            break;
+        }
+        break;
+      default:
           switch (event) {
             case 0:
               this.data.status = 'GENERATED';
               break;
             case 1:
-              this.data.status = 'BANK SLIP ISSUED';
+              this.data.status = '';
               break;
             case 2:
               this.data.status = 'AM REJECTED';
@@ -290,22 +307,11 @@ export class Payments {
           }
           break;
     }
-    // if (this.roleName === 'Manager' && event === 6 && ) {
-    //   const activeComponent = this.viewExpenseComponent.toArray()[0]; // or correct index if it's not 0
-    //   if (activeComponent) {
-    //     activeComponent.loadData(this.data, event);
-    //   } 
-    // }else if (event === 5 && this.viewExpenseComponent.length > 0 && this.roleName === 'Key Account Manager') {
-    //   const activeComponent = this.viewExpenseComponent.toArray()[0]; // or correct index if it's not 0
-    //   if (activeComponent) {
-    //     activeComponent.loadData(this.data, event);
-    //   } 
-    // }else if (event === 3 && this.viewExpenseComponent.length > 0 && this.roleName === 'Accountant') {
-    //   const activeComponent = this.viewExpenseComponent.toArray()[0]; // or correct index if it's not 0
-    //   if (activeComponent) {
-    //     activeComponent.loadData(this.data, event);
-    //   } 
-    // } 
+    
+    // Sync this.status with this.data.status so interval uses user's selected status
+    this.status = this.data.status;
+    this.statusSetByUser = true;
+    
     if (event === 0 && this.viewApprovalComponents.length > 0 && (this.roleName === 'Administrator' || this.roleName === 'Super Administrator')) {
       const activeComponent = this.viewApprovalComponents.toArray()[0]; 
       if (activeComponent) {

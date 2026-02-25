@@ -39,7 +39,7 @@ router.get('/users/:userId/status', UserController.validateUserStatus);
 router.post('/users/bulk-validate', UserController.bulkValidateUsers);
 router.post('/refresh-token', UserController.refreshToken);
 router.patch('/resetpassword/:id', authenticateToken, UserController.resetPassword);
-// router.put('/users/:id', authenticateToken, AuthController.updateUser);
+router.get('/users/:id', authenticateToken, UserController.getUserById);
 // router.delete('/users/:id', authenticateToken, AuthController.deleteUser);
 
 router.get('/leaders', authenticateToken, UserController.getTeamLeaders);

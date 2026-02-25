@@ -16,14 +16,14 @@ export const navItems: NavItem[] = [
     iconName: 'layout-grid-add',
     route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'SalesExecutive', 'Key Account Manager'] // Only admin and manager can add payments
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM'] // Only admin and manager can add payments
   },
   {
     displayName: 'Payments',
     iconName: 'layout-grid-add',
     route: '/dashboard/payments',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // All roles can view payments
+    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
   },
   {
     displayName: 'Company',
@@ -58,7 +58,7 @@ export const navItems: NavItem[] = [
     iconName: 'layout-grid-add',
     route: '/dashboard/payments/report',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'SalesExecutive', 'Key Account Manager', 'Accountant'] // Admin and managers can view reports
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM', 'Accountant'] // Admin and managers can view reports
   },
   // Add other items with role restrictions...
 ];

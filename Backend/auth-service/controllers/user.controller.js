@@ -5,17 +5,26 @@ const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const { sequelize } = require('../config/database');
 
-
 exports.getByRolename = async (req, res) => {
   try {
+    console.log(req.params.roleName, "roleName");
+
     const users = await User.findAll({
-      include: { model: Role, where: [{ roleName: req.params.roleName} ] }
+      include: {
+        model: Role,
+        where: {
+          power: req.params.roleName
+        }
+      }
     });
+
+    console.log(users);
     res.send(users);
+
   } catch (error) {
-    res.send(error.message );
+    res.status(500).send(error.message);
   }
-}
+};
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -87,7 +96,7 @@ exports.getAllUsers = async (req, res) => {
 }
 
 exports.addUser = async (req, res) => {
-  const { name, email, empNo, password, roleId } = req.body;
+  const { name, email, empNo, password, roleId, personalEmail } = req.body;
 
   // Validate required fields
   if (!name || !email || !empNo || !password) {
@@ -123,11 +132,12 @@ exports.addUser = async (req, res) => {
       isActive: true,
       status: 'approved',
       failedLoginAttempts: 0,
-      passwordChangedAt: new Date()
+      passwordChangedAt: new Date(),
+      personalEmail
     });
     
     // Send welcome email
-    if (email) {
+    if (personalEmail) {
       try {
         const emailSubject = `Welcome to LeedsAeroSpace Payment App`;
         const fromEmail = process.env.EMAIL_USER;
@@ -174,7 +184,7 @@ exports.addUser = async (req, res) => {
         `;
         
         if (fromEmail && emailPassword) {
-          await sendEmail(fromEmail, emailPassword, email, emailSubject, html);
+          await sendEmail(fromEmail, emailPassword, personalEmail, emailSubject, html);
         } else {
           console.warn('Email credentials not configured, skipping email send');
         }
@@ -227,7 +237,7 @@ exports.addUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
-  const { name, email, roleId, status, isActive, empNo } = req.body;
+  const { name, email, roleId, status, isActive, empNo, personalEmail } = req.body;
 
   try {
     // Find the user to update
@@ -264,7 +274,8 @@ exports.updateUser = async (req, res) => {
       roleId: roleId !== undefined ? roleId : user.roleId,
       status: status !== undefined ? status : user.status,
       isActive: isActive !== undefined ? isActive : user.isActive,
-      empNo: empNo !== undefined ? empNo : user.empNo
+      empNo: empNo !== undefined ? empNo : user.empNo,
+      personalEmail: personalEmail !== undefined ? personalEmail : user.personalEmail
     };
 
     // Handle approval logic
@@ -462,44 +473,44 @@ exports.validateToken = async (req, res) => {
   }
 };
 
-// exports.getUserById = async (req, res) => {
-//   try {
-//     const userId = req.params.id;
+exports.getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
 
-//     if (!userId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'User ID is required'
-//       });
-//     }
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
 
-//     const user = await User.findOne({
-//       where: {
-//         id: userId,
-//         isActive: true
-//       },
-//       attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt', 'updatedAt'],
-//       include: { model: Role }
-//     });
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'User not found or inactive'
-//       });
-//     }
-//     return res.status(200).json({
-//       success: true,
-//       user
-//     });
+    const user = await User.findOne({
+      where: {
+        id: userId,
+        isActive: true
+      },
+      attributes: ['id', 'email', 'name', 'roleId', 'isActive', 'createdAt', 'updatedAt'],
+      include: { model: Role }
+    });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found or inactive'
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      user
+    });
 
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Failed to fetch user',
-//       error: process.env.NODE_ENV === 'development' ? error.message : undefined
-//     });
-//   }
-// };
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
 
 exports.validateUserStatus = async (req, res) => {
   try {
@@ -545,7 +556,6 @@ exports.validateUserStatus = async (req, res) => {
 exports.bulkValidateUsers = async (req, res) => {
   try {
     const { userIds } = req.body;
-
     if (!userIds || !Array.isArray(userIds)) {
       return res.status(400).json({
         success: false,
@@ -697,7 +707,7 @@ exports.resetPassword = async (req, res) => {
 
         try {
             await sendPasswordResetEmail({
-              to: user.email,
+              to: user.personalEmail,
               userName: user.name,
               empNo: user.empNo,
               password: plainPassword

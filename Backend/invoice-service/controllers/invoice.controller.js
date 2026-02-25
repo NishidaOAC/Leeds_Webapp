@@ -1,5 +1,5 @@
 
-const { PerformaInvoice, PerformaInvoiceStatus, Company } = require('../models');
+const { PerformaInvoice, PerformaInvoiceStatus, Company, Role } = require('../models');
 const { publishEvent } = require('../utils/eventPublisher');
 const axios = require('axios');
 const { Op } = require('sequelize');
@@ -14,11 +14,33 @@ const notificationService = require('../services/notificationService');
 exports.dashboardCreditCard = async (req, res) => {
   try {
     const status = req.query.status;
-    const where = { paymentMode: 'CreditCard' };
+    const loggedInUserId = req.user.id;
+    const where = { paymentMode: 'CreditCard',
+      [Op.or]: [
+        { kamId: loggedInUserId },
+        { amId: loggedInUserId },
+        { salesPersonId: loggedInUserId },
+        { accountantId: loggedInUserId }
+      ]
+     };
 
     if (status && status !== 'undefined') {
       where.status = status;
     }
+
+    // Get role information from auth service
+    const userDetails = await findUsersByIds([req.user.id], req.headers.authorization);
+    const currentUser = userDetails[req.user.id];
+
+    // If user not found or not active, apply restrictive filtering
+    if (!currentUser || !currentUser.isActive) {
+      // Return empty result for inactive/unknown users
+      return res.json({ count: 0, items: [] });
+    }
+
+    const isAdmin = currentUser.roleName === 'Administrator' || currentUser.roleName === 'Super Administrator';
+
+    if (!isAdmin) {
 
     let limit, offset;
     if (
@@ -49,7 +71,8 @@ exports.dashboardCreditCard = async (req, res) => {
         include: [{ model: PerformaInvoiceStatus }],
         distinct: true
       });
-
+      console.log(invoices);
+      
     // 2️⃣ Collect unique userIds
     const userIds = [
       ...new Set(
@@ -62,13 +85,15 @@ exports.dashboardCreditCard = async (req, res) => {
         ]).filter(Boolean)
       )
     ];
-
+    console.log(userIds);
+    
     // 3️⃣ Fetch users using helper
     const usersMap = await findUsersByIds(
       userIds,
       req.headers.authorization
     );
-
+    console.log(usersMap,"111111111111111");
+    
     // 4️⃣ Enrich invoices
     const enrichedInvoices = invoices.map(inv => {
       const i = inv.toJSON();
@@ -88,7 +113,7 @@ exports.dashboardCreditCard = async (req, res) => {
     } else {
       res.json(enrichedInvoices);
     }
-
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -97,7 +122,15 @@ exports.dashboardCreditCard = async (req, res) => {
 exports.dashboardWireTransfer = async (req, res) => {
   try {
     const status = req.query.status;
-    const where = { paymentMode: 'WireTransfer' };
+    const loggedInUserId = req.user.id;
+    const where = { paymentMode: 'WireTransfer',
+      [Op.or]: [
+        { kamId: loggedInUserId },
+        { amId: loggedInUserId },
+        { salesPersonId: loggedInUserId },
+        { accountantId: loggedInUserId }
+      ]
+     };
 
     if (status && status !== 'undefined') {
       where.status = status;
@@ -145,13 +178,15 @@ exports.dashboardWireTransfer = async (req, res) => {
         ]).filter(Boolean)
       )
     ];
-
+    console.log(userIds);
+    
     // 3️⃣ Fetch users from auth-service
     const usersMap = await findUsersByIds(
       userIds,
       req.headers.authorization
     );
-
+    console.log(usersMap);
+    
     // 4️⃣ Enrich invoices with user info
     const enrichedInvoices = invoices.map(inv => {
       const i = inv.toJSON();
@@ -394,6 +429,8 @@ exports.addPI = async (req, res) => {
                 kamId,
                 req.headers.authorization
             );
+            console.log(kam,"1111111111111111111");
+            
             recipientEmail = kam.user ? kam.user.email : null;
             notificationRecipientId = kamId;
             if (!recipientEmail) {
@@ -2533,7 +2570,7 @@ exports.findPIById = async (req, res) => {
     if (pi.addedById) userIds.add(pi.addedById);
     
     const userIdsArray = Array.from(userIds);
-
+    
     // 3️⃣ Fetch users from auth service
     let usersMap = {};
     if (userIdsArray.length > 0) {
@@ -2555,7 +2592,6 @@ exports.findPIById = async (req, res) => {
       accountant: pi.accountantId ? usersMap[pi.accountantId] : null,
       addedBy: pi.addedById ? usersMap[pi.addedById] : null
     };
-
     res.json(formattedPI);
     
   } catch (error) {

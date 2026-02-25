@@ -149,7 +149,7 @@ export class AddApprovalComponent {
   kamSub!: Subscription;
   kam: User[] = [];
   getKAM() {
-    this.kamSub = this.loginService.getUserByRoleName('Key Account Manager')
+    this.kamSub = this.loginService.getUserByRoleName('KAM')
       .subscribe(users => {
         this.kam = users;
       });

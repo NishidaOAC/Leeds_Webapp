@@ -32,7 +32,8 @@ export class AddUser implements OnInit{
       name: ['', Validators.required],
       empNo: ['', Validators.required],
       password: ['', Validators.required],
-      roleId: ['', Validators.required]
+      roleId: ['', Validators.required],
+      personalEmail: ['', Validators.email]
     });
   }
   ngOnInit(): void {

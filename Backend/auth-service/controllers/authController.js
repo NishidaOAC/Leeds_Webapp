@@ -82,7 +82,9 @@ class AuthController {
           errors 
         });
       }
-
+      console.log(data,"1111111111");
+      
+        const hashedPassword = await bcrypt.hash(data.password, 10);
       // Skip duplicate email check to allow same email
 
       // Check if empNo already exists
@@ -102,7 +104,7 @@ class AuthController {
       // Create new user with pending approval status
       const user = await User.create({
         email: data.email,
-        password: data.password,
+        password: hashedPassword,
         name: data.name,
         empNo: data.empNo,
         roleId: data.roleId || 1,
@@ -206,7 +208,8 @@ class AuthController {
           errors 
         });
       }
-
+      console.log(data,"1111111111111");
+      
       // Find user
       const user = await User.findOne({ 
         where: { empNo: data.empNo } 
@@ -217,7 +220,8 @@ class AuthController {
           message: 'Invalid credentials' 
         });
       }
-
+      console.log(user);
+      
       // Check if account is locked
       if (user.failedLoginAttempts >= (process.env.PASSWORD_MAX_ATTEMPTS || 5)) {
         const lockoutTime = parseInt(process.env.PASSWORD_LOCKOUT_TIME) || 900000;

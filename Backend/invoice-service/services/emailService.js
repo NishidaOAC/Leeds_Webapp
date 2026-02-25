@@ -81,6 +81,7 @@ class EmailService {
         attachments: attachments
       };
 
+      const result = await transporter.sendMail(mailOptions);
       
       return { 
         success: true, 
@@ -221,6 +222,7 @@ class EmailService {
         attachments: attachments
       };
       
+      const result = await transporter.sendMail(mailOptions);
       return { 
         success: true, 
         messageId: result.messageId,
@@ -289,8 +291,6 @@ class EmailService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log(`New PI email sent successfully to ${toEmail}: ${result.messageId}`);
-      
       return { success: true, messageId: result.messageId };
       
     } catch (error) {
@@ -531,101 +531,44 @@ class EmailService {
    * Fetch attachments from S3
    */
   async getAttachmentsFromS3(urls) {
-      console.log('getAttachmentsFromS3 called with:', JSON.stringify(urls, null, 2));
-      
       const attachments = [];
-      
-      // If urls is undefined or null, return empty array
-      if (!urls) {
-          console.log('No URLs provided');
-          return attachments;
-      }
-      
-      // Ensure we have a flat array
+
+      if (!urls) return attachments;
+
       let flatUrls = [];
-      
-      // Handle different input formats
+
       if (Array.isArray(urls)) {
-          // Flatten the array and extract URLs
           flatUrls = urls.flat(Infinity)
               .map(item => {
-                  if (typeof item === 'string') {
-                      return item;
-                  } else if (item && typeof item === 'object' && item.url) {
-                      return item.url;
-                  }
+                  if (typeof item === 'string') return item;
+                  if (item && typeof item === 'object' && item.url) return item.url;
                   return null;
               })
-              .filter(Boolean); // Remove null/undefined
+              .filter(Boolean);
       } else if (typeof urls === 'string') {
           flatUrls = [urls];
       } else if (urls && urls.url) {
           flatUrls = [urls.url];
       }
-      
-      console.log('Flat URLs to process:', flatUrls);
-      
-      if (flatUrls.length === 0) {
-          console.log('No valid URLs found');
-          return attachments;
-      }
-      
-      for (const actualUrl of flatUrls) {
+      for (const fileUrl of flatUrls) {
           try {
-              console.log('Processing S3 URL:', actualUrl);
-              
-              if (!actualUrl || typeof actualUrl !== 'string') {
-                  console.log('Skipping invalid URL');
-                  continue;
-              }
-
-              // Extract file key from URL - FIXED VERSION
-              const fileKey = this.extractS3KeyFromUrl(actualUrl);
-              
-              if (!fileKey) {
-                  console.warn('Could not extract S3 key from URL:', actualUrl);
-                  continue;
-              }
-
-              console.log('S3 Key extracted:', fileKey);
-              
-              const params = {
-                  Bucket: process.env.AWS_BUCKET_NAME,
-                  Key: fileKey,
-              };
-
-              console.log('Fetching from S3 with params:', { 
-                  Bucket: params.Bucket, 
-                  Key: params.Key.substring(0, 100) + (params.Key.length > 100 ? '...' : '')
+              const response = await axios.get(fileUrl, {
+                  responseType: 'arraybuffer'
               });
-              
-              const s3File = await s3.getObject(params).promise();
-              
-              console.log('S3 file fetched successfully:', {
-                  size: s3File.Body.length,
-                  contentType: s3File.ContentType
-              });
-              
-              // Generate filename
-              const filename = this.getFilenameFromS3Key(fileKey) || actualUrl.split('/').pop() || 'document.png';
-              
+
+              const filename = fileUrl.split('/').pop() || 'attachment';
+
               attachments.push({
-                  filename: filename,
-                  content: s3File.Body,
-                  contentType: s3File.ContentType || this.getContentTypeFromFilename(filename),
-                  encoding: 'base64'
+                  filename,
+                  content: response.data, // buffer
+                  contentType: response.headers['content-type']
               });
-              
-              console.log(`Attachment added: ${filename} (${s3File.Body.length} bytes)`);
-              
+
           } catch (error) {
-              console.warn(`Failed to fetch attachment from ${actualUrl}:`, error.message);
-              console.error('S3 Error details:', error.code, error.statusCode);
-              // Continue with other attachments
+              console.warn(`Failed to fetch attachment from ${fileUrl}:`, error.message);
           }
       }
-      
-      console.log(`Total attachments prepared: ${attachments.length}`);
+
       return attachments;
   }
 
@@ -832,8 +775,6 @@ class EmailService {
           timeout: 10000
         }
       );
-      console.log(response);
-      
       if (response.data && response.data.success) {
         return {
           id: response.data.user.id,

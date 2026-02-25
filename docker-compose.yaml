@@ -1,68 +1,69 @@
 services:
-  api-gateway:
+  test-api-gateway:
     build: ./Backend
-    container_name: api-gateway
+    container_name: test-api-gateway
     ports:
-      - "3000:3000"
+      - "3004:3000"
     env_file:
       - ./Backend/.env
     environment:
-      AUTH_SERVICE_URL: http://auth-service:3001
-      INVOICE_SERVICE_URL: http://invoice-service:3002
-      FILE_SERVICE_URL: http://file-service:3003
+      AUTH_SERVICE_URL: http://test-auth-service:3001
+      INVOICE_SERVICE_URL: http://test-invoice-service:3002
+      FILE_SERVICE_URL: http://test-file-service:3003
     depends_on:
-      - auth-service
-      - invoice-service
-      - file-service
+      - test-auth-service
+      - test-invoice-service
+      - test-file-service
 
-  auth-service:
+  test-auth-service:
     build: ./Backend/auth-service
-    container_name: auth-service
+    container_name: test-auth-service
     ports:
-      - "3001:3001"
+      - "3005:3001"
     env_file:
       - ./Backend/auth-service/.env
     environment:
-      DB_HOST: postgres-auth
+      DB_HOST: test-postgres-auth
       DB_PORT: 5432
     depends_on:
-      - postgres-auth
+      - test-postgres-auth
 
-  invoice-service:
+  test-invoice-service:
     build: ./Backend/invoice-service
-    container_name: invoice-service
+    container_name: test-invoice-service
     ports:
-      - "3002:3002"
+      - "3006:3002"
     env_file:
       - ./Backend/invoice-service/.env
     environment:
-      DB_HOST: postgres-invoice
+      DB_HOST: test-postgres-invoice
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://auth-service:3001
-      FILE_SERVICE_URL: http://file-service:3003
+      AUTH_SERVICE_URL: http://test-auth-service:3001
+      FILE_SERVICE_URL: http://test-file-service:3003
     depends_on:
-      - postgres-invoice
+      - test-postgres-invoice
 
-  file-service:                      # ✅ MOVED INSIDE services
+  test-file-service:
     build: ./Backend/file-service
-    container_name: file-service
+    container_name: test-file-service
     ports:
-      - "3003:3003"
+      - "3007:3003"
     env_file:
       - ./Backend/file-service/.env
     environment:
-      DB_HOST: postgres-file
+      DB_HOST: test-postgres-file
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://auth-service:3001
-      REDIS_HOST: redis
-      RABBITMQ_HOST: rabbitmq
+      AUTH_SERVICE_URL: http://test-auth-service:3001
+      REDIS_HOST: test-redis
+      RABBITMQ_HOST: test-rabbitmq
     depends_on:
-      - postgres-file
-      - rabbitmq
-      - redis
+      - test-postgres-file
+      - test-rabbitmq
+      - test-redis
 
-  postgres-auth:
+  test-postgres-auth:
     image: postgres:15
+    container_name: test-postgres-auth
     environment:
       POSTGRES_DB: leeds_payment_auth_db
       POSTGRES_USER: oac_softwares
@@ -70,8 +71,9 @@ services:
     volumes:
       - pgdata-auth:/var/lib/postgresql/data
 
-  postgres-invoice:
+  test-postgres-invoice:
     image: postgres:15
+    container_name: test-postgres-invoice
     environment:
       POSTGRES_DB: leeds_payment_invoice_db
       POSTGRES_USER: oac_softwares
@@ -79,8 +81,9 @@ services:
     volumes:
       - pgdata-invoice:/var/lib/postgresql/data
 
-  postgres-file:
+  test-postgres-file:
     image: postgres:15
+    container_name: test-postgres-file
     environment:
       POSTGRES_DB: leeds_payment_file_db
       POSTGRES_USER: oac_softwares
@@ -88,16 +91,18 @@ services:
     volumes:
       - pgdata-file:/var/lib/postgresql/data
 
-  rabbitmq:
+  test-rabbitmq:
     image: rabbitmq:3-management
+    container_name: test-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
 
-  redis:
+  test-redis:
     image: redis:7
+    container_name: test-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
 volumes:
   pgdata-auth:

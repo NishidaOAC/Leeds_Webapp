@@ -26,8 +26,7 @@
                                 @for (item of wtInvoices; track $index) {
                                     <tr class="matrix-row">
                                         <td class="entry-cell">
-                                            <a class="invoice-link" 
-                                            [routerLink]="['/dashboard/payments/open', item.id]" 
+                                            <a class="invoice-link"  
                                             (click)="$event.preventDefault(); openInvoice(item.id)">
                                                 <i class="material-icons">receipt</i>
                                                 {{ item.piNo }}
@@ -124,7 +123,6 @@
                                     <tr class="matrix-row">
                                         <td class="entry-cell">
                                             <a class="invoice-link" 
-                                            [routerLink]="['/dashboard/payments', item.id]" 
                                             (click)="$event.preventDefault(); openInvoice(item.id)">
                                                 <i class="material-icons">receipt</i>
                                                 {{ item.piNo }}

@@ -73,6 +73,8 @@ export class ViewInvoicesComponent {
 
     const token: any = localStorage.getItem('user')
     const user = JSON.parse(token)
+    console.log(user);
+    this.roleName = user.power;
     this.userId = user.id;
 
     const roleId = user.roleId
@@ -89,17 +91,17 @@ export class ViewInvoicesComponent {
   teamLead: boolean = false;
   private designationService = inject(DesignationServices);
   getRoleById(id: number, piId: number){
-    this.roleSub = this.designationService.getRoleById(id).subscribe(role => {
-      this.roleName = role.roleName;
+    // this.roleSub = this.designationService.getRoleById(id).subscribe(role => {
+    //   this.roleName = role.roleName;
       this.getPiById(piId)
 
       if(this.roleName === 'Sales Executive') this.sp = true;
       if(this.roleName === 'Key Account Manager') this.kam = true;
       if(this.roleName === 'Manager') this.am = true;
       if(this.roleName === 'Accountant') this.ma = true;
-      if(this.roleName === 'Administrator') { this.admin = true }
+      if(this.roleName === 'Super Administrator') { this.admin = true }
       if(this.roleName === 'Team Lead') { this.teamLead = true }
-    })
+    // })
   }
 
   encodeUrl(url: string): string {
@@ -137,7 +139,8 @@ export class ViewInvoicesComponent {
     this.piSub = this.invoiceService.getPIById(id).subscribe(pi => {
       this.pi = pi;
       this.piNo = pi.piNo;
-
+      console.log(pi);
+      
       const signedUrlsWithType = pi.url.map((signedUrl: any) => {
         const url = signedUrl.url;
         const fileType = url.split('.').pop().split('?')[0];

@@ -12,6 +12,14 @@
             }
           </mat-form-field>
 
+          <mat-form-field appearance="outline">
+            <mat-label>Personal Email</mat-label>
+            <input matInput formControlName="personalEmail" type="email" placeholder="e.g. user@example.com" />
+            @if (userForm.get('personalEmail')?.hasError('personalEmail')) {
+              <mat-error>Please enter a valid email address</mat-error>
+            }
+          </mat-form-field>
+
           <!-- User Name (required) -->
           <mat-form-field appearance="outline">
             <mat-label>Full Name</mat-label>

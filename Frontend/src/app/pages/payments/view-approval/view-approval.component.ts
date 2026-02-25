@@ -91,6 +91,8 @@ export class ViewApprovalComponent {
   pageStatus: boolean = true;
   am: boolean = false
   getInvoices() {
+    console.log("ghjagsdhf");
+    
     let apiCall;
     this.submittingForm = true;
     if (this.data.roleName === 'SalesExecutive') {
@@ -151,6 +153,8 @@ export class ViewApprovalComponent {
       this.pageStatus = false
       apiCall = this.invoiceService.getPIByMA(this.data.status, this.filterValue, this.currentPage, this.pageSize);
     } else if (this.data.roleName === 'Admin' || this.data.roleName === 'Super Administrator') {
+      console.log(this.data);
+      
       apiCall = this.invoiceService.getPIByAdmin(this.data.status, this.filterValue, this.currentPage, this.pageSize);
     }
 
@@ -314,7 +318,6 @@ export class ViewApprovalComponent {
         this.verifiedSub = this.invoiceService.updatePIStatus(data).subscribe((res) => {
           this.getInvoices()
           this.snackBar.open(`Invoice ${piNo} updated to ${status}...`,"" ,{duration:3000})
-          this.router.navigateByUrl('login/viewApproval/view')
         });
       }
     })

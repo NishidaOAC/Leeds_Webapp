@@ -2,7 +2,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +19,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CompanyService } from '../company.service';
 import { HttpClient } from '@angular/common/http';
 import {MatStepperModule} from '@angular/material/stepper';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-add-company',
   standalone: true,
@@ -43,6 +44,8 @@ import {MatStepperModule} from '@angular/material/stepper';
   styleUrl: './add-company.component.scss'
 })
 export class AddCompanyComponent {
+  dialogRef = inject(MatDialogRef<AddCompanyComponent>, { optional: true })
+  dialogData = inject(MAT_DIALOG_DATA, { optional: true });
   companyForm: FormGroup;
 
   toggleCompanyType(type: 'customer' | 'supplier'): void {
@@ -74,6 +77,15 @@ export class AddCompanyComponent {
     });
   }
   ngOnInit(): void {
+    if (this.company) {
+      // this.patchCompany(this.company);
+    }
+    // this.getCompany()
+    if(this.dialogData){
+      this.companyForm.get('companyName')?.setValue(this.dialogData.name);
+      if(this.dialogData.type === 'sup') this.companyForm.get('supplier')?.setValue(true);
+      else if(this.dialogData.type === 'cust') this.companyForm.get('customer')?.setValue(true);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -105,26 +117,33 @@ export class AddCompanyComponent {
   private companyService = inject(CompanyService);
   private snackBar = inject(MatSnackBar);
   isLoading = false;
+  private router = inject(Router);
   onSubmit(): void {
     this.isLoading = true;
     if (this.companyForm.valid) {
       if(this.company){
         this.companyService.updateCompany(this.company.id, this.companyForm.value).subscribe(() => {
           setTimeout(() => {
+            if (this.dialogRef) this.dialogRef.close();
+            else  this.router.navigateByUrl('/login/company');
             this.isLoading = false;
             this.companyForm.reset();
             this.formSaved.emit();
-            this.snackBar.open('User updated succesfully', 'Close', { duration: 3000 });
+            this.snackBar.open('Company updated succesfully', 'Close', { duration: 3000 });
           }, 2000);
         });
       }else{
         this.companyService.addCompany(this.companyForm.value).subscribe({
           next: (res) => {
             setTimeout(() => {
+            if (this.dialogRef) this.dialogRef.close();
+            else  this.router.navigateByUrl('/login/company');
+              
               this.isLoading = false;
               this.companyForm.reset();
               this.formSaved.emit();
-              this.snackBar.open('User added succesfully', 'Close', { duration: 3000 });
+              this.snackBar.open('Company added succesfully', 'Close', { duration: 3000 });
+              
             }, 2000);
           },error: (err) => {
             this.isLoading = false;

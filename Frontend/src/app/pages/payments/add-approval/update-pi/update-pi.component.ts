@@ -201,7 +201,7 @@ export class UpdatePIComponent {
   kamSub!: Subscription;
   kam: User[] = [];
   getKAM(){
-    this.kamSub = this.loginService.getUserByRoleName('Key Account Manager').subscribe(user =>{
+    this.kamSub = this.loginService.getUserByRoleName('KAM').subscribe(user =>{
       this.kam = user;
     });
   }

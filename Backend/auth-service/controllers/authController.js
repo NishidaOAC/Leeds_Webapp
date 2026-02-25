@@ -217,7 +217,7 @@ class AuthController {
       if (!user) {
         return res.status(401).json({ 
           success: false, 
-          message: 'Invalid credentials' 
+          message: 'Invalid username' 
         });
       }
       console.log(user);
@@ -247,7 +247,7 @@ class AuthController {
         
         return res.status(401).json({ 
           success: false, 
-          message: 'Invalid credentials' 
+          message: 'Invalid password' 
         });
       }
 

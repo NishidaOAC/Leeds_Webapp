@@ -1,0 +1,65 @@
+<div class="customer-container">
+  <h2>Customer Onboarding</h2>
+
+  <div class="form-group">
+    <label for="name">Customer Name <span class="required">*</span></label>
+    <input id="name" type="text" [(ngModel)]="customer.name" placeholder="Enter customer name" />
+  </div>
+
+  <div class="form-group">
+    <label for="type">Customer Type <span class="required">*</span></label>
+    <select id="type" [(ngModel)]="customer.customerType" (change)="onTypeChange()">
+      <option value="">-- Select Customer Type --</option>
+      <option value="AIRLINE">Airline</option>
+      <option value="MRO">MRO</option>
+      <option value="OTHER">Other</option>
+    </select>
+  </div>
+
+  <div *ngIf="isAirlineOrMro" class="doc-section">
+    <h3>Required Documents</h3>
+    <div class="doc-item">
+      <strong>KYC Document</strong>
+      <p>Validity: 1 year</p>
+      <p class="expiry">Expiry: 31st December</p>
+      <input type="file" (change)="onFileSelected($event, 'KYC')" />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['KYC']" placeholder="Add KYC remarks..." />
+    </div>
+
+    <div class="doc-item">
+      <strong>Export Compliance Form</strong>
+      <p>Validity: 1 year</p>
+      <p class="expiry">Expiry: 31st December</p>
+      <input type="file" (change)="onFileSelected($event, 'EXPORT')" />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['EXPORT']" placeholder="Add Export remarks..." />
+    </div>
+  </div>
+
+  <div *ngIf="customer.customerType === 'OTHER'" class="doc-section">
+    <h3>Required Documents</h3>
+    <div class="doc-item">
+      <strong>KYC</strong>
+      <p>One-time document</p>
+      <input type="file" (change)="onFileSelected($event, 'KYC')" />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['KYC']" placeholder="Add KYC remarks..." />
+    </div>
+
+    <div class="doc-item">
+      <strong>End User Certificate (EUC)</strong>
+      <p>One-time document</p>
+      <input type="file" (change)="onFileSelected($event, 'EUC')" />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['EUC']" placeholder="Add EUC remarks..." />
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>Note:</strong>
+    <p>For every Purchase Order, EUC and ECC documents are mandatory.</p>
+  </div>
+
+  <div class="actions">
+    <button (click)="saveCustomer()" [disabled]="!customer.name || !customer.customerType">
+      Save Customer
+    </button>
+  </div>
+</div>

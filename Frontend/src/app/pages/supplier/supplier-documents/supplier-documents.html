@@ -1,0 +1,84 @@
+<div class="manage-container">
+  <header class="header-bar">
+    <div class="header-left">
+      <button class="back-link" routerLink="/dashboard">
+        <span class="icon">←</span> Back to List
+      </button>
+      <div class="title-group">
+        <h1>Manage Documents</h1>
+        <div class="customer-info" *ngIf="supplierData">
+          <span class="customer-name">{{ supplierData.name }}</span>
+          <span class="divider">|</span>
+          <span class="customer-type">{{ supplierData.internalSupplierNumber }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn-upload" (click)="openUploadModal()">
+      <span class="plus">+</span> Upload New Document
+    </button>
+  </header>
+
+  <div class="content-card">
+    <div class="loader" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Fetching supplier records...</p>
+    </div>
+
+    <div class="doc-grid" *ngIf="!loading && documents.length > 0">
+      <div class="doc-card" *ngFor="let doc of documents">
+        <div class="card-header">
+          <div class="icon-wrapper">
+            {{ doc.fileName.endsWith('.pdf') ? '📕' : '🖼️' }}
+          </div>
+          <div class="status-badge" [ngClass]="doc.status.toLowerCase()">
+          <!-- <div class="status-badge" [ngClass]="doc.status?.toLowerCase()"> -->
+            {{ doc.status }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <h3 class="doc-type">{{ doc.documentType }}</h3>
+          <p class="file-name" [title]="doc.fileName">{{ doc.fileName }}</p>
+          
+          <div class="file-meta">
+            <span>{{ formatFileSize(doc.fileSize) }}</span>
+            <span class="separator">•</span>
+            <span>{{ doc.fileName.endsWith('.pdf') ? 'PDF' : 'Image' }}</span>
+          </div>
+
+          <div class="expiry-box" *ngIf="doc.validTo" [class.urgent]="isNearExpiry(doc.validTo)">
+            <label>Expires on</label>
+            <span>{{ doc.validTo | date:'dd MMM yyyy' }}</span>
+          </div>
+
+          <div class="remarks-preview" *ngIf="doc.remarks">
+            <label>Remarks:</label>
+            <p>"{{ doc.remarks }}"</p>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)">
+            Preview
+          </button>
+          <button class="btn-icon-delete" title="Delete Document">🗑️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && documents.length === 0">
+      <div class="icon-circle">📂</div>
+      <h3>No Documents Found</h3>
+      <p>This supplier doesn't have any compliance files uploaded yet.</p>
+    </div>
+  </div>
+</div>
+
+<!-- <app-document-previewer 
+  *ngIf="selectedDocUrl"
+  [docUrl]="selectedDocUrl"
+  [isPdf]="isPdf"
+  [fileName]="selectedDocName"
+  (onClose)="closePreview()">
+</app-document-previewer> -->

@@ -32,6 +32,19 @@ export const PagesRoutes: Routes = [
           import('./company/company.routes').then(m => m.routes),
         canActivate: [AuthGuard]
       },
+      {
+        path: 'customer',
+        loadChildren: () =>
+          import('./customer/customer.routes').then(m => m.routes),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'supplier',
+        loadChildren: () =>
+          import('./supplier/supplier.routes').then(m => m.routes),
+        canActivate: [AuthGuard]
+      },
+
 
     ]
   }

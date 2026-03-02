@@ -1,0 +1,166 @@
+<div class="onboarding-container" [class.full-view]="isListView">
+  
+  <div class="onboarding-header text-center">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="m-0">Supplier Registration</h1>
+        
+        <button class="btn-list-toggle" (click)="isListView = !isListView">
+          <i class="bi" [class.bi-table]="!isListView" [class.bi-arrow-left]="isListView"></i>
+          {{ isListView ? 'Back to Registration' : 'Supplier List' }}
+        </button>
+    </div>
+    
+    <div class="stepper-wrapper" *ngIf="!isListView">
+      <div class="stepper">
+        <div class="step" [class.active]="step >= 1">
+          <div class="circle">1</div>
+          <span>Basic Info</span>
+        </div>
+        <div class="step-line" [class.filled]="step >= 2"></div>
+        <div class="step" [class.active]="step >= 2">
+          <div class="circle">2</div>
+          <span>Compliance</span>
+        </div>
+        <div class="step-line" [class.filled]="step >= 3"></div>
+        <div class="step" [class.active]="step >= 3">
+          <div class="circle">3</div>
+          <span>Review</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card shadow-lg" *ngIf="!isListView">
+    
+    <div *ngIf="step === 1" class="step-content animate-in">
+      <h3 class="section-title">Company Details</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Supplier Name *</label>
+          <input type="text" [(ngModel)]="form.name" placeholder="e.g. AeroParts Ltd" required>
+        </div>
+        <div class="form-group">
+          <label>Contact Email *</label>
+          <input type="email" [(ngModel)]="form.email" placeholder="sales@supplier.com" required>
+        </div>
+      </div>
+      
+      <div class="cert-toggle-section">
+        <label class="d-block mb-3">Do you hold a Quality Certification (ISO/AS9100)?</label>
+        <div class="toggle-btns">
+          <button type="button" class="toggle-btn" [class.selected]="form.hasCert" (click)="form.hasCert = true">
+            <i class="bi bi-patch-check-fill me-2" *ngIf="form.hasCert"></i> Yes, Certified
+          </button>
+          <button type="button" class="toggle-btn" [class.selected]="!form.hasCert" (click)="form.hasCert = false">
+            No Certification
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="step === 2" class="step-content animate-in">
+      <div class="alert alert-info">
+        <strong>Mandatory:</strong> Every new supplier must complete the Evaluation Form.
+      </div>
+      
+      <div class="doc-upload-box" [class.uploaded]="form.evaluationFile">
+        <div class="doc-info">
+          <h4><i class="bi bi-file-earmark-text"></i> Customer Evaluation Form</h4>
+          <p>Download, complete, and upload the mandatory evaluation document.</p>
+        </div>
+        <div class="upload-controls">
+          <span class="file-status" *ngIf="form.evaluationFile">✅ Uploaded</span>
+          <label class="btn-upload-label">
+            {{ form.evaluationFile ? 'Change File' : 'Choose File' }}
+            <input type="file" (change)="upload($event, 'EVAL')" accept=".pdf,.jpg,.png" hidden>
+          </label>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div *ngIf="form.hasCert" class="path-section">
+        <h3 class="section-title text-success">Quality Documentation</h3>
+        <div class="doc-upload-box" [class.uploaded]="form.qualityCertFile">
+          <div class="doc-info">
+            <h4><i class="bi bi-award"></i> Quality Certificate</h4>
+            <p>Upload your ISO 9001 or AS9100 certificate.</p>
+          </div>
+          <div class="upload-controls">
+            <label class="btn-upload-label">
+              <input type="file" (change)="upload($event, 'QUALITY')" hidden> Browse
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!form.hasCert" class="path-section">
+        <h3 class="section-title text-warning">Trade References</h3>
+        <div class="form-group">
+          <textarea [(ngModel)]="form.tradeRefs" rows="4" placeholder="Reference 1..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div *ngIf="step === 3" class="step-content animate-in">
+      <div class="summary-card">
+        <h3 class="section-title">Review Submission</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <label>Supplier Name</label>
+            <span>{{ form.name }}</span>
+          </div>
+          <div class="summary-item">
+            <label>Registration Path</label>
+            <span class="path-pill" [ngClass]="form.hasCert ? 'quality' : 'sales'">
+              {{ form.hasCert ? 'Quality Direct' : 'Sales Audit' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+
+       <div *ngIf="step === 3" class="step-content animate-in">
+             <div class="summary-grid">
+          <div class="summary-item">
+            <label>Supplier Name</label>
+            <span>{{ form.name }}</span>
+          </div>
+          <div class="summary-item">
+            <label>Internal ID Allocation</label>
+            <span class="text-primary fw-bold">AUTO-GENERATE ON SUBMIT</span>
+          </div>
+          <div class="summary-item">
+            <label>Calculated Expiry</label>
+            <span>{{ calculatedExpiryDate | date:'longDate' }}</span>
+          </div>
+          <div class="summary-item">
+            <label>Registration Path</label>
+            <span class="path-pill" [ngClass]="form.hasCert ? 'quality' : 'sales'">
+              {{ form.hasCert ? 'Quality Direct (Fast-Track)' : 'Sales Audit (Standard)' }}
+            </span>
+          </div>
+        </div>
+       </div>
+
+
+
+
+    <div class="form-actions mt-5 d-flex justify-content-between">
+      <button class="btn-sec" (click)="prev()" *ngIf="step > 1">Previous</button>
+      <div class="ms-auto">
+        <button class="btn-pri" (click)="next()" *ngIf="step < 3">Next Step</button>
+        <button class="btn-success" (click)="submit()" *ngIf="step === 3">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-layout animate-in" *ngIf="isListView">
+    <div class="customer-list-container">
+       <div class="table-wrapper">
+          <app-supplier-list></app-supplier-list>
+       </div>
+    </div>
+  </div>
+</div>

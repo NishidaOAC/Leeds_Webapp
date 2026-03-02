@@ -1,0 +1,14 @@
+<div class="preview-overlay" (click)="close()">
+  <div class="preview-window" (click)="$event.stopPropagation()">
+    <div class="preview-header">
+      <h3>{{ fileName }}</h3>
+      <button class="close-x" (click)="close()">✕</button>
+    </div>
+    <div class="preview-body">
+      <iframe *ngIf="isPdf" [src]="docUrl" frameborder="0"></iframe>
+      <div class="image-container" *ngIf="!isPdf">
+        <img [src]="docUrl" alt="Document Preview" />
+      </div>
+    </div>
+  </div>
+</div>

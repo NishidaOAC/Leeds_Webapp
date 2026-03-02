@@ -9,12 +9,26 @@ app.use(cors({ origin: '*' }));
 const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 const INVOICE_URL = process.env.INVOICE_SERVICE_URL || 'http://localhost:3002';
 const FILE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3003';
+const CUSTOMER_URL = process.env.CUSTOMER_SERVICE_URL || 'http://localhost:3004';
+const SUPPLIER_URL = process.env.SUPPLIER_SERVICE_URL || 'http://localhost:3005';
 app.use((req, res, next) => {
   next();
 });
 app.use('/api/auth', createProxyMiddleware({ target: AUTH_URL,  changeOrigin: true,
     pathRewrite: {
       '^/api/auth': ''   // 🔥 REQUIRED
+    }, timeout: 30000, proxyTimeout: 30000
+  })
+);
+app.use('/api/customer', createProxyMiddleware({ target: CUSTOMER_URL,  changeOrigin: true,
+    pathRewrite: {
+      '^/api/customer': ''   // 🔥 REQUIRED
+    }, timeout: 30000, proxyTimeout: 30000
+  })
+);
+app.use('/api/supplier', createProxyMiddleware({ target: SUPPLIER_URL,  changeOrigin: true,
+    pathRewrite: {
+      '^/api/supplier': ''   // 🔥 REQUIRED
     }, timeout: 30000, proxyTimeout: 30000
   })
 );

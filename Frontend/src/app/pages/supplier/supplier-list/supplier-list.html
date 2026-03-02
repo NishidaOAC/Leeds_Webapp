@@ -1,0 +1,100 @@
+<div class="main-layout">
+  <div class="customer-list-container" [class.shrunk]="selectedDocUrl">
+    <div class="header">
+      <div class="title-group">
+        <h2>Supplier Document Tracking</h2>
+        <p class="subtitle">Monitor compliance and manage certifications</p>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading; else loader">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Supplier</th>
+            <th>Status</th>
+            <th>Expiry Date</th>
+            <th>Certificates</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of suppliers" 
+              [class.active-row]="selectedSupplierId === s.id">
+            <td>
+              <div class="cust-info">
+                <span class="cust-name">{{ s.name }}</span>
+                <span class="type-pill">{{ s.internalSupplierNumber }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="badge" [ngClass]="s.status?.toLowerCase()">
+                {{ s.status || 'UNKNOWN' }}
+              </span>
+            </td>
+
+            <td>
+              <span class="date-cell" [class.urgent]="isNearExpiry(s.expiryDate)">
+                {{ s.expiryDate | date:'dd MMM yyyy' }}
+                <span *ngIf="isNearExpiry(s.expiryDate)" class="warn-icon">⚠️</span>
+              </span>
+            </td>
+
+            <td>
+              <div class="doc-links">
+                <button *ngFor="let doc of s.Documents" 
+                  (click)="previewDoc(doc.id, doc.fileName || '', s.id)"
+                  class="doc-pill" 
+                  [class.viewing]="selectedDocName === doc.fileName"
+                  [disabled]="!doc.s3Key">
+                  <span class="icon">📜</span> {{ doc.documentType }}
+                </button>
+                <em *ngIf="!s.Documents?.length" class="empty-txt">No documents</em>
+              </div>
+            </td>
+
+            <td class="actions">
+              <button class="btn-manage" [routerLink]="['/supplier/managedocuments', s.id]">
+                Audit
+              </button>
+
+              <!-- /customer/managedocuments', c.id -->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="preview-panel" [class.open]="selectedDocUrl">
+    <div class="preview-header">
+      <div class="header-content">
+        <h3>Document Preview</h3>
+        <p class="file-name">{{ selectedDocName }}</p>
+      </div>
+      <button class="close-btn" (click)="closePreview()">✕</button>
+    </div>
+
+    <div class="preview-body">
+      <div *ngIf="isPreviewLoading" class="preview-loader">
+        <div class="spinner"></div>
+        <span>Loading Certificate...</span>
+      </div>
+
+      <ng-container *ngIf="selectedDocUrl && !isPreviewLoading">
+        <iframe *ngIf="isPdf" [src]="selectedDocUrl" width="100%" height="100%" frameborder="0"></iframe>
+        <div class="img-container" *ngIf="!isPdf">
+          <img [src]="selectedDocUrl" alt="Document Preview">
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<ng-template #loader>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading Supplier Records...</p>
+  </div>
+</ng-template>

@@ -1,0 +1,154 @@
+/* Modern variables */
+$primary: #4f46e5;
+$success: #10b981;
+$warning: #f59e0b;
+$dark: #111827;
+$transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+/* CONTAINER LOGIC */
+.onboarding-container {
+  max-width: 900px; /* Original Style */
+  margin: 40px auto;
+  padding: 0 24px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: all 0.4s ease-in-out;
+
+  /* FULL SPACE MODE: Removes constraints for the List */
+  &.full-view {
+    max-width: 98% !important; 
+    margin: 20px auto !important;
+    
+    .onboarding-header { text-align: left !important; }
+  }
+
+  .onboarding-header {
+    margin-bottom: 48px;
+    h1 { font-weight: 800; color: $dark; }
+  }
+}
+
+/* LIST COMPONENT STYLES (Added) */
+.main-layout {
+  display: flex;
+  height: 75vh;
+  overflow: hidden;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.customer-list-container {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.table-wrapper {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+}
+
+/* LIST TOGGLE BUTTON */
+.btn-list-toggle {
+  background: white;
+  border: 1.5px solid $primary;
+  color: $primary;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: $transition;
+
+  &:hover {
+    background: $primary;
+    color: white;
+  }
+}
+
+/* EXISTING STEPPER STYLES (Kept exactly as yours) */
+.stepper-wrapper {
+  margin-top: 40px;
+  .stepper {
+    display: flex; align-items: center; justify-content: center;
+    .step {
+      display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;
+      .circle {
+        width: 36px; height: 36px; border-radius: 50%; background: white; border: 2px solid #e5e7eb;
+        display: flex; align-items: center; justify-content: center; font-weight: 700; color: #9ca3af;
+        transition: $transition; margin-bottom: 8px;
+      }
+      span { font-size: 13px; font-weight: 600; color: #9ca3af; }
+      &.active {
+        .circle { border-color: $primary; background: $primary; color: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); }
+        span { color: $dark; }
+      }
+    }
+    .step-line {
+      flex: 0 1 100px; height: 2px; background: #e5e7eb; margin: 0 -10px 24px -10px;
+      &.filled { background: $primary; }
+    }
+  }
+}
+
+/* EXISTING FORM CARD STYLES (Kept exactly as yours) */
+.form-card {
+  background: white;
+  border-radius: 16px;
+  padding: 48px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+}
+
+.form-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 30px;
+}
+
+.form-group {
+  display: flex; flex-direction: column; gap: 8px;
+  label { font-size: 14px; font-weight: 600; color: #4b5563; }
+  input, textarea { padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; transition: $transition;
+    &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+  }
+}
+
+/* EXISTING BUTTONS & PILLS (Kept exactly as yours) */
+.toggle-btns {
+  display: flex; gap: 12px; margin-top: 15px;
+  .toggle-btn {
+    flex: 1; padding: 12px 24px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    &.selected { border-color: $primary; color: $primary; background: #eff6ff; }
+  }
+}
+
+.doc-upload-box {
+  border: 2px dashed #d1d5db; border-radius: 12px; padding: 24px; background: #f9fafb; display: flex; justify-content: space-between; align-items: center; transition: $transition;
+  &.uploaded { border-style: solid; border-color: $success; background: rgba(16, 185, 129, 0.05); }
+  .btn-upload-label { background: $dark; color: white; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+}
+
+.summary-card {
+  background: #1e293b; border-radius: 12px; padding: 32px; color: white;
+  .summary-item { background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+}
+
+.form-actions {
+  button { padding: 12px 28px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-pri { background: $primary; color: white; }
+  .btn-sec { background: white; border: 1px solid #d1d5db; color: #4b5563; }
+  .btn-success { background: $success; color: white; }
+}
+
+.animate-in { animation: fadeInSlide 0.4s ease-out forwards; }
+@keyframes fadeInSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.path-pill {
+  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  &.quality { background: $success; color: white; }
+  &.sales { background: $warning; color: white; }
+}

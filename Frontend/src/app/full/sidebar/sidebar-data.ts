@@ -25,6 +25,21 @@ export const navItems: NavItem[] = [
     bgcolor: 'primary',
     roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
   },
+    {
+    displayName: 'Customer',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/customer',
+    bgcolor: 'primary',
+    roles: ['Admin'] 
+  },
+    {
+    displayName: 'Supplier',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/supplier',
+    bgcolor: 'primary',
+    roles: ['Admin']
+  },
+
   {
     displayName: 'Company',
     iconName: 'layout-grid-add',

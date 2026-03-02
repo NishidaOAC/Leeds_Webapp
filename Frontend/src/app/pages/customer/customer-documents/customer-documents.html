@@ -1,0 +1,97 @@
+<div class="manage-container">
+  <header class="header-bar">
+    <div class="header-left">
+      <button class="back-link" routerLink="/dashboard">
+        <span class="icon">←</span> Back
+      </button>
+      <div class="title-group">
+        <h1>Manage Documents</h1>
+        <div class="customer-info" *ngIf="customerData">
+          <span class="customer-name">{{ customerData.name }}</span>
+          <span class="divider">|</span>
+          <span class="customer-type">{{ customerData.customerType }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn-upload">
+      <span class="plus">+</span> Upload New Document
+    </button>
+  </header>
+
+  
+
+  <div class="content-card">
+    <div class="loader" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Fetching compliance records...</p>
+    </div>
+
+    <div class="doc-grid" *ngIf="!loading && documents.length > 0">
+      <div class="doc-card" *ngFor="let doc of documents">
+        <div class="card-header">
+          <div class="icon-wrapper">📄</div>
+          <div class="status-badge" [ngClass]="getStatusClass(doc.status)">
+            {{ doc.status }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <h3 class="doc-type">{{ doc.documentType }}</h3>
+          <p class="file-name" [title]="doc.fileName">{{ doc.fileName }}</p>
+          
+          <div class="file-meta">
+            <span>{{ formatFileSize(doc.fileSize) }}</span>
+            <span class="separator">•</span>
+            <span>{{ doc.mimeType === 'application/pdf' ? 'PDF' : 'Image' }}</span>
+          </div>
+
+          <div class="expiry-box" [class.urgent]="isNearExpiry(doc.validTo)">
+            <label>Expires on</label>
+            <span>{{ doc.validTo | date:'dd MMM yyyy' }}</span>
+          </div>
+
+          <div class="remarks-preview" *ngIf="doc.remarks">
+            <label>Remarks:</label>
+            <p>"{{ doc.remarks }}"</p>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)" [disabled]="!doc.s3Key">
+            Preview
+          </button>
+          <button class="btn-icon-delete" title="Delete Document">🗑️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && documents.length === 0">
+      <div class="icon-circle">📂</div>
+      <h3>No Documents Found</h3>
+      <p>This customer doesn't have any compliance files uploaded yet.</p>
+    </div>
+  </div>
+</div>
+
+<div class="preview-overlay" *ngIf="selectedDocUrl">
+  <div class="preview-window">
+    <div class="preview-header">
+      <h3>Document Preview</h3>
+      <button class="close-x" (click)="closePreview()">✕</button>
+    </div>
+    <div class="preview-body">
+      <iframe *ngIf="isPdf" [src]="selectedDocUrl"></iframe>
+      <img *ngIf="!isPdf" [src]="selectedDocUrl" />
+    </div>
+  </div>
+</div>
+
+
+<app-document-previewer 
+  *ngIf="selectedDocUrl"
+  [docUrl]="selectedDocUrl"
+  [isPdf]="isPdf"
+  [fileName]="selectedDocName"
+  (onClose)="closePreview()">
+</app-document-previewer>

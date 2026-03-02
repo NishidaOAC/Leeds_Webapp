@@ -1,0 +1,44 @@
+<div class="renewal-container animate-in" *ngIf="expiredSuppliers.length > 0">
+  <div class="alert-header">
+    <div class="header-title">
+      <i class="bi bi-shield-exclamation"></i>
+      <h3>Compliance & Renewal Watchlist</h3>
+      <span class="count-badge">{{ expiredSuppliers.length }} Issues</span>
+    </div>
+    <p class="header-subtitle">The following suppliers require documentation updates to maintain active status.</p>
+  </div>
+
+  <div class="alert-list">
+    <div *ngFor="let supplier of expiredSuppliers" 
+         class="standard-card"
+         [class.danger-border]="getDays(supplier.expiryDate) <= 0"
+         [class.warning-border]="getDays(supplier.expiryDate) > 0">
+      
+      <div class="card-left">
+        <div class="status-icon">
+          <i class="bi" [ngClass]="getDays(supplier.expiryDate) <= 0 ? 'bi-slash-circle-fill' : 'bi-clock-history'"></i>
+        </div>
+        <div class="supplier-info">
+          <div class="name-row">
+            <h4>{{ supplier.name }}</h4>
+            <span class="status-pill" [class.expired]="getDays(supplier.expiryDate) <= 0">
+               {{ getDays(supplier.expiryDate) <= 0 ? 'Expired' : 'Expiring Soon' }}
+            </span>
+          </div>
+          <div class="date-details">
+            <i class="bi bi-calendar3"></i>
+            <span>Expires: <strong>{{ supplier.expiryDate | date:'mediumDate' }}</strong></span>
+            <span class="days-text">({{ getDays(supplier.expiryDate) }} days remaining)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-right">
+        <button class="btn-standard-outline" (click)="requestRenewal(supplier)">
+          <i class="bi bi-send-fill"></i>
+          Request Update
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

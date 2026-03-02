@@ -1,0 +1,85 @@
+<div class="main-layout">
+  <div class="customer-list-container">
+    <div class="header">
+      <h2>Supplier Document Tracking</h2>
+      <p class="subtitle">Monitor compliance and manage customer certifications</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading; else loader">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Compliance</th>
+            <th>Available Documents</th>
+            <th>Quick Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of customers">
+            <td>
+              <div class="cust-info">
+                <span class="cust-name">{{ c.name }}</span>
+                <span class="type-pill">{{ c.customerType }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(c.Documents)">
+                {{ getComplianceStatus(c.Documents) }}
+              </span>
+            </td>
+
+            <td>
+              <div class="doc-links">
+                <button *ngFor="let doc of c.Documents" (click)="previewDoc(doc.id, doc.fileName || '')"
+                  class="doc-pill" [disabled]="!doc.s3Key" [title]="doc.fileName">
+                  <span class="icon">📄</span> {{ doc.documentType }}
+                </button>
+                <em *ngIf="!c.Documents?.length" class="empty-txt">No documents linked</em>
+              </div>
+            </td>
+
+            <td class="actions">
+<!-- 
+              <button class="btn-manage" [routerLink]="['/customer/customerlist', c.id, 'documents']">
+                Audit Complianc
+              </button> -->
+
+              <button class="btn-manage" [routerLink]="['/customer/managedocuments', c.id]">
+  Audit Compliance
+</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="preview-panel" [class.open]="selectedDocUrl">
+    <div class="preview-header">
+      <h3>Document Preview</h3>
+      <button class="close-btn" (click)="closePreview()">✕</button>
+    </div>
+
+    <div class="preview-body">
+      <div *ngIf="isPreviewLoading" class="preview-loader">Fetching file...</div>
+
+      <ng-container *ngIf="selectedDocUrl && !isPreviewLoading">
+        <iframe *ngIf="isPdf" [src]="selectedDocUrl" width="100%" height="100%"></iframe>
+
+        <div class="img-container" *ngIf="!isPdf">
+          <img [src]="selectedDocUrl" alt="Document Preview">
+        </div>
+      </ng-container>
+
+      <div *ngIf="!selectedDocUrl && !isPreviewLoading" class="no-selection">
+        Select a document to preview content here.
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loader>
+  <div class="loading-state">Loading records...</div>
+</ng-template>

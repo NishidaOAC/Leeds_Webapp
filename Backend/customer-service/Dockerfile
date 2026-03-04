@@ -1,17 +1,16 @@
 FROM node:20
 
-# Create directory
 WORKDIR /node-app
 
-# 1. Copy package files from the root context
-# We use ./ to represent the root of the build context
-COPY ./package.json ./
-COPY ./package-lock.json ./
+# Use the wildcard to handle cases where package-lock might be missing
+COPY package*.json ./
 
-# 2. Install
+# Verify the file is actually there during build
+RUN ls -la package.json
+
 RUN npm install --force
 
-# 3. Copy the specific service code
+# Copy the specific service code
 COPY ./Backend/customer-service/ .
 
 CMD ["npm", "start"]

@@ -64,8 +64,7 @@ services:
       - test-postgres-file
       - test-rabbitmq
       - test-redis
-      
-  
+
   test-customer-service:
     build: ./Backend/customer-service
     container_name: test-customer-service
@@ -80,10 +79,9 @@ services:
       REDIS_HOST: test-redis
       RABBITMQ_HOST: test-rabbitmq
     depends_on:
-      - test-postgres-customer  
+      - test-postgres-customer
       - test-rabbitmq
       - test-redis
-      
 
   test-supplier-service:
     build: ./Backend/supplier-service
@@ -99,11 +97,9 @@ services:
       REDIS_HOST: test-redis
       RABBITMQ_HOST: test-rabbitmq
     depends_on:
-      - test-postgres-supplier  
+      - test-postgres-supplier
       - test-rabbitmq
       - test-redis
-      
-
 
   test-postgres-auth:
     image: postgres:15
@@ -154,7 +150,7 @@ services:
       POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
     volumes:
       - pgdata-supplier:/var/lib/postgresql/data
-      
+
   test-rabbitmq:
     image: rabbitmq:3-management
     container_name: test-rabbitmq
@@ -173,4 +169,4 @@ volumes:
   pgdata-invoice:
   pgdata-file:
   pgdata-customer:
-   pgdata-supplier:
+  pgdata-supplier:

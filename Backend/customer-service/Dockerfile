@@ -1,18 +1,20 @@
 FROM node:20
 
-# Create and set the directory inside the container
+# Force the creation of the directory
+RUN mkdir -p /node-app
 WORKDIR /node-app
 
-# 1. Copy the package files from the ROOT context
-# (Docker is looking at the folder where your docker-compose.yaml sits)
-COPY package*.json ./
+# 1. Copy specifically from the root context to the current WORKDIR
+COPY package.json /node-app/package.json
+COPY package-lock.json* /node-app/
 
-# 2. Install dependencies
+# 2. DEBUG: List files to PROVE it exists before npm runs
+RUN ls -la /node-app
+
+# 3. Install
 RUN npm install --force
 
-# 3. Copy the specific service folder into the container
-# This must match the path from the root of your project
-COPY ./Backend/customer-service .
+# 4. Copy the service code
+COPY ./Backend/customer-service /node-app
 
-# 4. Start the app
 CMD ["npm", "start"]

@@ -1,6 +1,8 @@
 services:
   test-api-gateway:
-    build: ./Backend
+    build:
+      context: .
+      dockerfile: ./Backend/Dockerfile
     container_name: test-api-gateway
     ports:
       - "3004:3000"
@@ -20,7 +22,9 @@ services:
       - test-supplier-service
 
   test-auth-service:
-    build: ./Backend/auth-service
+    build:
+      context: .
+      dockerfile: ./Backend/auth-service/Dockerfile
     container_name: test-auth-service
     ports:
       - "3005:3001"
@@ -33,7 +37,9 @@ services:
       - test-postgres-auth
 
   test-invoice-service:
-    build: ./Backend/invoice-service
+    build:
+      context: .
+      dockerfile: ./Backend/invoice-service/Dockerfile
     container_name: test-invoice-service
     ports:
       - "3006:3002"
@@ -48,7 +54,9 @@ services:
       - test-postgres-invoice
 
   test-file-service:
-    build: ./Backend/file-service
+    build:
+      context: .
+      dockerfile: ./Backend/file-service/Dockerfile
     container_name: test-file-service
     ports:
       - "3007:3003"
@@ -66,7 +74,9 @@ services:
       - test-redis
 
   test-customer-service:
-    build: ./Backend/customer-service
+    build:
+      context: .
+      dockerfile: ./Backend/customer-service/Dockerfile
     container_name: test-customer-service
     ports:
       - "3008:3004"
@@ -84,7 +94,9 @@ services:
       - test-redis
 
   test-supplier-service:
-    build: ./Backend/supplier-service
+    build:
+      context: .
+      dockerfile: ./Backend/supplier-service/Dockerfile
     container_name: test-supplier-service
     ports:
       - "3009:3005"
@@ -101,6 +113,7 @@ services:
       - test-rabbitmq
       - test-redis
 
+  # --- Infrastructure (Databases, Redis, RabbitMQ) ---
   test-postgres-auth:
     image: postgres:15
     container_name: test-postgres-auth

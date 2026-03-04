@@ -10,10 +10,14 @@ services:
       AUTH_SERVICE_URL: http://test-auth-service:3001
       INVOICE_SERVICE_URL: http://test-invoice-service:3002
       FILE_SERVICE_URL: http://test-file-service:3003
+      CUSTOMER_SERVICE_URL: http://test-customer-service:3004
+      SUPPLIER_SERVICE_URL: http://test-supplier-service:3005
     depends_on:
       - test-auth-service
       - test-invoice-service
       - test-file-service
+      - test-customer-service
+      - test-supplier-service
 
   test-auth-service:
     build: ./Backend/auth-service
@@ -60,6 +64,46 @@ services:
       - test-postgres-file
       - test-rabbitmq
       - test-redis
+      
+  
+  test-customer-service:
+    build: ./Backend/customer-service
+    container_name: test-customer-service
+    ports:
+      - "3008:3004"
+    env_file:
+      - ./Backend/customer-service/.env
+    environment:
+      DB_HOST: test-postgres-customer
+      DB_PORT: 5432
+      AUTH_SERVICE_URL: http://test-auth-service:3001
+      REDIS_HOST: test-redis
+      RABBITMQ_HOST: test-rabbitmq
+    depends_on:
+      - test-postgres-customer  
+      - test-rabbitmq
+      - test-redis
+      
+
+  test-supplier-service:
+    build: ./Backend/supplier-service
+    container_name: test-supplier-service
+    ports:
+      - "3009:3005"
+    env_file:
+      - ./Backend/supplier-service/.env
+    environment:
+      DB_HOST: test-postgres-supplier
+      DB_PORT: 5432
+      AUTH_SERVICE_URL: http://test-auth-service:3001
+      REDIS_HOST: test-redis
+      RABBITMQ_HOST: test-rabbitmq
+    depends_on:
+      - test-postgres-supplier  
+      - test-rabbitmq
+      - test-redis
+      
+
 
   test-postgres-auth:
     image: postgres:15
@@ -91,6 +135,26 @@ services:
     volumes:
       - pgdata-file:/var/lib/postgresql/data
 
+  test-postgres-customer:
+    image: postgres:15
+    container_name: test-postgres-customer
+    environment:
+      POSTGRES_DB: leeds_payment_customer_db
+      POSTGRES_USER: oac_softwares
+      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
+    volumes:
+      - pgdata-customer:/var/lib/postgresql/data
+
+  test-postgres-supplier:
+    image: postgres:15
+    container_name: test-postgres-supplier
+    environment:
+      POSTGRES_DB: leeds_payment_supplier_db
+      POSTGRES_USER: oac_softwares
+      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
+    volumes:
+      - pgdata-supplier:/var/lib/postgresql/data
+      
   test-rabbitmq:
     image: rabbitmq:3-management
     container_name: test-rabbitmq
@@ -108,3 +172,5 @@ volumes:
   pgdata-auth:
   pgdata-invoice:
   pgdata-file:
+  pgdata-customer:
+   pgdata-supplier:

@@ -1,13 +1,14 @@
 FROM node:20
 WORKDIR /node-app
 
-# Explicitly copy the package files first to the current WORKDIR
+# 1. Copy package files from the Backend root
 COPY package*.json ./
 
-# Install dependencies
+# 2. Install dependencies
 RUN npm install --force
 
-# Copy the rest of the files
-COPY . .
+# 3. Copy ONLY this specific service's code
+# Because context is ./Backend, we must specify the folder name
+COPY invoice-service/ . 
 
 CMD ["npm", "start"]

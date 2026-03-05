@@ -95,7 +95,7 @@ services:
 
   test-supplier-service:
     build:
-      context: .
+      context: ./Backend/supplier-service
       dockerfile: ./Backend/supplier-service/Dockerfile
     container_name: test-supplier-service
     ports:

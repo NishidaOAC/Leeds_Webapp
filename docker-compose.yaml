@@ -23,7 +23,7 @@ services:
 
   test-auth-service:
     build:
-      context: ./Backend/auth-service/auth-service
+      context: ./Backend/auth-service
     container_name: test-auth-service
     ports:
       - "3005:3001"

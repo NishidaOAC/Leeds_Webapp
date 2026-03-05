@@ -23,7 +23,7 @@ services:
 
   test-auth-service:
     build:
-      # Adjusted context to point to the nested folder where package.json sits
+      # Kept as nested because your file structure has a double 'auth-service' folder
       context: ./Backend/auth-service/auth-service
       dockerfile: Dockerfile
     container_name: test-auth-service
@@ -39,8 +39,8 @@ services:
 
   test-invoice-service:
     build:
-      # Pointing to the nested folder if it matches the auth-service structure
-      context: ./Backend/invoice-service/invoice-service
+      # REVERTED: Reverted to single folder because 'path not found' confirmed no nested folder exists here
+      context: ./Backend/invoice-service
       dockerfile: Dockerfile
     container_name: test-invoice-service
     ports:
@@ -114,74 +114,3 @@ services:
       - test-postgres-supplier
       - test-rabbitmq
       - test-redis
-
-  # --- Infrastructure (Remains the same) ---
-  test-postgres-auth:
-    image: postgres:15
-    container_name: test-postgres-auth
-    environment:
-      POSTGRES_DB: leeds_payment_auth_db
-      POSTGRES_USER: oac_softwares
-      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
-    volumes:
-      - pgdata-auth:/var/lib/postgresql/data
-
-  test-postgres-invoice:
-    image: postgres:15
-    container_name: test-postgres-invoice
-    environment:
-      POSTGRES_DB: leeds_payment_invoice_db
-      POSTGRES_USER: oac_softwares
-      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
-    volumes:
-      - pgdata-invoice:/var/lib/postgresql/data
-
-  test-postgres-file:
-    image: postgres:15
-    container_name: test-postgres-file
-    environment:
-      POSTGRES_DB: leeds_payment_file_db
-      POSTGRES_USER: oac_softwares
-      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
-    volumes:
-      - pgdata-file:/var/lib/postgresql/data
-
-  test-postgres-customer:
-    image: postgres:15
-    container_name: test-postgres-customer
-    environment:
-      POSTGRES_DB: leeds_payment_customer_db
-      POSTGRES_USER: oac_softwares
-      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
-    volumes:
-      - pgdata-customer:/var/lib/postgresql/data
-
-  test-postgres-supplier:
-    image: postgres:15
-    container_name: test-postgres-supplier
-    environment:
-      POSTGRES_DB: leeds_payment_supplier_db
-      POSTGRES_USER: oac_softwares
-      POSTGRES_PASSWORD: AWTGBVHYTUOKJK25690
-    volumes:
-      - pgdata-supplier:/var/lib/postgresql/data
-
-  test-rabbitmq:
-    image: rabbitmq:3-management
-    container_name: test-rabbitmq
-    ports:
-      - "5673:5672"
-      - "15673:15672"
-
-  test-redis:
-    image: redis:7
-    container_name: test-redis
-    ports:
-      - "6380:6379"
-
-volumes:
-  pgdata-auth:
-  pgdata-invoice:
-  pgdata-file:
-  pgdata-customer:
-  pgdata-supplier:

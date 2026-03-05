@@ -23,7 +23,8 @@ services:
 
   test-auth-service:
     build:
-      context: ./Backend/auth-service
+      # Adjusted context to point to the nested folder where package.json sits
+      context: ./Backend/auth-service/auth-service
       dockerfile: Dockerfile
     container_name: test-auth-service
     ports:
@@ -38,7 +39,8 @@ services:
 
   test-invoice-service:
     build:
-      context: ./Backend/invoice-service
+      # Pointing to the nested folder if it matches the auth-service structure
+      context: ./Backend/invoice-service/invoice-service
       dockerfile: Dockerfile
     container_name: test-invoice-service
     ports:
@@ -113,7 +115,7 @@ services:
       - test-rabbitmq
       - test-redis
 
-  # --- Infrastructure ---
+  # --- Infrastructure (Remains the same) ---
   test-postgres-auth:
     image: postgres:15
     container_name: test-postgres-auth

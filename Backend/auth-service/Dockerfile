@@ -1,6 +1,13 @@
 FROM node:20
-RUN mkdir /node-app
 WORKDIR /node-app
+
+# Explicitly copy the package files first to the current WORKDIR
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --force
+
+# Copy the rest of the files
 COPY . .
-RUN npm i --force
+
 CMD ["npm", "start"]

@@ -1,122 +1,122 @@
 services:
-  test-api-gateway:
+  fileapi-gateway:
     build:
       context: ./Backend
       dockerfile: Dockerfile
-    container_name: test-api-gateway
+    container_name: fileapi-gateway
     ports:
       - "3004:3000"
     env_file:
       - ./Backend/.env
     environment:
-      AUTH_SERVICE_URL: http://test-auth-service:3001
-      INVOICE_SERVICE_URL: http://test-invoice-service:3002
-      FILE_SERVICE_URL: http://test-file-service:3003
-      CUSTOMER_SERVICE_URL: http://test-customer-service:3004
-      SUPPLIER_SERVICE_URL: http://test-supplier-service:3005
+      AUTH_SERVICE_URL: http://fileauth-service:3001
+      INVOICE_SERVICE_URL: http://fileinvoice-service:3002
+      FILE_SERVICE_URL: http://filefile-service:3003
+      CUSTOMER_SERVICE_URL: http://filecustomer-service:3004
+      SUPPLIER_SERVICE_URL: http://filesupplier-service:3005
     depends_on:
-      - test-auth-service
-      - test-invoice-service
-      - test-file-service
-      - test-customer-service
-      - test-supplier-service
+      - fileauth-service
+      - fileinvoice-service
+      - filefile-service
+      - filecustomer-service
+      - filesupplier-service
 
-  test-auth-service:
+  fileauth-service:
     build:
       context: ./Backend
       dockerfile: auth-service/Dockerfile
-    container_name: test-auth-service
+    container_name: fileauth-service
     ports:
       - "3005:3001"
     env_file:
       - ./Backend/auth-service/.env
     environment:
-      DB_HOST: test-postgres-auth
+      DB_HOST: filepostgres-auth
       DB_PORT: 5432
     depends_on:
-      - test-postgres-auth
+      - filepostgres-auth
 
-  test-invoice-service:
+  fileinvoice-service:
     build:
       context: ./Backend
       dockerfile: invoice-service/Dockerfile
-    container_name: test-invoice-service
+    container_name: fileinvoice-service
     ports:
       - "3006:3002"
     env_file:
       - ./Backend/invoice-service/.env
     environment:
-      DB_HOST: test-postgres-invoice
+      DB_HOST: filepostgres-invoice
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://test-auth-service:3001
-      FILE_SERVICE_URL: http://test-file-service:3003
+      AUTH_SERVICE_URL: http://fileauth-service:3001
+      FILE_SERVICE_URL: http://filefile-service:3003
     depends_on:
-      - test-postgres-invoice
+      - filepostgres-invoice
 
-  test-file-service:
+  filefile-service:
     build:
       context: ./Backend
       dockerfile: file-service/Dockerfile
-    container_name: test-file-service
+    container_name: filefile-service
     ports:
       - "3007:3003"
     env_file:
       - ./Backend/file-service/.env
     environment:
-      DB_HOST: test-postgres-file
+      DB_HOST: filepostgres-file
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://test-auth-service:3001
-      REDIS_HOST: test-redis
-      RABBITMQ_HOST: test-rabbitmq
+      AUTH_SERVICE_URL: http://fileauth-service:3001
+      REDIS_HOST: fileredis
+      RABBITMQ_HOST: filerabbitmq
     depends_on:
-      - test-postgres-file
-      - test-rabbitmq
-      - test-redis
+      - filepostgres-file
+      - filerabbitmq
+      - fileredis
 
-  test-customer-service:
+  filecustomer-service:
     build:
       context: ./Backend
       dockerfile: customer-service/Dockerfile
-    container_name: test-customer-service
+    container_name: filecustomer-service
     ports:
       - "3008:3004"
     env_file:
       - ./Backend/customer-service/.env
     environment:
-      DB_HOST: test-postgres-customer
+      DB_HOST: filepostgres-customer
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://test-auth-service:3001
-      REDIS_HOST: test-redis
-      RABBITMQ_HOST: test-rabbitmq
+      AUTH_SERVICE_URL: http://fileauth-service:3001
+      REDIS_HOST: fileredis
+      RABBITMQ_HOST: filerabbitmq
     depends_on:
-      - test-postgres-customer
-      - test-rabbitmq
-      - test-redis
+      - filepostgres-customer
+      - filerabbitmq
+      - fileredis
 
-  test-supplier-service:
+  filesupplier-service:
     build:
       context: ./Backend
       dockerfile: supplier-service/Dockerfile
-    container_name: test-supplier-service
+    container_name: filesupplier-service
     ports:
       - "3009:3005"
     env_file:
       - ./Backend/supplier-service/.env
     environment:
-      DB_HOST: test-postgres-supplier
+      DB_HOST: filepostgres-supplier
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://test-auth-service:3001
-      REDIS_HOST: test-redis
-      RABBITMQ_HOST: test-rabbitmq
+      AUTH_SERVICE_URL: http://fileauth-service:3001
+      REDIS_HOST: fileredis
+      RABBITMQ_HOST: filerabbitmq
     depends_on:
-      - test-postgres-supplier
-      - test-rabbitmq
-      - test-redis
+      - filepostgres-supplier
+      - filerabbitmq
+      - fileredis
 
   # --- Infrastructure Section (RESTORED) ---
-  test-postgres-auth:
+  filepostgres-auth:
     image: postgres:15
-    container_name: test-postgres-auth
+    container_name: filepostgres-auth
     environment:
       POSTGRES_DB: leeds_payment_auth_db
       POSTGRES_USER: oac_softwares
@@ -124,9 +124,9 @@ services:
     volumes:
       - pgdata-auth:/var/lib/postgresql/data
 
-  test-postgres-invoice:
+  filepostgres-invoice:
     image: postgres:15
-    container_name: test-postgres-invoice
+    container_name: filepostgres-invoice
     environment:
       POSTGRES_DB: leeds_payment_invoice_db
       POSTGRES_USER: oac_softwares
@@ -134,9 +134,9 @@ services:
     volumes:
       - pgdata-invoice:/var/lib/postgresql/data
 
-  test-postgres-file:
+  filepostgres-file:
     image: postgres:15
-    container_name: test-postgres-file
+    container_name: filepostgres-file
     environment:
       POSTGRES_DB: leeds_payment_file_db
       POSTGRES_USER: oac_softwares
@@ -144,9 +144,9 @@ services:
     volumes:
       - pgdata-file:/var/lib/postgresql/data
 
-  test-postgres-customer:
+  filepostgres-customer:
     image: postgres:15
-    container_name: test-postgres-customer
+    container_name: filepostgres-customer
     environment:
       POSTGRES_DB: leeds_payment_customer_db
       POSTGRES_USER: oac_softwares
@@ -154,9 +154,9 @@ services:
     volumes:
       - pgdata-customer:/var/lib/postgresql/data
 
-  test-postgres-supplier:
+  filepostgres-supplier:
     image: postgres:15
-    container_name: test-postgres-supplier
+    container_name: filepostgres-supplier
     environment:
       POSTGRES_DB: leeds_payment_supplier_db
       POSTGRES_USER: oac_softwares
@@ -164,16 +164,16 @@ services:
     volumes:
       - pgdata-supplier:/var/lib/postgresql/data
 
-  test-rabbitmq:
+  filerabbitmq:
     image: rabbitmq:3-management
-    container_name: test-rabbitmq
+    container_name: filerabbitmq
     ports:
       - "5673:5672"
       - "15673:15672"
 
-  test-redis:
+  fileredis:
     image: redis:7
-    container_name: test-redis
+    container_name: fileredis
     ports:
       - "6380:6379"
 

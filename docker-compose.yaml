@@ -1,8 +1,6 @@
 services:
   api-gateway:
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
+    build: ./Backend
     container_name: api-gateway
     ports:
       - "3004:3000"
@@ -22,9 +20,7 @@ services:
       - supplier-service
 
   auth-service:
-    build:
-      context: ./Backend
-      dockerfile: auth-service/Dockerfile
+    build: ./Backend/auth-service
     container_name: auth-service
     ports:
       - "3005:3001"
@@ -37,9 +33,7 @@ services:
       - postgres-auth
 
   invoice-service:
-    build:
-      context: ./Backend
-      dockerfile: invoice-service/Dockerfile
+    build: ./Backend/invoice-service
     container_name: invoice-service
     ports:
       - "3006:3002"
@@ -54,9 +48,7 @@ services:
       - postgres-invoice
 
   file-service:
-    build:
-      context: ./Backend
-      dockerfile: file-service/Dockerfile
+    build: ./Backend/file-service
     container_name: file-service
     ports:
       - "3007:3003"
@@ -74,9 +66,7 @@ services:
       - redis
 
   customer-service:
-    build:
-      context: ./Backend
-      dockerfile: customer-service/Dockerfile
+    build: ./Backend/customer-service
     container_name: customer-service
     ports:
       - "3008:3004"
@@ -94,9 +84,7 @@ services:
       - redis
 
   supplier-service:
-    build:
-      context: ./Backend
-      dockerfile: supplier-service/Dockerfile
+    build: ./Backend/supplier-service
     container_name: supplier-service
     ports:
       - "3009:3005"
@@ -113,7 +101,7 @@ services:
       - rabbitmq
       - redis
 
-  # --- Infrastructure Section ---
+  # --- Databases ---
   postgres-auth:
     image: postgres:15
     container_name: postgres-auth
@@ -164,6 +152,7 @@ services:
     volumes:
       - pgdata-supplier:/var/lib/postgresql/data
 
+  # --- Infrastructure ---
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -175,7 +164,7 @@ services:
     image: redis:7
     container_name: redis
     ports:
-      - "6381:6379"
+      - "6380:6379"
 
 volumes:
   pgdata-auth:

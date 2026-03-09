@@ -1,122 +1,122 @@
 services:
-  fileapi-gateway:
+  api-gateway:
     build:
       context: ./Backend
       dockerfile: Dockerfile
-    container_name: fileapi-gateway
+    container_name: api-gateway
     ports:
       - "3004:3000"
     env_file:
       - ./Backend/.env
     environment:
-      AUTH_SERVICE_URL: http://fileauth-service:3001
-      INVOICE_SERVICE_URL: http://fileinvoice-service:3002
-      FILE_SERVICE_URL: http://filefile-service:3003
-      CUSTOMER_SERVICE_URL: http://filecustomer-service:3004
-      SUPPLIER_SERVICE_URL: http://filesupplier-service:3005
+      AUTH_SERVICE_URL: http://auth-service:3001
+      INVOICE_SERVICE_URL: http://invoice-service:3002
+      FILE_SERVICE_URL: http://file-service:3003
+      CUSTOMER_SERVICE_URL: http://customer-service:3004
+      SUPPLIER_SERVICE_URL: http://supplier-service:3005
     depends_on:
-      - fileauth-service
-      - fileinvoice-service
-      - filefile-service
-      - filecustomer-service
-      - filesupplier-service
+      - auth-service
+      - invoice-service
+      - file-service
+      - customer-service
+      - supplier-service
 
-  fileauth-service:
+  auth-service:
     build:
       context: ./Backend
       dockerfile: auth-service/Dockerfile
-    container_name: fileauth-service
+    container_name: auth-service
     ports:
       - "3005:3001"
     env_file:
       - ./Backend/auth-service/.env
     environment:
-      DB_HOST: filepostgres-auth
+      DB_HOST: postgres-auth
       DB_PORT: 5432
     depends_on:
-      - filepostgres-auth
+      - postgres-auth
 
-  fileinvoice-service:
+  invoice-service:
     build:
       context: ./Backend
       dockerfile: invoice-service/Dockerfile
-    container_name: fileinvoice-service
+    container_name: invoice-service
     ports:
       - "3006:3002"
     env_file:
       - ./Backend/invoice-service/.env
     environment:
-      DB_HOST: filepostgres-invoice
+      DB_HOST: postgres-invoice
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://fileauth-service:3001
-      FILE_SERVICE_URL: http://filefile-service:3003
+      AUTH_SERVICE_URL: http://auth-service:3001
+      FILE_SERVICE_URL: http://file-service:3003
     depends_on:
-      - filepostgres-invoice
+      - postgres-invoice
 
-  filefile-service:
+  file-service:
     build:
       context: ./Backend
       dockerfile: file-service/Dockerfile
-    container_name: filefile-service
+    container_name: file-service
     ports:
       - "3007:3003"
     env_file:
       - ./Backend/file-service/.env
     environment:
-      DB_HOST: filepostgres-file
+      DB_HOST: postgres-file
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://fileauth-service:3001
-      REDIS_HOST: fileredis
-      RABBITMQ_HOST: filerabbitmq
+      AUTH_SERVICE_URL: http://auth-service:3001
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
     depends_on:
-      - filepostgres-file
-      - filerabbitmq
-      - fileredis
+      - postgres-file
+      - rabbitmq
+      - redis
 
-  filecustomer-service:
+  customer-service:
     build:
       context: ./Backend
       dockerfile: customer-service/Dockerfile
-    container_name: filecustomer-service
+    container_name: customer-service
     ports:
       - "3008:3004"
     env_file:
       - ./Backend/customer-service/.env
     environment:
-      DB_HOST: filepostgres-customer
+      DB_HOST: postgres-customer
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://fileauth-service:3001
-      REDIS_HOST: fileredis
-      RABBITMQ_HOST: filerabbitmq
+      AUTH_SERVICE_URL: http://auth-service:3001
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
     depends_on:
-      - filepostgres-customer
-      - filerabbitmq
-      - fileredis
+      - postgres-customer
+      - rabbitmq
+      - redis
 
-  filesupplier-service:
+  supplier-service:
     build:
       context: ./Backend
       dockerfile: supplier-service/Dockerfile
-    container_name: filesupplier-service
+    container_name: supplier-service
     ports:
       - "3009:3005"
     env_file:
       - ./Backend/supplier-service/.env
     environment:
-      DB_HOST: filepostgres-supplier
+      DB_HOST: postgres-supplier
       DB_PORT: 5432
-      AUTH_SERVICE_URL: http://fileauth-service:3001
-      REDIS_HOST: fileredis
-      RABBITMQ_HOST: filerabbitmq
+      AUTH_SERVICE_URL: http://auth-service:3001
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
     depends_on:
-      - filepostgres-supplier
-      - filerabbitmq
-      - fileredis
+      - postgres-supplier
+      - rabbitmq
+      - redis
 
-  # --- Infrastructure Section (RESTORED) ---
-  filepostgres-auth:
+  # --- Infrastructure Section ---
+  postgres-auth:
     image: postgres:15
-    container_name: filepostgres-auth
+    container_name: postgres-auth
     environment:
       POSTGRES_DB: leeds_payment_auth_db
       POSTGRES_USER: oac_softwares
@@ -124,9 +124,9 @@ services:
     volumes:
       - pgdata-auth:/var/lib/postgresql/data
 
-  filepostgres-invoice:
+  postgres-invoice:
     image: postgres:15
-    container_name: filepostgres-invoice
+    container_name: postgres-invoice
     environment:
       POSTGRES_DB: leeds_payment_invoice_db
       POSTGRES_USER: oac_softwares
@@ -134,9 +134,9 @@ services:
     volumes:
       - pgdata-invoice:/var/lib/postgresql/data
 
-  filepostgres-file:
+  postgres-file:
     image: postgres:15
-    container_name: filepostgres-file
+    container_name: postgres-file
     environment:
       POSTGRES_DB: leeds_payment_file_db
       POSTGRES_USER: oac_softwares
@@ -144,9 +144,9 @@ services:
     volumes:
       - pgdata-file:/var/lib/postgresql/data
 
-  filepostgres-customer:
+  postgres-customer:
     image: postgres:15
-    container_name: filepostgres-customer
+    container_name: postgres-customer
     environment:
       POSTGRES_DB: leeds_payment_customer_db
       POSTGRES_USER: oac_softwares
@@ -154,9 +154,9 @@ services:
     volumes:
       - pgdata-customer:/var/lib/postgresql/data
 
-  filepostgres-supplier:
+  postgres-supplier:
     image: postgres:15
-    container_name: filepostgres-supplier
+    container_name: postgres-supplier
     environment:
       POSTGRES_DB: leeds_payment_supplier_db
       POSTGRES_USER: oac_softwares
@@ -164,16 +164,16 @@ services:
     volumes:
       - pgdata-supplier:/var/lib/postgresql/data
 
-  filerabbitmq:
+  rabbitmq:
     image: rabbitmq:3-management
-    container_name: filerabbitmq
+    container_name: rabbitmq
     ports:
       - "5673:5672"
       - "15673:15672"
 
-  fileredis:
+  redis:
     image: redis:7
-    container_name: fileredis
+    container_name: redis
     ports:
       - "6380:6379"
 

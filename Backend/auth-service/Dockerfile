@@ -9,6 +9,6 @@ RUN npm install --force
 
 # 3. Copy ONLY this specific service's code
 # Because context is ./Backend, we must specify the folder name
-COPY auth-service/ . 
+COPY . .
 
 CMD ["npm", "start"]

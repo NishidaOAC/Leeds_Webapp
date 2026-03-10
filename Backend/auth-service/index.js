@@ -1,5 +1,4 @@
 require('dotenv').config();
-require('express-async-errors');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -67,7 +66,16 @@ app.get('/health', async (req, res) => {
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+// app.use('*', (req, res) => {
+//   res.status(404).json({
+//     success: false,
+//     message: 'Route not found'
+//   });
+// });
+
+// 404 handler (New Express 5 style)
+// 404 handler - simply don't provide a path
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found'

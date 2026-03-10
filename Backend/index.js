@@ -6,6 +6,10 @@ const { initScheduler } = require('./scheduler/backupTask');
 
 const app = express();
 app.use(cors({ origin: '*' }));
+app.use(cors({ 
+  origin: 'https://leeds.aeroassist.in', // 1. SPECIFIC URL (Mandatory for Login)
+  credentials: true 
+}));
 const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 const INVOICE_URL = process.env.INVOICE_SERVICE_URL || 'http://localhost:3002';
 const FILE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3003';

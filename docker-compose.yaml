@@ -3,7 +3,7 @@ services:
     build: ./Backend
     container_name: api-gateway
     ports:
-      - "3004:3000"
+      - "3000:3000"
     env_file:
       - ./Backend/.env
     environment:

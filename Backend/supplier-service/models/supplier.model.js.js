@@ -37,7 +37,12 @@ const Supplier = sequelize.define('Supplier', {
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
-  }
+  },
+  // Inside your Supplier Model
+tradeReferences: {
+  type: DataTypes.JSON, // Stores the array of 4 objects as a JSON string
+  allowNull: true
+},
 }, {
   tableName: 'suppliers',
   timestamps: true,

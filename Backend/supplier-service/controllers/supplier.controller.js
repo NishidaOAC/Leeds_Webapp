@@ -7,7 +7,7 @@ const { Supplier, SupplierDocument } = require('../models/index');
 exports.onboardSupplier = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
-        const { name, email, hasQualityCert, tradeRefs } = req.body;
+        const { name, email, hasQualityCert, tradeReferences } = req.body;
         const files = req.files; 
         const isCertified = hasQualityCert === 'true';
 
@@ -23,7 +23,8 @@ exports.onboardSupplier = async (req, res) => {
             hasQualityCert: isCertified,
             currentReviewer: initialReviewer,
             expiryDate: expiry,
-            status: 'PENDING'
+            status: 'PENDING',
+            tradeReferences: !isCertified ? JSON.parse(tradeReferences) : null
         }, { transaction });
 
         // 3. Update Internal ID
@@ -56,14 +57,14 @@ exports.onboardSupplier = async (req, res) => {
         }
 
         // 5. Handle Trade Refs (Prevents Null FileUrl Error)
-        if (!isCertified && tradeRefs) {
+        if (!isCertified && tradeReferences) {
             documentRecords.push({
                 supplierId: supplier.id,
                 documentType: 'TRADE_REF',
                 s3Key: 'TEXT_ONLY',
                 fileName: 'Trade_References.txt',
                 fileUrl: 'internal://trade-references', // Placeholder to satisfy model NOT NULL
-                remarks: tradeRefs
+                remarks: tradeReferences
             });
         }
 

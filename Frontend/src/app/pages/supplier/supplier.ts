@@ -8,10 +8,7 @@ import { SupplierList } from './supplier-list/supplier-list';
 @Component({
   selector: 'app-supplier',
   standalone: true,
-  // Ensure HttpClientModule is imported for API calls
-  imports: [CommonModule, FormsModule, HttpClientModule,
-    SupplierList
-  ],
+  imports: [CommonModule, FormsModule, HttpClientModule, SupplierList],
   templateUrl: './supplier.html',
   styleUrl: './supplier.scss',
 })
@@ -20,19 +17,23 @@ export class Supplier implements OnInit {
   isListView: boolean = false;
   loading: boolean = false;
 
+  // Updated form structure to handle array of objects for references
   form = {
     name: '',
     email: '',
     hasCert: true,
-    tradeRefs: '',
+    tradeReferences: [
+      { companyName: '', email: '', phone: '', response: '' },
+      { companyName: '', email: '', phone: '', response: '' },
+      { companyName: '', email: '', phone: '', response: '' },
+      { companyName: '', email: '', phone: '', response: '' }
+    ],
     evaluationFile: null as File | null,
     qualityCertFile: null as File | null,
     expiryDate: '' 
   };
 
- 
-
-  constructor(private http: HttpClient,private supplierService: SupplierService) {}
+  constructor(private http: HttpClient, private supplierService: SupplierService) {}
 
   ngOnInit() {
     this.calculateExpiry();
@@ -71,27 +72,29 @@ export class Supplier implements OnInit {
     if (this.step > 1) this.step--;
   }
 
- 
-submit() {
+  submit() {
     this.loading = true;
 
-    // 1. Prepare FormData
     const formData = new FormData();
     formData.append('name', this.form.name);
     formData.append('email', this.form.email);
     formData.append('hasQualityCert', String(this.form.hasCert));
     
+    // Logic for documents
     if (this.form.evaluationFile) {
       formData.append('evaluationDoc', this.form.evaluationFile);
     }
 
     if (this.form.hasCert && this.form.qualityCertFile) {
       formData.append('qualityDoc', this.form.qualityCertFile);
-    } else if (!this.form.hasCert) {
-      formData.append('tradeRefs', this.form.tradeRefs);
+    } 
+    
+    // Logic for trade references (No certification path)
+    if (!this.form.hasCert) {
+      // Stringify the array so it can be stored in a JSON/TEXT column
+      formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
     }
 
-    // 2. Call Service Method
     this.supplierService.registerSupplier(formData).subscribe({
       next: (response: any) => {
         this.loading = false;
@@ -105,13 +108,19 @@ submit() {
       }
     });
   }
+
   resetForm() {
     this.step = 1;
     this.form = {
       name: '',
       email: '',
       hasCert: true,
-      tradeRefs: '',
+      tradeReferences: [
+        { companyName: '', email: '', phone: '', response: '' },
+        { companyName: '', email: '', phone: '', response: '' },
+        { companyName: '', email: '', phone: '', response: '' },
+        { companyName: '', email: '', phone: '', response: '' }
+      ],
       evaluationFile: null,
       qualityCertFile: null,
       expiryDate: ''

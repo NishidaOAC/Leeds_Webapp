@@ -32,7 +32,6 @@
             {{ doc.fileName.endsWith('.pdf') ? '📕' : '🖼️' }}
           </div>
           <div class="status-badge" [ngClass]="doc.status.toLowerCase()">
-          <!-- <div class="status-badge" [ngClass]="doc.status?.toLowerCase()"> -->
             {{ doc.status }}
           </div>
         </div>
@@ -53,8 +52,23 @@
           </div>
 
           <div class="remarks-preview" *ngIf="doc.remarks">
-            <label>Remarks:</label>
-            <p>"{{ doc.remarks }}"</p>
+            <label class="d-block mb-1">Remarks / Details:</label>
+            
+            <ng-container *ngIf="isJson(doc.remarks); else plainText">
+              <div class="trade-ref-list">
+                <div class="ref-entry" *ngFor="let ref of getParsedRefs(doc.remarks)">
+                  <div class="ref-header" *ngIf="ref.companyName">
+                    <span class="company-name">{{ ref.companyName }}</span>
+                    <span class="contact-info">{{ ref.email }} | {{ ref.phone }}</span>
+                  </div>
+                  <p class="ref-comment" *ngIf="ref.response">"{{ ref.response }}"</p>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-template #plainText>
+              <p class="plain-text-remarks">"{{ doc.remarks }}"</p>
+            </ng-template>
           </div>
         </div>
 
@@ -74,11 +88,3 @@
     </div>
   </div>
 </div>
-
-<!-- <app-document-previewer 
-  *ngIf="selectedDocUrl"
-  [docUrl]="selectedDocUrl"
-  [isPdf]="isPdf"
-  [fileName]="selectedDocName"
-  (onClose)="closePreview()">
-</app-document-previewer> -->

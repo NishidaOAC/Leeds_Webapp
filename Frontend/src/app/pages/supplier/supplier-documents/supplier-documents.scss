@@ -103,3 +103,60 @@
     p { color: #64748b; }
   }
 }
+
+//
+.remarks-preview {
+  margin-top: 1rem;
+  
+  label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.trade-ref-list {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 8px;
+
+  .ref-entry {
+    padding: 6px 0;
+    border-bottom: 1px solid #dee2e6;
+    
+    &:last-child { border-bottom: none; }
+
+    .company-name {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .contact-info {
+      display: block;
+      font-size: 0.75rem;
+      color: #6c757d;
+    }
+
+    .ref-comment {
+      margin: 4px 0 0;
+      font-size: 0.8rem;
+      font-style: italic;
+      color: #495057;
+      line-height: 1.3;
+    }
+  }
+}
+
+.plain-text-remarks {
+  font-size: 0.85rem;
+  color: #495057;
+  font-style: italic;
+  margin: 0;
+}

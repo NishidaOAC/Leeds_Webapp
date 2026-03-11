@@ -1,65 +1,59 @@
-<div class="customer-container">
+<div class="customer-container animate-in">
   <h2>Customer Onboarding</h2>
 
-  <div class="form-group">
-    <label for="name">Customer Name <span class="required">*</span></label>
-    <input id="name" type="text" [(ngModel)]="customer.name" placeholder="Enter customer name" />
-  </div>
-
-  <div class="form-group">
-    <label for="type">Customer Type <span class="required">*</span></label>
-    <select id="type" [(ngModel)]="customer.customerType" (change)="onTypeChange()">
-      <option value="">-- Select Customer Type --</option>
-      <option value="AIRLINE">Airline</option>
-      <option value="MRO">MRO</option>
-      <option value="OTHER">Other</option>
-    </select>
-  </div>
-
-  <div *ngIf="isAirlineOrMro" class="doc-section">
-    <h3>Required Documents</h3>
-    <div class="doc-item">
-      <strong>KYC Document</strong>
-      <p>Validity: 1 year</p>
-      <p class="expiry">Expiry: 31st December</p>
-      <input type="file" (change)="onFileSelected($event, 'KYC')" />
-      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['KYC']" placeholder="Add KYC remarks..." />
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="name">Customer Name <span class="required">*</span></label>
+      <input id="name" type="text" [(ngModel)]="customer.name" placeholder="Enter company name..." />
     </div>
 
+    <div class="form-group">
+      <label for="type">Customer Type <span class="required">*</span></label>
+      <select id="type" [(ngModel)]="customer.customerType" (change)="onTypeChange()">
+        <option value="">-- Select Customer Category --</option>
+        <option value="AIRLINE">Airline (Annual Compliance)</option>
+        <option value="MRO">MRO (Annual Compliance)</option>
+        <option value="OTHER">Other (One-time KYC)</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="isAirlineOrMro || customer.customerType === 'OTHER'" class="doc-section">
+    <h3>Required Compliance Documents</h3>
+    
     <div class="doc-item">
-      <strong>Export Compliance Form</strong>
-      <p>Validity: 1 year</p>
+      <strong><i class="bi bi-file-earmark-check"></i> KYC Document</strong>
+      <p>{{ customer.customerType === 'OTHER' ? 'One-time document' : 'Validity: 1 Year' }}</p>
+      <p class="expiry" *ngIf="isAirlineOrMro">Expiry: 31st December</p>
+      <input type="file" (change)="onFileSelected($event, 'KYC')" />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['KYC']" placeholder="Add KYC notes..." />
+    </div>
+
+    <div class="doc-item" *ngIf="isAirlineOrMro">
+      <strong><i class="bi bi-shield-check"></i> Export Compliance Form</strong>
+      <p>Validity: 1 Year</p>
       <p class="expiry">Expiry: 31st December</p>
       <input type="file" (change)="onFileSelected($event, 'EXPORT')" />
-      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['EXPORT']" placeholder="Add Export remarks..." />
-    </div>
-  </div>
-
-  <div *ngIf="customer.customerType === 'OTHER'" class="doc-section">
-    <h3>Required Documents</h3>
-    <div class="doc-item">
-      <strong>KYC</strong>
-      <p>One-time document</p>
-      <input type="file" (change)="onFileSelected($event, 'KYC')" />
-      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['KYC']" placeholder="Add KYC remarks..." />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['EXPORT']" placeholder="Add Export notes..." />
     </div>
 
-    <div class="doc-item">
-      <strong>End User Certificate (EUC)</strong>
+    <div class="doc-item" *ngIf="customer.customerType === 'OTHER'">
+      <strong><i class="bi bi-person-badge"></i> End User Certificate (EUC)</strong>
       <p>One-time document</p>
       <input type="file" (change)="onFileSelected($event, 'EUC')" />
-      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['EUC']" placeholder="Add EUC remarks..." />
+      <input type="text" class="remark-input" [(ngModel)]="documentRemarks['EUC']" placeholder="Add EUC notes..." />
     </div>
   </div>
 
-  <div class="info-box">
+  <div class="info-box mt-4">
+    <i class="bi bi-info-circle-fill me-2"></i>
     <strong>Note:</strong>
-    <p>For every Purchase Order, EUC and ECC documents are mandatory.</p>
+    <p>Compliance documents are audited by the Super Administrator. PO processing requires valid EUC and ECC forms.</p>
   </div>
 
   <div class="actions">
-    <button (click)="saveCustomer()" [disabled]="!customer.name || !customer.customerType">
-      Save Customer
+    <button class="btn-pri" (click)="saveCustomer()" [disabled]="!customer.name || !customer.customerType">
+      Complete Onboarding
     </button>
   </div>
 </div>

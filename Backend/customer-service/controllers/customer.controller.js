@@ -7,26 +7,25 @@ const { Customer, Document } = require('../models/index');
 exports.getAllCustomers = async (req, res) => {
   try {
     const customers = await Customer.findAll({
-    // Inside your getAllCustomers or getCustomerById controller
-include: [{
-  model: Document,
-  as: 'Documents',
-  attributes: [
-    'id', 
-    's3Key',
-    'documentType', 
-    'fileName', 
-    'fileSize', 
-    'mimeType',
-    'validFrom', 
-    'validTo', 
-    'isOneTime', 
-    'status',
-    'remarks',
-    'updated_at' // Useful for "Last Updated" display
-  ]
-}]
+      include: [{
+        model: Document,
+        as: 'Documents',
+        attributes: [
+          'id', 's3Key', 'documentType', 'fileName', 
+          'fileSize', 'mimeType', 'validFrom', 'validTo', 
+          'isOneTime', 'status', 'remarks', 
+          'createdAt', 'updatedAt' 
+        ]
+      }],
+      order: [
+        // 1. Sort Customers: Newest first
+        ['createdAt', 'DESC'], 
+        
+        // 2. Sort Documents inside each customer: Newest first
+        [{ model: Document, as: 'Documents' }, 'createdAt', 'DESC']
+      ]
     });
+
     res.status(200).json(customers);
   } catch (error) {
     res.status(500).json({ 
@@ -35,8 +34,6 @@ include: [{
     });
   }
 };
-
-
 exports.createCustomer = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {

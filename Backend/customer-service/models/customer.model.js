@@ -13,7 +13,8 @@ const Customer = sequelize.define('Customer', {
   },
   customerType: {
     type: DataTypes.ENUM('AIRLINE', 'MRO', 'OTHER'),
-    allowNull: false
+    allowNull: false,
+    defaultValue: 'OTHER' // Prevents crash if existing rows are empty
   },
   isActive: {
     type: DataTypes.BOOLEAN,
@@ -22,8 +23,7 @@ const Customer = sequelize.define('Customer', {
 }, {
   tableName: 'customers',
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at'
+  underscored: true, // Maps camelCase (createdAt) to snake_case (created_at)
 });
 
 module.exports = Customer;

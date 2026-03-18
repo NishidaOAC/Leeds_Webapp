@@ -31,11 +31,11 @@ export class SupplierList implements OnInit {
     this.loadSuppliers();
   }
 
-  loadSuppliers(): void {
+  loadSuppliersOLD(): void {
     this.loading = true;
     this.supplierService.getSuppliers().subscribe({
       next: (data: any[]) => {
-        // Sort: Non-compliant/Pending first, then by date
+       // Sort: Non-compliant/Pending first, then by date
         this.suppliers = data.sort((a, b) => {
           const statusOrder: any = { 'PENDING': 1, 'NON-COMPLIANT': 2, 'COMPLIANT': 3 };
           const aOrder = statusOrder[a.status] || 99;
@@ -134,5 +134,50 @@ onDelete(id: string, name: string): void {
       }
     });
   }
+}
+// Inside SupplierList class
+loadSuppliers(): void {
+  this.loading = true;
+  this.supplierService.getSuppliers().subscribe({
+    next: (data) => {
+      this.suppliers = data.map(s => {
+        let parsedRefs = [];
+        
+        // Robust JSON parsing for Trade References
+        if (s.tradeReferences) {
+          try {
+            parsedRefs = typeof s.tradeReferences === 'string' 
+              ? JSON.parse(s.tradeReferences) 
+              : s.tradeReferences;
+          } catch (e) {
+            console.error(`Failed to parse references for supplier ${s.id}`, e);
+            parsedRefs = [];
+          }
+        }
+
+        return {
+          ...s,
+          tradeReferences: Array.isArray(parsedRefs) ? parsedRefs : []
+        };
+      });
+
+      // Sort: Put Pending and Urgent (near expiry) at the top
+      this.suppliers.sort((a, b) => {
+        if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+      });
+
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Fetch Error:', err);
+      this.loading = false;
+    }
+  });
+}
+
+getRefCount(refs: any[]): number {
+  // Now that we've guaranteed an array in loadSuppliers, this is much cleaner
+  return refs ? refs.filter(r => r.company && r.company.trim() !== '').length : 0;
 }
 }

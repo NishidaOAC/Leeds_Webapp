@@ -41,4 +41,8 @@ getSuppliers(): Observable<any[]> {
   deleteSupplier(id: string) {
   return this.http.delete(`${this.baseUrl}/${id}`);
 }
+
+getOnboardingStatuses(): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl + '/onboardingStatuses');
+  }
 }

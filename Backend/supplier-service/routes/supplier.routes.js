@@ -12,6 +12,7 @@ const cpUpload = upload.fields([
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
 router.get('/', supplierCtrl.getAllSuppliers);
 router.delete('/:id', supplierCtrl.deleteSupplier);
+router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);
 
 // --- ADD THESE TWO ROUTES ---
 // 1. Fetch single supplier for the Audit page

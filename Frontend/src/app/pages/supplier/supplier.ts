@@ -17,11 +17,13 @@ export class Supplier implements OnInit {
   isListView: boolean = false;
   loading: boolean = false;
 
-  // Updated form structure to handle array of objects for references
   form = {
     name: '',
     email: '',
     hasCert: true,
+    // Added PO fields
+    poNumber: '',
+    poDate: '',
     tradeReferences: [
       { companyName: '', email: '', phone: '', response: '' },
       { companyName: '', email: '', phone: '', response: '' },
@@ -30,27 +32,20 @@ export class Supplier implements OnInit {
     ],
     evaluationFile: null as File | null,
     qualityCertFile: null as File | null,
-    expiryDate: '' 
+    expiryDate: '' // Now manually modifiable
   };
 
   constructor(private http: HttpClient, private supplierService: SupplierService) {}
 
   ngOnInit() {
-    this.calculateExpiry();
+    this.setDefaultExpiry();
   }
 
-  get calculatedExpiryDate() {
-    return this.form.expiryDate;
-  }
-
-  calculateExpiry() {
+  // Sets a default of 1 year, but user can change it manually in the UI
+  setDefaultExpiry() {
     const date = new Date();
     date.setFullYear(date.getFullYear() + 1);
-    this.form.expiryDate = date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+    this.form.expiryDate = date.toISOString().split('T')[0]; 
   }
 
   upload(event: any, type: 'EVAL' | 'QUALITY') {
@@ -79,8 +74,15 @@ export class Supplier implements OnInit {
     formData.append('name', this.form.name);
     formData.append('email', this.form.email);
     formData.append('hasQualityCert', String(this.form.hasCert));
+    formData.append('expiryDate', this.form.expiryDate); // Manual date
     
-    // Logic for documents
+    // Send PO details if not certified
+    if (!this.form.hasCert) {
+      formData.append('poNumber', this.form.poNumber);
+      formData.append('poDate', this.form.poDate);
+      formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
+    }
+
     if (this.form.evaluationFile) {
       formData.append('evaluationDoc', this.form.evaluationFile);
     }
@@ -88,12 +90,6 @@ export class Supplier implements OnInit {
     if (this.form.hasCert && this.form.qualityCertFile) {
       formData.append('qualityDoc', this.form.qualityCertFile);
     } 
-    
-    // Logic for trade references (No certification path)
-    if (!this.form.hasCert) {
-      // Stringify the array so it can be stored in a JSON/TEXT column
-      formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
-    }
 
     this.supplierService.registerSupplier(formData).subscribe({
       next: (response: any) => {
@@ -103,8 +99,7 @@ export class Supplier implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        console.error('Submission Error:', err);
-        alert('Registration failed. Please check the backend connection.');
+        alert(err.error?.message || 'Registration failed.');
       }
     });
   }
@@ -115,6 +110,8 @@ export class Supplier implements OnInit {
       name: '',
       email: '',
       hasCert: true,
+      poNumber: '',
+      poDate: '',
       tradeReferences: [
         { companyName: '', email: '', phone: '', response: '' },
         { companyName: '', email: '', phone: '', response: '' },
@@ -125,6 +122,6 @@ export class Supplier implements OnInit {
       qualityCertFile: null,
       expiryDate: ''
     };
-    this.calculateExpiry();
+    this.setDefaultExpiry();
   }
 }

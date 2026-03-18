@@ -36,4 +36,9 @@ getSuppliers(): Observable<any[]> {
   getSupplierById(id: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${id}`);
   }
+
+
+  deleteSupplier(id: string) {
+  return this.http.delete(`${this.baseUrl}/${id}`);
+}
 }

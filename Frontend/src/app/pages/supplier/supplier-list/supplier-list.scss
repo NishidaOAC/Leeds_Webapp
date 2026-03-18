@@ -134,4 +134,54 @@
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
   }
+  .actions {
+  .action-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+}
+
+.btn-icon {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+
+  // Audit (Your existing blue button style logic)
+  &.btn-audit {
+    background: #4f46e5;
+    color: white;
+    &:hover { background: #4338ca; }
+  }
+
+  // Edit Button
+  &.btn-edit {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    &:hover { 
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+  }
+
+  // Delete Button
+  &.btn-delete {
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+    &:hover { 
+      background: #ffe4e6;
+      border-color: #fb7185;
+    }
+  }
+}
 }

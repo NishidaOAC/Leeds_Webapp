@@ -54,13 +54,21 @@
               </div>
             </td>
 
-            <td class="actions">
-              <button class="btn-manage" [routerLink]="['/dashboard/supplier/managedocuments', s.id]">
-                Audit
-              </button>
+      <td class="actions">
+  <div class="action-group">
+    <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]" title="Audit Documents">
+      ⚙️ Audit
+    </button>
 
-              <!-- /customer/managedocuments', c.id -->
-            </td>
+    <button class="btn-icon btn-edit" (click)="editSupplier(s)" title="Edit Supplier">
+      ✏️ Edit
+    </button>
+
+    <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)" title="Delete Supplier">
+      🗑️ Delete
+    </button>
+  </div>
+</td>
           </tr>
         </tbody>
       </table>

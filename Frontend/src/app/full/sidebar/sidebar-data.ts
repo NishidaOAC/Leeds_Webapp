@@ -89,5 +89,5 @@ export const navItems: NavItem[] = [
     bgcolor: 'primary',
     roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM', 'Accountant'] // Admin and managers can view reports
   },
-  // Add other items with role restrictions...
+  
 ];

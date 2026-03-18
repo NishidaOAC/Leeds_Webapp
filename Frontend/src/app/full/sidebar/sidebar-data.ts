@@ -9,22 +9,22 @@ export const navItems: NavItem[] = [
     iconName: 'layout-grid-add',
     route: '/dashboard',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'user'] // All roles can see dashboard
+    roles: ['Admin', 'Manager', 'user'] 
   },
-  {
-    displayName: 'NewPayment',
-    iconName: 'layout-grid-add',
-    route: '/dashboard/payments/addpayments',
-    bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM'] // Only admin and manager can add payments
-  },
-  {
-    displayName: 'Payments',
-    iconName: 'layout-grid-add',
-    route: '/dashboard/payments',
-    bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
-  },
+  // {
+  //   displayName: 'NewPayment',
+  //   iconName: 'layout-grid-add',
+  //   route: '/dashboard/payments/addpayments',
+  //   bgcolor: 'primary',
+  //   roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM'] 
+  // },
+  // {
+  //   displayName: 'Payments',
+  //   iconName: 'layout-grid-add',
+  //   route: '/dashboard/payments',
+  //   bgcolor: 'primary',
+  //   roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
+  // },
     {
     displayName: 'New Customer Account',
     iconName: 'layout-grid-add',

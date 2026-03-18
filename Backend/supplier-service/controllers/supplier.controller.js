@@ -122,6 +122,46 @@ exports.viewSupplierDocument = async (req, res) => {
 };
 
 
+exports.deleteSupplier = async (req, res) => {
+    const { id } = req.params;
+    const transaction = await sequelize.transaction();
+
+    try {
+        // 1. Check if supplier exists
+        const supplier = await Supplier.findByPk(id);
+        if (!supplier) {
+            return res.status(404).json({ success: false, message: "Supplier not found" });
+        }
+
+        // 2. Optional: Delete associated files from S3 first
+        const documents = await SupplierDocument.findAll({ where: { supplierId: id } });
+        for (const doc of documents) {
+            if (doc.s3Key && doc.s3Key !== 'TEXT_ONLY') {
+                await s3Service.deleteFile(doc.s3Key); 
+            }
+        }
+
+        // 3. Delete Related Records (If not using ON DELETE CASCADE in DB)
+        await SupplierDocument.destroy({ where: { supplierId: id }, transaction });
+        
+        // 4. Delete the Supplier
+        await Supplier.destroy({ where: { id: id }, transaction });
+
+        await transaction.commit();
+        
+        res.status(200).json({ 
+            success: true, 
+            message: `Supplier ${supplier.internalSupplierNumber} and all associated data deleted successfully.` 
+        });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error("Delete Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
 
 
 exports.approveSupplier = async (req, res) => {

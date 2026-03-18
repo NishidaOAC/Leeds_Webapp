@@ -30,11 +30,11 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Supplier Name *</label>
-          <input type="text" [(ngModel)]="form.name" placeholder="e.g. AeroParts Ltd" required>
+          <input type="text" [(ngModel)]="form.name" placeholder="e.g. AeroParts Ltd">
         </div>
         <div class="form-group">
           <label>Contact Email *</label>
-          <input type="email" [(ngModel)]="form.email" placeholder="sales@supplier.com" required>
+          <input type="email" [(ngModel)]="form.email" placeholder="sales@supplier.com">
         </div>
       </div>
 
@@ -52,6 +52,13 @@
     </div>
 
     <div *ngIf="step === 2" class="step-content animate-in">
+      
+      <div class="form-group mb-4 p-3 border rounded bg-light">
+        <label class="fw-bold text-primary"><i class="bi bi-calendar-check"></i> Approval / Certificate Expiry Date *</label>
+        <input type="date" [(ngModel)]="form.expiryDate" class="form-control mt-2">
+        <small class="text-muted">Manually set the date based on the uploaded certificate or internal policy.</small>
+      </div>
+
       <div class="alert alert-info">
         <strong>Mandatory:</strong> Every new supplier must complete the Evaluation Form.
       </div>
@@ -59,7 +66,7 @@
       <div class="doc-upload-box" [class.uploaded]="form.evaluationFile">
         <div class="doc-info">
           <h4><i class="bi bi-file-earmark-text"></i> Supplier Evaluation Form</h4>
-          <p>Download, complete, and upload the mandatory evaluation document.</p>
+          <p>Upload the mandatory evaluation document.</p>
         </div>
         <div class="upload-controls">
           <span class="file-status" *ngIf="form.evaluationFile">✅ Uploaded</span>
@@ -89,8 +96,19 @@
 
       <div *ngIf="!form.hasCert" class="path-section animate-in">
         <h3 class="section-title text-warning">
-          <i class="bi bi-info-circle me-2"></i> Trade References
+          <i class="bi bi-info-circle me-2"></i> Trade References & Purchase Order
         </h3>
+
+        <div class="row g-3 mb-4 p-3 border rounded border-warning bg-warning bg-opacity-10">
+          <div class="col-md-6">
+            <label class="form-label font-bold">PO Number *</label>
+            <input type="text" [(ngModel)]="form.poNumber" class="form-control" placeholder="Enter PO Number">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label font-bold">PO Date *</label>
+            <input type="date" [(ngModel)]="form.poDate" class="form-control">
+          </div>
+        </div>
 
         <div class="table-responsive shadow-sm border rounded">
           <table class="table mb-0">
@@ -104,15 +122,14 @@
               <tr *ngFor="let ref of form.tradeReferences; let i = index">
                 <td class="bg-light">
                   <div class="p-2">
-                    <input type="text" [(ngModel)]="ref.companyName" class="form-control mb-2" placeholder="Company Name">
-                    <input type="email" [(ngModel)]="ref.email" class="form-control mb-2" placeholder="Email">
-                    <input type="text" [(ngModel)]="ref.phone" class="form-control" placeholder="Phone Number">
+                    <input type="text" [(ngModel)]="ref.companyName" class="form-control mb-1" placeholder="Company Name">
+                    <input type="email" [(ngModel)]="ref.email" class="form-control mb-1" placeholder="Email">
+                    <input type="text" [(ngModel)]="ref.phone" class="form-control" placeholder="Phone">
                   </div>
                 </td>
                 <td>
                   <div class="p-2">
-                    <textarea [(ngModel)]="ref.response" class="form-control" rows="5" 
-                      placeholder="Enter details about their response..."></textarea>
+                    <textarea [(ngModel)]="ref.response" class="form-control" rows="4" placeholder="Response..."></textarea>
                   </div>
                 </td>
               </tr>
@@ -129,30 +146,28 @@
           <span>{{ form.name }}</span>
         </div>
         <div class="summary-item">
-          <label>Internal ID Allocation</label>
-          <span class="text-primary fw-bold">AUTO-GENERATE ON SUBMIT</span>
+          <label>Assigned Expiry</label>
+          <span class="text-danger fw-bold">{{ form.expiryDate | date:'longDate' }}</span>
         </div>
-        <div class="summary-item">
-          <label>Calculated Expiry</label>
-          <span>{{ calculatedExpiryDate | date:'longDate' }}</span>
+        <div class="summary-item" *ngIf="!form.hasCert">
+          <label>PO Reference</label>
+          <span>{{ form.poNumber }} ({{ form.poDate | date:'shortDate' }})</span>
         </div>
         <div class="summary-item">
           <label>Registration Path</label>
           <span class="path-pill" [ngClass]="form.hasCert ? 'quality' : 'sales'">
-            {{ form.hasCert ? 'Quality Direct (Fast-Track)' : 'Sales Audit (Standard)' }}
+            {{ form.hasCert ? 'ONE YEAR APPROVAL' : 'ONE TIME / CONDITIONAL' }}
           </span>
         </div>
       </div>
     </div>
-
-    <br>
 
     <div class="form-actions mt-5 d-flex justify-content-between">
       <button class="btn-sec" (click)="prev()" *ngIf="step > 1">Previous</button>
       <div class="ms-auto">
         <button class="btn-pri" (click)="next()" *ngIf="step < 3">Next Step</button>
         <button class="btn-success" (click)="submit()" *ngIf="step === 3" [disabled]="loading">
-          {{ loading ? 'Processing...' : 'Submit' }}
+          {{ loading ? 'Processing...' : 'Submit Onboarding' }}
         </button>
       </div>
     </div>

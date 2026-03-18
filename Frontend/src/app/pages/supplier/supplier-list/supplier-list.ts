@@ -109,4 +109,30 @@ export class SupplierList implements OnInit {
     // Return true if expired OR expiring within 30 days
     return expiry <= thirtyDaysFromNow;
   }
+
+  // Inside your SupplierList class
+
+editSupplier(supplier: any): void {
+  console.log('Navigate to edit for:', supplier.id);
+  // Example: this.router.navigate(['/dashboard/supplier/edit', supplier.id]);
+}
+
+onDelete(id: string, name: string): void {
+  const confirmDelete = confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`);
+  
+  if (confirmDelete) {
+    this.loading = true; // Show loader while deleting
+    this.supplierService.deleteSupplier(id).subscribe({
+      next: (res: any) => {
+        alert('Supplier deleted successfully');
+        this.loadSuppliers(); // Refresh the list
+      },
+      error: (err) => {
+        console.error('Delete Error:', err);
+        alert('Failed to delete supplier: ' + (err.error?.message || 'Server Error'));
+        this.loading = false;
+      }
+    });
+  }
+}
 }

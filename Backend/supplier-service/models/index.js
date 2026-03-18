@@ -1,3 +1,4 @@
+const OnboardingStatus = require("./OnboardingStatus.js");
 const Supplier = require("./supplier.model.js");
 const SupplierDocument = require("./supplierDocument.model");
 
@@ -10,5 +11,8 @@ Supplier.hasMany(SupplierDocument, {
 SupplierDocument.belongsTo(Supplier, { 
   foreignKey: 'supplier_id' 
 });
+
+Supplier.belongsTo(OnboardingStatus, { foreignKey: 'onboardingStatusId' });
+OnboardingStatus.hasMany(Supplier, { foreignKey: 'onboardingStatusId' });
 
 module.exports = { Supplier, SupplierDocument };

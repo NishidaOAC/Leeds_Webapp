@@ -9,43 +9,59 @@ const Supplier = sequelize.define('Supplier', {
   },
   name: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    validate: { notEmpty: true }
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true,
+    validate: { isEmail: true }
   },
   internalSupplierNumber: {
     type: DataTypes.STRING,
     unique: true
   },
-  hasQualityCert: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+
+  onboardingStatusId: {
+    type: DataTypes.INTEGER,
+    references: { model: 'onboarding_statuses', key: 'id' },
+    allowNull: true
   },
+  hasQualityCert: { 
+    type: DataTypes.BOOLEAN, 
+    defaultValue: false 
+  },
+  hasSefAndTradeRef: { 
+    type: DataTypes.BOOLEAN, 
+    defaultValue: false 
+  },
+  tradeReferences: {
+    type: DataTypes.JSON,
+    allowNull: true
+  },
+
+  poNumber: { type: DataTypes.STRING, allowNull: true },
+  poDate: { type: DataTypes.DATEONLY, allowNull: true },
+  expiryDate: { type: DataTypes.DATEONLY, allowNull: true },
+
   status: {
     type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
     defaultValue: 'PENDING'
   },
   currentReviewer: {
     type: DataTypes.ENUM('SALES', 'QUALITY'),
-    allowNull: false
-  },
-  expiryDate: {
-    type: DataTypes.DATEONLY
+    allowNull: false,
+    defaultValue: 'SALES'
   },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
-  },
-  // Inside your Supplier Model
-tradeReferences: {
-  type: DataTypes.JSON, // Stores the array of 4 objects as a JSON string
-  allowNull: true
-},
+  }
 }, {
   tableName: 'suppliers',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'
 });

@@ -3,7 +3,13 @@
     <div class="header">
       <div class="title-group">
         <h2>Supplier Document Tracking</h2>
-        <p class="subtitle">Monitor compliance and manage certifications</p>
+        <p class="subtitle">Monitor compliance, PO-locks, and trade references</p>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-card">
+          <span class="label">Active Suppliers</span>
+          <span class="value">{{suppliers.length}}</span>
+        </div>
       </div>
     </div>
 
@@ -11,64 +17,71 @@
       <table class="modern-table">
         <thead>
           <tr>
-            <th>Supplier</th>
+            <th>Supplier & ID</th>
+            <th>Type</th>
             <th>Status</th>
-            <th>Expiry Date</th>
-            <th>Certificates</th>
+            <th>Import / PO Details</th>
+            <th>Expiry</th>
+            <th>Documents</th>
             <th class="text-center">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of suppliers" 
-              [class.active-row]="selectedSupplierId === s.id">
+          <tr *ngFor="let s of suppliers" [class.active-row]="selectedSupplierId === s.id">
             <td>
               <div class="cust-info">
                 <span class="cust-name">{{ s.name }}</span>
-                <span class="type-pill">{{ s.internalSupplierNumber }}</span>
+                <span class="type-pill">{{ s.internalSupplierNumber || 'TEMP-ID' }}</span>
               </div>
             </td>
-
+            <td>
+              <div class="path-info">
+                <span class="path-label" [class.cert]="s.hasQualityCert">
+                  {{ s.hasQualityCert ? 'Standard' : 'One-Time' }}
+                </span>
+                <small *ngIf="s.hasSefAndTradeRef" class="sub-text">Rare Case Path</small>
+              </div>
+            </td>
             <td>
               <span class="badge" [ngClass]="s.status?.toLowerCase()">
-                {{ s.status || 'UNKNOWN' }}
+                {{ s.status || 'PENDING' }}
               </span>
             </td>
-
+            <td>
+              <div class="import-details" *ngIf="!s.hasQualityCert">
+                <div class="po-tag" *ngIf="s.poNumber">
+                  <i class="bi bi-cart-check"></i> {{ s.poNumber }}
+                </div>
+                <div class="ref-count" *ngIf="s.tradeReferences">
+                  <i class="bi bi-people"></i> {{ getRefCount(s.tradeReferences) }} Refs
+                </div>
+              </div>
+              <span *ngIf="s.hasQualityCert" class="text-muted small">N/A (Certified)</span>
+            </td>
             <td>
               <span class="date-cell" [class.urgent]="isNearExpiry(s.expiryDate)">
                 {{ s.expiryDate | date:'dd MMM yyyy' }}
-                <span *ngIf="isNearExpiry(s.expiryDate)" class="warn-icon">⚠️</span>
               </span>
             </td>
-
             <td>
               <div class="doc-links">
                 <button *ngFor="let doc of s.Documents" 
                   (click)="previewDoc(doc.id, doc.fileName || '', s.id)"
                   class="doc-pill" 
-                  [class.viewing]="selectedDocName === doc.fileName"
-                  [disabled]="!doc.s3Key">
-                  <span class="icon">📜</span> {{ doc.documentType }}
+                  [class.viewing]="selectedDocName === doc.fileName">
+                  <i class="bi bi-file-earmark-text"></i> {{ doc.documentType }}
                 </button>
-                <em *ngIf="!s.Documents?.length" class="empty-txt">No documents</em>
               </div>
             </td>
-
-      <td class="actions">
-  <div class="action-group">
-    <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]" title="Audit Documents">
-      ⚙️ Audit
-    </button>
-
-    <button class="btn-icon btn-edit" (click)="editSupplier(s)" title="Edit Supplier">
-      ✏️ Edit
-    </button>
-
-    <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)" title="Delete Supplier">
-      🗑️ Delete
-    </button>
-  </div>
-</td>
+            <td class="actions">
+              <div class="action-group">
+                <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]">
+                  <i class="bi bi-shield-check"></i> Audit
+                </button>
+                <button class="btn-icon btn-edit" (click)="editSupplier(s)"><i class="bi bi-pencil-square"></i>Edit</button>
+                <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)"><i class="bi bi-trash">Delete</i></button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -83,17 +96,15 @@
       </div>
       <button class="close-btn" (click)="closePreview()">✕</button>
     </div>
-
     <div class="preview-body">
       <div *ngIf="isPreviewLoading" class="preview-loader">
         <div class="spinner"></div>
-        <span>Loading Certificate...</span>
+        <span>Retrieving Secure S3 Link...</span>
       </div>
-
       <ng-container *ngIf="selectedDocUrl && !isPreviewLoading">
-        <iframe *ngIf="isPdf" [src]="selectedDocUrl" width="100%" height="100%" frameborder="0"></iframe>
+        <iframe *ngIf="isPdf" [src]="selectedDocUrl" width="100%" height="100%"></iframe>
         <div class="img-container" *ngIf="!isPdf">
-          <img [src]="selectedDocUrl" alt="Document Preview">
+          <img [src]="selectedDocUrl" alt="Preview">
         </div>
       </ng-container>
     </div>
@@ -103,6 +114,6 @@
 <ng-template #loader>
   <div class="loading-state">
     <div class="spinner"></div>
-    <p>Loading Supplier Records...</p>
+    <p>Synchronizing Supplier Records...</p>
   </div>
 </ng-template>

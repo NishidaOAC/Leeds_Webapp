@@ -96,8 +96,20 @@ export class SupplierDocuments implements OnInit {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays >= 0 && diffDays < 30;
   }
-
-  previewDoc(docId: string, fileName: string): void {
+previewDoc(documentId: string, fileName: string) {
+  this.supplierService.viewSupplierDocument(documentId).subscribe({
+    next: (res: any) => {
+      if (res.success && res.url) {
+        // Open the secure S3 link in a new tab
+        window.open(res.url, '_blank');
+      }
+    },
+    error: (err) => {
+      alert(err.error?.message || 'Error generating preview link');
+    }
+  });
+}
+  previewDocy(docId: string, fileName: string): void {
     this.supplierService.viewDocument(docId).subscribe({
       next: (res: any) => {
         this.selectedDocName = fileName;

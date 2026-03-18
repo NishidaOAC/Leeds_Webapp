@@ -4,7 +4,6 @@ const s3Service = require('../services/s3Service.js');
 const { Supplier, SupplierDocument } = require('../models/index'); 
 const OnboardingStatus = require('../models/OnboardingStatus.js');
 const moment = require('moment');
-
 exports.onboardSupplier = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -16,60 +15,155 @@ exports.onboardSupplier = async (req, res) => {
         const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
         const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
 
-        // 1. Logic Implementation for 3 Types of Status
+        // 1. Logic for Status
         let statusCode;
         let initialReviewer = 'SALES';
 
         if (isCertified) {
-            // Tier 1: Quality Certificate exists
             statusCode = 'ONE_YEAR';
             initialReviewer = 'QUALITY'; 
         } else if (hasRefs) {
-            // Tier 2: No Quality, but has SEF/Trade Refs
             statusCode = 'ONE_TIME';
         } else {
-            // Tier 3: Rare Case (No Quality, No SEF, No Refs)
             statusCode = 'CONDITIONAL';
         }
 
         const statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });
 
-        // 2. Handle Expiry Date (Priority: Manual > Logic)
-        // You mentioned: better to type manual because certs might expire soon
-        let finalExpiry = manualExpiryDate; 
-        
-        if (!finalExpiry && statusCode === 'ONE_YEAR') {
-            // Default to 1 year if they forgot to type it for a Quality Supplier
-            finalExpiry = moment().add(1, 'year').format('YYYY-MM-DD');
-        }
+        // 2. Generate Internal Supplier Number
+        const count = await Supplier.count();
+        const internalNo = `SUP-${moment().format('YY')}-${(count + 1).toString().padStart(4, '0')}`;
 
-        // 3. Create Supplier
+        // 3. Create Supplier 
         const supplier = await Supplier.create({
             name,
             email,
+            internalSupplierNumber: internalNo,
             hasQualityCert: isCertified,
             hasSefAndTradeRef: hasRefs,
             currentReviewer: initialReviewer,
             status: 'PENDING',
             onboardingStatusId: statusRecord?.id,
-            expiryDate: finalExpiry,
-            // Only store PO details if NOT a one-year approval
-            poNumber: statusCode !== 'ONE_YEAR' ? poNumber : null,
-            poDate: statusCode !== 'ONE_YEAR' ? poDate : null,
+            expiryDate: manualExpiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
+            poNumber: !isCertified ? poNumber : null,
+            poDate: !isCertified ? poDate : null,
             tradeReferences: tradeReferences ? JSON.parse(tradeReferences) : null
         }, { transaction });
 
-        // [Insert your S3 File Upload Logic Here]
+        // 4. Handle S3 Uploads & SupplierDocument Records
+        const documentRecords = [];
+
+        // Check for Evaluation Document (Mandatory in most flows)
+        if (req.files && req.files.evaluationDoc) {
+            const file = req.files.evaluationDoc[0];
+            const uploadResult = await s3Service.uploadToS3(file, supplier.id);
+            
+            documentRecords.push({
+                supplierId: supplier.id,
+                documentType: 'EVALUATION',
+                fileName: file.originalname,
+                fileUrl: uploadResult.s3Key, // Store the S3 Key here
+                status: 'ACTIVE'
+            });
+        }
+
+        // Check for Quality Certificate (Only if isCertified)
+        if (isCertified && req.files.qualityDoc) {
+            const file = req.files.qualityDoc[0];
+            const uploadResult = await s3Service.uploadToS3(file, supplier.id);
+
+         // Inside your onboardSupplier function, when creating documentRecords:
+documentRecords.push({
+    supplierId: supplier.id,
+    documentType: 'EVALUATION',
+    fileName: file.originalname,
+    fileUrl: uploadResult.s3Key, // This is what the DB shows currently
+    s3Key: uploadResult.s3Key,   // ADD THIS: Populate the s3Key column explicitly
+    status: 'ACTIVE'
+});
+        }
+
+        // Save document metadata to DB
+        if (documentRecords.length > 0) {
+            await SupplierDocument.bulkCreate(documentRecords, { transaction });
+        }
 
         await transaction.commit();
+
+        // 5. Response
         res.status(201).json({ 
             success: true, 
             supplierId: supplier.id,
+            internalSupplierNumber: supplier.internalSupplierNumber,
+            assignedStatus: statusCode,
+            documentsUploaded: documentRecords.length
+        });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error("Onboarding Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+exports.onboardSuppliery = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { 
+            name, email, hasQualityCert, hasSefAndTradeRef, 
+            manualExpiryDate, poNumber, poDate, tradeReferences 
+        } = req.body;
+
+        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
+        const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
+
+        // 1. Logic for Status
+        let statusCode;
+        let initialReviewer = 'SALES';
+
+        if (isCertified) {
+            statusCode = 'ONE_YEAR';
+            initialReviewer = 'QUALITY'; 
+        } else if (hasRefs) {
+            statusCode = 'ONE_TIME';
+        } else {
+            statusCode = 'CONDITIONAL';
+        }
+
+        const statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });
+
+        // 2. Generate Internal Supplier Number (FIXES THE UNDEFINED ISSUE)
+        const count = await Supplier.count();
+        const internalNo = `SUP-${moment().format('YY')}-${(count + 1).toString().padStart(4, '0')}`;
+
+        // 3. Create Supplier 
+        // NOTE: Use camelCase keys here because underscored: true handles the DB mapping
+        const supplier = await Supplier.create({
+            name,
+            email,
+            internalSupplierNumber: internalNo, // Explicitly setting this
+            hasQualityCert: isCertified,
+            hasSefAndTradeRef: hasRefs,
+            currentReviewer: initialReviewer,
+            status: 'PENDING',
+            onboardingStatusId: statusRecord?.id, // Ensure this matches the model property name
+            expiryDate: manualExpiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
+            poNumber: !isCertified ? poNumber : null,
+            poDate: !isCertified ? poDate : null,
+            tradeReferences: tradeReferences ? JSON.parse(tradeReferences) : null
+        }, { transaction });
+
+        await transaction.commit();
+
+        res.status(201).json({ 
+            success: true, 
+            supplierId: supplier.id,
+            internalSupplierNumber: supplier.internalSupplierNumber, // Send back to frontend
             assignedStatus: statusCode 
         });
 
     } catch (error) {
         if (transaction) await transaction.rollback();
+        console.error("Onboarding Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -80,21 +174,32 @@ exports.onboardSupplier = async (req, res) => {
 exports.getAllSuppliers = async (req, res) => {
     try {
         const suppliers = await Supplier.findAll({
-            include: [{
-                model: SupplierDocument,
-                as: 'Documents',
-                attributes: ['id', 's3Key', 'documentType', 'fileName', 'status', 'created_at']
-            }]
+            include: [
+                {
+                    model: SupplierDocument,
+                    as: 'Documents',
+                    attributes: ['id', 's3Key', 'fileUrl', 'documentType', 'fileName', 'status', 'created_at']
+                },
+                {
+                    // POPULATE THE STATUS DETAILS HERE
+                    model: OnboardingStatus, 
+                   as: 'OnboardingStatus',
+                 
+                    attributes: ['id', 'code', 'label', 'requiresPo'] 
+                }
+            ],
+            order: [['created_at', 'DESC']] // Optional: show newest first
         });
+        
         res.status(200).json(suppliers);
     } catch (error) {
+        console.error("Fetch Suppliers Error:", error);
         res.status(500).json({ message: "Error fetching suppliers", error: error.message });
     }
 };
 
 /**
  * 3. VIEW DOCUMENT (S3 Pre-signed URL)
- */
 exports.viewSupplierDocument = async (req, res) => {
     try {
         const { documentId } = req.params;
@@ -110,8 +215,27 @@ exports.viewSupplierDocument = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
-};
+}; */
 
+exports.viewSupplierDocument = async (req, res) => {
+    try {
+        const { documentId } = req.params;
+        const document = await SupplierDocument.findByPk(documentId);
+
+        // Logic check: Try s3Key first, then fallback to fileUrl
+        const path = document?.s3Key || document?.fileUrl;
+
+        if (!document || !path || path === 'N/A') {
+            console.error(`Preview failed for Doc ID ${documentId}: No path found.`);
+            return res.status(404).json({ message: "S3 document not found" });
+        }
+
+        const url = await s3Service.getPresignedViewUrl(path);
+        res.json({ success: true, url: url });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 exports.deleteSupplier = async (req, res) => {
     const { id } = req.params;

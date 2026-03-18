@@ -130,7 +130,7 @@
         <div class="upload-card" [class.done]="form.evaluationFile">
           <div class="icon"><i class="bi bi-file-earmark-pdf"></i></div>
           <div class="info">
-            <strong>Evaluation Form</strong>
+            <strong>Supplier Evaluation Form</strong>
             <span>{{ form.evaluationFile?.name || 'Required for all' }}</span>
           </div>
           <input type="file" (change)="upload($event, 'EVAL')" id="evalFile" accept=".pdf,.jpg,.jpeg,.png" hidden>

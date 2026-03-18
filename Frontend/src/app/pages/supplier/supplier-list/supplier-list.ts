@@ -99,17 +99,7 @@ export class SupplierList implements OnInit {
   /**
    * Logic for UI highlighting of expiring certs
    */
-  isNearExpiry(expiryDate: string): boolean {
-    if (!expiryDate) return false;
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(today.getDate() + 30);
-
-    // Return true if expired OR expiring within 30 days
-    return expiry <= thirtyDaysFromNow;
-  }
-
+  
   // Inside your SupplierList class
 
 editSupplier(supplier: any): void {
@@ -176,8 +166,40 @@ loadSuppliers(): void {
   });
 }
 
-getRefCount(refs: any[]): number {
-  // Now that we've guaranteed an array in loadSuppliers, this is much cleaner
-  return refs ? refs.filter(r => r.company && r.company.trim() !== '').length : 0;
+
+// Add these to your component class
+getPathLabel(s: any): string {
+    if (s.hasQualityCert) return 'Standard (Certified)';
+    if (s.hasSefAndTradeRef) return 'One-Time Approval';
+    return 'Conditional (Rare Case)';
+}
+
+getPathClass(s: any): string {
+    if (s.hasQualityCert) return 'cert-standard';
+    if (s.hasSefAndTradeRef) return 'cert-onetime';
+    return 'cert-conditional';
+}
+
+getRefCount(refs: any): number {
+    if (!refs) return 0;
+    try {
+        const parsed = typeof refs === 'string' ? JSON.parse(refs) : refs;
+        return Array.isArray(parsed) ? parsed.filter(r => r.companyName).length : 0;
+    } catch (e) {
+        return 0;
+    }
+}
+
+getUrgentCount(): number {
+    return this.suppliers.filter(s => this.isNearExpiry(s.expiryDate)).length;
+}
+
+isNearExpiry(date: string): boolean {
+    if (!date) return false;
+    const expiry = new Date(date);
+    const today = new Date();
+    const diff = expiry.getTime() - today.getTime();
+    const days = diff / (1000 * 60 * 60 * 24);
+    return days < 30; // Mark urgent if less than 30 days
 }
 }

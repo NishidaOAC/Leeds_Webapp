@@ -1,27 +1,33 @@
 <div class="main-layout">
   <div class="customer-list-container" [class.shrunk]="selectedDocUrl">
-    <div class="header">
+
+    <header class="header">
       <div class="title-group">
         <h2>Supplier Document Tracking</h2>
         <p class="subtitle">Monitor compliance, PO-locks, and trade references</p>
       </div>
+
       <div class="stats-bar">
         <div class="stat-card">
-          <span class="label">Active Suppliers</span>
+          <span class="label">Total Records</span>
           <span class="value">{{suppliers.length}}</span>
         </div>
+        <div class="stat-card urgent">
+          <span class="label">Near Expiry</span>
+          <span class="value">{{getUrgentCount()}}</span>
+        </div>
       </div>
-    </div>
+    </header>
 
     <div class="table-wrapper" *ngIf="!loading; else loader">
       <table class="modern-table">
         <thead>
           <tr>
-            <th>Supplier & ID</th>
-            <th>Type</th>
+            <th>Supplier Details</th>
+            <th>Type & Pathway</th>
             <th>Status</th>
-            <th>Import / PO Details</th>
-            <th>Expiry</th>
+            <th>Compliance / PO</th>
+            <th>Expiry Date</th>
             <th>Documents</th>
             <th class="text-center">Action</th>
           </tr>
@@ -31,55 +37,85 @@
             <td>
               <div class="cust-info">
                 <span class="cust-name">{{ s.name }}</span>
-                <span class="type-pill">{{ s.internalSupplierNumber || 'TEMP-ID' }}</span>
+                <span class="cust-email">{{ s.email }}</span>
+                <span class="type-pill">{{ s.internalSupplierNumber || 'GENERATING...' }}</span>
               </div>
             </td>
+
+
             <td>
               <div class="path-info">
-                <span class="path-label" [class.cert]="s.hasQualityCert">
-                  {{ s.hasQualityCert ? 'Standard' : 'One-Time' }}
+                <span class="path-label" [ngClass]="s.OnboardingStatus?.code?.toLowerCase()">
+                  <i class="bi"
+                    [ngClass]="s.OnboardingStatus?.code === 'ONE_YEAR' ? 'bi-patch-check-fill' : 'bi-stopwatch'"></i>
+                  {{ s.OnboardingStatus?.label || 'Not Assigned' }}
                 </span>
-                <small *ngIf="s.hasSefAndTradeRef" class="sub-text">Rare Case Path</small>
-              </div>
-            </td>
-            <td>
-              <span class="badge" [ngClass]="s.status?.toLowerCase()">
-                {{ s.status || 'PENDING' }}
-              </span>
-            </td>
-            <td>
-              <div class="import-details" *ngIf="!s.hasQualityCert">
-                <div class="po-tag" *ngIf="s.poNumber">
-                  <i class="bi bi-cart-check"></i> {{ s.poNumber }}
-                </div>
-                <div class="ref-count" *ngIf="s.tradeReferences">
-                  <i class="bi bi-people"></i> {{ getRefCount(s.tradeReferences) }} Refs
+
+                <div class="reviewer-meta">
+                  <span class="reviewer-tag">
+                    <i class="bi bi-person-badge"></i> {{ s.currentReviewer }}
+                  </span>
                 </div>
               </div>
-              <span *ngIf="s.hasQualityCert" class="text-muted small">N/A (Certified)</span>
             </td>
+
             <td>
-              <span class="date-cell" [class.urgent]="isNearExpiry(s.expiryDate)">
-                {{ s.expiryDate | date:'dd MMM yyyy' }}
-              </span>
+              <div class="status-wrapper">
+                <span class="status-dot" [ngClass]="s.status?.toLowerCase()"></span>
+                <span class="badge" [ngClass]="s.status?.toLowerCase()">
+                  {{ s.status || 'PENDING' }}
+                </span>
+              </div>
             </td>
+
+            <td>
+              <div class="compliance-details">
+                <ng-container *ngIf="!s.hasQualityCert; else certBlock">
+                  <div class="po-tag" *ngIf="s.poNumber" title="Purchase Order Lock">
+                    <i class="bi bi-lock-fill"></i> {{ s.poNumber }}
+                  </div>
+                  <div class="ref-count" *ngIf="s.tradeReferences">
+                    <i class="bi bi-people-fill"></i> {{ getRefCount(s.tradeReferences) }} Trade Refs
+                  </div>
+                </ng-container>
+                <ng-template #certBlock>
+                  <span class="cert-verified">
+                    <i class="bi bi-check-circle-fill"></i> Quality Verified
+                  </span>
+                </ng-template>
+              </div>
+            </td>
+
+            <td>
+              <div class="expiry-cell" [class.urgent]="isNearExpiry(s.expiryDate)">
+                <i class="bi bi-calendar3"></i>
+                <span>{{ s.expiryDate | date:'dd MMM yyyy' }}</span>
+                <small *ngIf="isNearExpiry(s.expiryDate)" class="expiry-warning">Expires Soon!</small>
+              </div>
+            </td>
+
             <td>
               <div class="doc-links">
-                <button *ngFor="let doc of s.Documents" 
-                  (click)="previewDoc(doc.id, doc.fileName || '', s.id)"
-                  class="doc-pill" 
-                  [class.viewing]="selectedDocName === doc.fileName">
-                  <i class="bi bi-file-earmark-text"></i> {{ doc.documentType }}
+                <button *ngFor="let doc of s.Documents" (click)="previewDoc(doc.id, doc.fileName || '', s.id)"
+                  class="doc-pill" [attr.title]="doc.fileName" [class.viewing]="selectedDocName === doc.fileName">
+                  <i class="bi"
+                    [ngClass]="doc.documentType === 'QUALITY_CERT' ? 'bi-patch-check' : 'bi-file-earmark-text'"></i>
+                  {{ doc.documentType === 'QUALITY_CERT' ? 'QC' : 'EVAL' }}
                 </button>
+                <span *ngIf="!s.Documents?.length" class="no-docs">No Files</span>
               </div>
             </td>
+
             <td class="actions">
               <div class="action-group">
-                <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]">
-                  <i class="bi bi-shield-check"></i> Audit
+                <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]"
+                  title="Manage All Documents">
+                  <i class="bi bi-folder2-open">Audit</i>
                 </button>
-                <button class="btn-icon btn-edit" (click)="editSupplier(s)"><i class="bi bi-pencil-square"></i>Edit</button>
-                <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)"><i class="bi bi-trash">Delete</i></button>
+                <button class="btn-icon btn-edit" (click)="editSupplier(s)" title="Edit Supplier"><i
+                    class="bi bi-pencil"></i>Edit</button>
+                <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)" title="Delete"><i
+                    class="bi bi-trash"></i>Delete</button>
               </div>
             </td>
           </tr>
@@ -88,7 +124,7 @@
     </div>
   </div>
 
-  <div class="preview-panel" [class.open]="selectedDocUrl">
+  <aside class="preview-panel" [class.open]="selectedDocUrl">
     <div class="preview-header">
       <div class="header-content">
         <h3>Document Preview</h3>
@@ -96,19 +132,21 @@
       </div>
       <button class="close-btn" (click)="closePreview()">✕</button>
     </div>
+
     <div class="preview-body">
       <div *ngIf="isPreviewLoading" class="preview-loader">
         <div class="spinner"></div>
         <span>Retrieving Secure S3 Link...</span>
       </div>
+
       <ng-container *ngIf="selectedDocUrl && !isPreviewLoading">
         <iframe *ngIf="isPdf" [src]="selectedDocUrl" width="100%" height="100%"></iframe>
         <div class="img-container" *ngIf="!isPdf">
-          <img [src]="selectedDocUrl" alt="Preview">
+          <img [src]="selectedDocUrl" alt="Document Preview">
         </div>
       </ng-container>
     </div>
-  </div>
+  </aside>
 </div>
 
 <ng-template #loader>

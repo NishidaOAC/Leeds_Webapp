@@ -9,7 +9,8 @@ const { sequelize, testConnection } = require('./config/database');
 const { publishEvent } = require('./utils/eventPublisher');
 const supplierRoutes = require('./routes/supplier.routes');
 
-
+// IMPORT YOUR MODEL HERE
+const OnboardingStatus = require('./models/OnboardingStatus'); 
 
 // Initialize logger
 const logger = winston.createLogger({
@@ -35,97 +36,64 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
-  logger.info({
-    method: req.method,
-    url: req.url,
-    ip: req.ip,
-    userAgent: req.get('user-agent')
-  });
+  logger.info({ method: req.method, url: req.url, ip: req.ip });
   next();
 });
 
-
-
 // Routes
-
 app.use('/', supplierRoutes);
 
-
-
-// Health check endpoint
+// Health check
 app.get('/health', async (req, res) => {
   const dbStatus = await testConnection();
-  
   res.json({
     service: 'supplier-service',
     status: 'running',
-    timestamp: new Date().toISOString(),
-    database: dbStatus ? 'connected' : 'disconnected',
-    version: process.env.npm_package_version || '1.0.0'
+    database: dbStatus ? 'connected' : 'disconnected'
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
-// Error handler
+// Error handling
 app.use((err, req, res, next) => {
-  logger.error({
-    error: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method
-  });
-
-  res.status(err.status || 500).json({
-    success: false,
-    message: process.env.NODE_ENV === 'production' 
-      ? 'Internal server error' 
-      : err.message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+  logger.error({ error: err.message, stack: err.stack });
+  res.status(err.status || 500).json({ success: false, message: err.message });
 });
 
-// Start server
+// Start server logic
 const PORT = process.env.PORT || 3003;
 
 async function startServer() {
   try {
     const dbConnected = await testConnection();
     if (!dbConnected) {
-      logger.warn('Database connection failed. Starting server anyway...');
+      logger.error('Database connection failed. Exiting...');
+      process.exit(1);
     }
 
     const dbSyncMode = process.env.DB_SYNC;
 
     if (dbSyncMode === 'force') {
-      logger.warn('⚠️ FORCE syncing database (all tables will be dropped)');
+      logger.warn('⚠️ FORCE syncing database');
       await sequelize.sync({ force: true });
     } 
     else if (dbSyncMode === 'alter') {
       logger.info('Altering database schema');
       await sequelize.sync({ alter: true });
     } 
-    else {
-      logger.info('Database sync disabled');
-    }
 
-    logger.info(' Supplier Service Database synchronization completed');
+    // --- CRITICAL ADDITION: SEED THE DATA ---
+    logger.info('Checking for Onboarding Status data...');
+    await OnboardingStatus.seed(); 
+    // ----------------------------------------
+
+    logger.info('Supplier Service Database synchronization & seeding completed');
 
     await publishEvent('SERVICE_STARTED', { service: 'supplier-service' });
 
     app.listen(PORT, () => {
-      logger.info(`supplier service running on port ${PORT}`);
-      logger.info(`Environment: ${process.env.NODE_ENV}`);
-      logger.info(`Database: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
+      logger.info(`Supplier service running on port ${PORT}`);
     });
 
   } catch (error) {
@@ -133,25 +101,5 @@ async function startServer() {
     process.exit(1);
   }
 }
-
-
-// Handle graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received. Shutting down gracefully...');
-  
-  try {
-    await sequelize.close();
-    logger.info('Database connection closed');
-    process.exit(0);
-  } catch (error) {
-    logger.error('Error during shutdown:', error);
-    process.exit(1);
-  }
-});
-
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received. Shutting down...');
-  process.exit(0);
-});
 
 startServer();

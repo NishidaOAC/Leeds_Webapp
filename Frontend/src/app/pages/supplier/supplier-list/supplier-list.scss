@@ -1,229 +1,138 @@
+// Layout & Global
 .main-layout {
   display: flex;
-  overflow: hidden;
   height: 100vh;
   background: #f8fafc;
+  font-size: 13px; // Standard ERP Base Font
 }
 
 .customer-list-container {
   flex: 1;
-  padding: 2rem;
+  padding: 1.5rem; // Reduced padding
   overflow-y: auto;
-  transition: all 0.3s ease;
+  &.shrunk { margin-right: 500px; }
 }
 
-.header {
-  margin-bottom: 2rem;
-  h2 { color: #0f172a; font-weight: 800; margin: 0; }
-  .subtitle { color: #64748b; font-size: 0.9rem; margin-top: 4px; }
+// Stats Cards - Smaller & Sleeker
+.stats-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+
+  .stat-card {
+    background: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    min-width: 120px;
+
+    .label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+    .value { font-size: 1.25rem; color: #0f172a; font-weight: 800; margin-top: 2px; }
+
+    &.urgent { border-left: 3px solid #ef4444; .value { color: #ef4444; } }
+  }
 }
 
-// Table Styling
+// ERP Table Style
 .table-wrapper {
   background: white;
-  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .modern-table {
   width: 100%;
   border-collapse: collapse;
-  th { background: #f8fafc; padding: 1rem; color: #475569; font-size: 0.75rem; text-transform: uppercase; }
-  td { padding: 1.25rem 1rem; border-top: 1px solid #f1f5f9; }
-}
 
-.cust-info {
-  display: flex;
-  flex-direction: column;
-  .cust-name { font-weight: 600; color: #1e293b; }
-}
+  th {
+    background: #f1f5f9; // ERP Gray header
+    padding: 10px 12px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+  }
 
-.doc-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  margin-right: 5px;
-  &:hover { background: #e2e8f0; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-}
-
-// Badges
-.badge {
-  padding: 4px 12px;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  &.compliant { background: #dcfce7; color: #15803d; }
-  &.non-compliant { background: #fee2e2; color: #b91c1c; }
-}
-
-// PREVIEW PANEL
-.preview-panel {
-  width: 0;
-  background: white;
-  border-left: 1px solid #e2e8f0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  box-shadow: -4px 0 15px rgba(0,0,0,0.05);
-
-  &.open { width: 500px; } // Adjust width as needed
-
-  .preview-header {
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  td {
+    padding: 8px 12px; // Tight ERP spacing
     border-bottom: 1px solid #f1f5f9;
-  }
-
-  .preview-body {
-    flex: 1;
-    background: #f1f5f9;
-    padding: 1rem;
-    overflow: hidden;
-    
-    iframe { border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .img-container {
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      img { max-width: 100%; object-fit: contain; border-radius: 8px; }
-    }
+    vertical-align: middle;
+    font-size: 12.5px;
   }
 }
 
-.close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; }
+// Content Components
+.cust-info {
+  .cust-name { display: block; font-weight: 600; color: #1e293b; }
+  .cust-email { display: block; color: #64748b; font-size: 11px; }
+  .type-pill { font-size: 10px; color: #94a3b8; font-family: 'Consolas', monospace; }
+}
 
-.btn-manage {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+.badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  &.pending { background: #fef3c7; color: #92400e; }
+  &.approved { background: #dcfce7; color: #15803d; }
+}
+
+// Action Buttons - The Fix
+.actions {
+  width: 1%;
   white-space: nowrap;
 
-  // Add a small icon via CSS if you don't want to change HTML
-  &::before {
-    content: '⚙️'; 
-    font-size: 12px;
-  }
-
-  &:hover {
-    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
-  }
-  .actions {
   .action-group {
     display: flex;
-    gap: 8px;
-    justify-content: center;
+    gap: 4px; // Tight gap
+    justify-content: flex-end;
   }
 }
 
 .btn-icon {
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  white-space: nowrap;
+  padding: 4px 8px; // Smaller buttons
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
 
-  // Audit (Your existing blue button style logic)
+  i { font-size: 12px; }
+
   &.btn-audit {
-    background: #4f46e5;
-    color: white;
-    &:hover { background: #4338ca; }
+    background: #eff6ff; color: #2563eb; border-color: #dbeafe;
+    &:hover { background: #2563eb; color: white; }
   }
 
-  // Edit Button
   &.btn-edit {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
-    &:hover { 
-      background: #e2e8f0;
-      color: #1e293b;
-    }
+    background: #f8fafc; color: #475569; border-color: #e2e8f0;
+    &:hover { background: #e2e8f0; color: #0f172a; }
   }
 
-  // Delete Button
   &.btn-delete {
-    background: #fff1f2;
-    color: #e11d48;
-    border: 1px solid #fecdd3;
-    &:hover { 
-      background: #ffe4e6;
-      border-color: #fb7185;
-    }
+    background: #fff1f2; color: #e11d48; border-color: #ffe4e6;
+    &:hover { background: #e11d48; color: white; }
   }
 }
-}
 
-
-.loading-state {
+// Document Pills
+.doc-links {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 100px;
-  background: white;
-  border-radius: 12px;
-  border: 1px dashed #cbd5e1;
-  
-  p { margin-top: 1rem; color: #64748b; font-weight: 500; }
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f1f5f9;
-  border-top: 3px solid #4f46e5;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.stats-bar {
-  margin-top: 1rem;
-  .stat-card {
-    background: #4f46e5;
-    padding: 12px 20px;
-    border-radius: 12px;
-    display: inline-flex;
-    flex-direction: column;
-    color: white;
-    .label { font-size: 11px; text-transform: uppercase; opacity: 0.8; font-weight: 700; }
-    .value { font-size: 24px; font-weight: 800; line-height: 1; margin-top: 4px; }
+  gap: 4px;
+  .doc-pill {
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 3px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    &:hover { background: #e2e8f0; }
   }
 }

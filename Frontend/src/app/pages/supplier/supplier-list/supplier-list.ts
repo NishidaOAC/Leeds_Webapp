@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; 
+import { Router, RouterModule } from '@angular/router'; 
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; 
 import { SupplierService } from '../services/supplier.service';
 
@@ -24,7 +24,8 @@ export class SupplierList implements OnInit {
 
   constructor(
     private supplierService: SupplierService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router :Router
   ) {}
 
   ngOnInit(): void {
@@ -103,8 +104,15 @@ export class SupplierList implements OnInit {
   // Inside your SupplierList class
 
 editSupplier(supplier: any): void {
-  console.log('Navigate to edit for:', supplier.id);
-  // Example: this.router.navigate(['/dashboard/supplier/edit', supplier.id]);
+  console.log('Navigating to edit:', supplier.id);
+  
+  // Use the setter method instead of .next()
+  // this.supplierService.setSelectedSupplier(supplier);
+  
+  // Navigate to the form component
+  // this.router.navigate(['/dashboard/supplier']);
+    this.supplierService.setSupplierForUpdate(supplier);
+  this.router.navigate(['/dashboard/supplier']); // Navigates to the loadComponent: Supplier
 }
 
 onDelete(id: string, name: string): void {

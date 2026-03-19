@@ -60,22 +60,33 @@
 
     <div *ngIf="step === 2" class="step-fade-in">
       <div class="alert alert-info d-flex align-items-center mb-4" *ngIf="form.id">
-    <i class="bi bi-pencil-square me-2"></i>
-    <span>Updating Documentation for: <strong>{{ form.name }}</strong></span>
-  </div>
-      <!-- <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
+        <i class="bi bi-pencil-square me-2"></i>
+        <span>Updating Data for: <strong>{{ form.name }}</strong></span>
+      </div>
+<!-- 
+      <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
         <i class="bi bi-info-circle-fill"></i>
         <span>System Path: <strong>{{ getSelectedStatusLabel() }}</strong></span>
       </div> -->
 
       <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
-  <i class="bi bi-info-circle-fill"></i>
-  <span>System Path: <strong>{{ getSelectedStatusLabel() }}</strong></span>
+  <i class="bi" [ngClass]="{
+    'bi-check-circle-fill': form.hasCert,
+    'bi-exclamation-triangle-fill': !form.hasCert,
+    'bi-gear-wide-connected animate-spin': !selectedStatusId
+  }"></i>
+  
+  <span *ngIf="selectedStatusId">
+    System Path: <strong>{{ getSelectedStatusLabel() }}</strong>
+  </span>
+  <span *ngIf="!selectedStatusId">
+    Calculating System Path...
+  </span>
 </div>
 
       <div class="logic-grid">
         <div class="glass-input highlight">
-          <label><i class="bi bi-calendar-event"></i> Expiry Date (Based on Certificate/Audit)</label>
+          <label><i class="bi bi-calendar-event"></i> Expiry Date</label>
           <input type="date" [(ngModel)]="form.expiryDate">
         </div>
 
@@ -83,77 +94,47 @@
           <div class="input-grid">
             <div class="glass-input">
               <label>Target PO Number</label>
-              <input type="text" [(ngModel)]="form.poNumber" placeholder="PO-2024-XXXX">
+              <input type="text" [(ngModel)]="form.poNumber">
             </div>
             <div class="glass-input">
               <label>PO Issue Date</label>
               <input type="date" [(ngModel)]="form.poDate">
             </div>
           </div>
-
           <div class="form-check form-switch mt-3">
             <input class="form-check-input" type="checkbox" id="condSwitch" [(ngModel)]="isRareCase" (change)="toggleConditional()">
-            <label class="form-check-label" for="condSwitch">Rare Case: No SEF/Trade Refs (Conditional)</label>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!form.hasCert && !isRareCase" class="trade-refs-container mt-4 animate-slide">
-        <div class="section-header mb-4">
-          <h4 class="text-dark fw-bold">Trade References</h4>
-          <p class="text-muted small">Please provide details and performance history for 4 references.</p>
-        </div>
-
-        <div class="reference-card mb-4" *ngFor="let ref of form.tradeReferences; let i = index">
-          <div class="ref-badge">Reference #{{ i + 1 }}</div>
-
-          <div class="row g-4">
-            <div class="col-md-5 border-end">
-              <label class="ref-sub-label">Company Identity</label>
-              <div class="glass-input sm">
-                <input type="text" [(ngModel)]="ref.companyName" placeholder="Company Name">
-              </div>
-              <div class="glass-input sm">
-                <input type="email" [(ngModel)]="ref.email" placeholder="Contact Email">
-              </div>
-              <div class="glass-input sm">
-                <input type="text" [(ngModel)]="ref.phone" placeholder="Contact Person">
-              </div>
-            </div>
-
-            <div class="col-md-7">
-              <label class="ref-sub-label">Trade Response / Reliability</label>
-              <div class="glass-input sm">
-                <textarea 
-                  [(ngModel)]="ref.response" 
-                  placeholder="Describe credit terms, business history, and reliability..." 
-                  rows="4" 
-                  class="modern-textarea"></textarea>
-              </div>
-            </div>
+            <label class="form-check-label" for="condSwitch">Rare Case: No SEF/Trade Refs</label>
           </div>
         </div>
       </div>
 
       <div class="upload-grid mt-4">
-        <div class="upload-card" [class.done]="form.evaluationFile">
+        <div class="upload-card" [class.done]="form.evaluationFile || form.currentEvaluationName">
           <div class="icon"><i class="bi bi-file-earmark-pdf"></i></div>
           <div class="info">
             <strong>Supplier Evaluation Form</strong>
-            <span>{{ form.evaluationFile?.name || 'Required for all' }}</span>
+            <span *ngIf="!form.evaluationFile && form.currentEvaluationName" class="text-primary fw-bold">
+              <i class="bi bi-cloud-check"></i> Current: {{ form.currentEvaluationName }}
+            </span>
+            <span *ngIf="form.evaluationFile">{{ form.evaluationFile.name }}</span>
+            <span *ngIf="!form.evaluationFile && !form.currentEvaluationName">Required Document</span>
           </div>
           <input type="file" (change)="upload($event, 'EVAL')" id="evalFile" accept=".pdf,.jpg,.jpeg,.png" hidden>
-          <label for="evalFile" class="btn-action">Upload</label>
+          <label for="evalFile" class="btn-action">Replace</label>
         </div>
 
-        <div class="upload-card" *ngIf="form.hasCert" [class.done]="form.qualityCertFile">
+        <div class="upload-card" *ngIf="form.hasCert" [class.done]="form.qualityCertFile || form.currentQualityCertName">
           <div class="icon"><i class="bi bi-patch-check"></i></div>
           <div class="info">
             <strong>Quality Certificate</strong>
-            <span>{{ form.qualityCertFile?.name || 'Upload ISO/AS Copy' }}</span>
+            <span *ngIf="!form.qualityCertFile && form.currentQualityCertName" class="text-primary fw-bold">
+              <i class="bi bi-cloud-check"></i> Current: {{ form.currentQualityCertName }}
+            </span>
+            <span *ngIf="form.qualityCertFile">{{ form.qualityCertFile.name }}</span>
+            <span *ngIf="!form.qualityCertFile && !form.currentQualityCertName">Upload ISO/AS Copy</span>
           </div>
           <input type="file" (change)="upload($event, 'QUALITY')" id="qualFile" accept=".pdf,.jpg,.jpeg,.png" hidden>
-          <label for="qualFile" class="btn-action">Upload</label>
+          <label for="qualFile" class="btn-action">Replace</label>
         </div>
       </div>
     </div>
@@ -161,27 +142,19 @@
     <div *ngIf="step === 3" class="step-fade-in">
       <div class="review-card">
         <div class="review-header">
-          <h3>Final Verification</h3>
+          <h3>Review Changes</h3>
           <span class="badge-status">{{ getSelectedStatusLabel() }}</span>
         </div>
         <div class="review-body">
-          <div class="row">
-            <div class="col"><strong>Supplier:</strong> {{form.name || 'N/A'}}</div>
-            <div class="col"><strong>Expires:</strong> {{form.expiryDate | date}}</div>
-          </div>
+          <p><strong>Supplier:</strong> {{form.name}}</p>
+          <p><strong>Expiry:</strong> {{form.expiryDate | date}}</p>
           <hr>
           <div class="doc-list">
-            <div *ngIf="form.evaluationFile">
-              <i class="bi bi-check-circle-fill text-success"></i> SEF Document attached
+            <div *ngIf="form.evaluationFile || form.currentEvaluationName">
+              <i class="bi bi-check-circle-fill text-success"></i> SEF Document Available
             </div>
-            <div *ngIf="form.hasCert">
-              <i class="bi bi-check-circle-fill text-success"></i> Quality Certificate attached
-            </div>
-            <div *ngIf="!form.hasCert && !isRareCase">
-              <i class="bi bi-check-circle-fill text-success"></i> 4 Trade References verified
-            </div>
-            <div *ngIf="!form.hasCert">
-              <i class="bi bi-info-circle text-warning"></i> Approved for PO: {{form.poNumber || 'TBD'}}
+            <div *ngIf="form.hasCert && (form.qualityCertFile || form.currentQualityCertName)">
+              <i class="bi bi-check-circle-fill text-success"></i> Quality Cert Available
             </div>
           </div>
         </div>
@@ -192,7 +165,7 @@
       <button class="btn-back" (click)="prev()" *ngIf="step > 1">Back</button>
       <button class="btn-next ms-auto" (click)="next()" *ngIf="step < 3">Continue</button>
       <button class="btn-submit ms-auto" (click)="submit()" *ngIf="step === 3" [disabled]="loading">
-        {{ loading ? 'Securing Data...' : 'Confirm & Complete' }}
+        {{ loading ? 'Saving...' : (form.id ? 'Update Supplier' : 'Register Supplier') }}
       </button>
     </footer>
   </main>

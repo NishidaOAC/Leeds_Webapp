@@ -296,7 +296,7 @@ exports.updateSupplier = async (req, res) => {
         const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
 
         // 1. Update the main Supplier record
-        const [updatedRows] = await Supplier.update({
+        await Supplier.update({
             name,
             email,
             hasQualityCert: isCertified,
@@ -305,63 +305,70 @@ exports.updateSupplier = async (req, res) => {
             poNumber: !isCertified ? poNumber : null,
             poDate: !isCertified ? poDate : null,
             tradeReferences: tradeReferences ? JSON.parse(tradeReferences) : null,
-            status: 'PENDING' // Reset to pending for re-approval after update
-        }, {
-            where: { id: id },
-            transaction
-        });
+            status: 'PENDING' 
+        }, { where: { id: id }, transaction });
 
-        if (updatedRows === 0) {
-            await transaction.rollback();
-            return res.status(404).json({ success: false, message: "Supplier not found" });
-        }
-
-        // 2. Handle File Updates (S3)
+        // 2. Handle File Updates (Delete Old -> Upload New)
         const documentRecords = [];
 
         if (req.files) {
-            // Process Evaluation Document
+            const processFileUpdate = async (fileArray, docType) => {
+                if (fileArray && fileArray.length > 0) {
+                    const file = fileArray[0];
+
+                    // --- NEW: CLEANUP LOGIC ---
+                    // 1. Find the old document record
+                    const oldDoc = await SupplierDocument.findOne({
+                        where: { supplierId: id, documentType: docType }
+                    });
+
+                    if (oldDoc) {
+                        // 2. Delete file from S3
+                        if (oldDoc.s3Key) {
+                            await s3Service.deleteFile(oldDoc.s3Key).catch(err => 
+                                console.error(`S3 Delete Failed for ${oldDoc.s3Key}:`, err)
+                            );
+                        }
+                        // 3. Remove old record from DB
+                        await oldDoc.destroy({ transaction });
+                    }
+                    // --- END CLEANUP ---
+
+                    // 4. Upload New File
+                    const uploadResult = await s3Service.uploadToS3(file, id);
+                    
+                    documentRecords.push({
+                        supplierId: id,
+                        documentType: docType,
+                        fileName: file.originalname,
+                        fileUrl: uploadResult.s3Key,
+                        s3Key: uploadResult.s3Key,
+                        status: 'ACTIVE'
+                    });
+                }
+            };
+
+            // Process Evaluation Document replacement
             if (req.files.evaluationDoc) {
-                const file = req.files.evaluationDoc[0];
-                const uploadResult = await s3Service.uploadToS3(file, id);
-                
-                documentRecords.push({
-                    supplierId: id,
-                    documentType: 'EVALUATION',
-                    fileName: file.originalname,
-                    fileUrl: uploadResult.s3Key,
-                    s3Key: uploadResult.s3Key,
-                    status: 'ACTIVE'
-                });
+                await processFileUpdate(req.files.evaluationDoc, 'EVALUATION');
             }
 
-            // Process Quality Certificate
+            // Process Quality Certificate replacement
             if (isCertified && req.files.qualityDoc) {
-                const file = req.files.qualityDoc[0];
-                const uploadResult = await s3Service.uploadToS3(file, id);
-                
-                documentRecords.push({
-                    supplierId: id,
-                    documentType: 'QUALITY_CERT', // or 'QUALITY' to match your enum
-                    fileName: file.originalname,
-                    fileUrl: uploadResult.s3Key,
-                    s3Key: uploadResult.s3Key,
-                    status: 'ACTIVE'
-                });
+                await processFileUpdate(req.files.qualityDoc, 'QUALITY_CERT');
             }
         }
 
         // 3. Save new document records to DB
         if (documentRecords.length > 0) {
-            // Optional: Mark old documents of the same type as 'EXPIRED' or 'INACTIVE' here
             await SupplierDocument.bulkCreate(documentRecords, { transaction });
         }
 
         await transaction.commit();
         res.json({ 
             success: true, 
-            message: "Supplier and documents updated successfully!",
-            newDocsCount: documentRecords.length 
+            message: "Supplier updated. Old documents replaced successfully.",
+            replacedCount: documentRecords.length 
         });
 
     } catch (error) {

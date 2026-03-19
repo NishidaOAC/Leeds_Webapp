@@ -19,7 +19,6 @@ export class Supplier implements OnInit {
   isRareCase: boolean = false;
   supplierData: any;
 
-  // New: List of statuses from backend
   onboardingStatuses: any[] = [];
   selectedStatusId: number | null = null;
 
@@ -38,6 +37,9 @@ export class Supplier implements OnInit {
     ],
     evaluationFile: null as File | null,
     qualityCertFile: null as File | null,
+    // Tracking existing documents from backend
+    currentEvaluationName: '',
+    currentQualityCertName: '',
     expiryDate: ''
   };
 
@@ -47,72 +49,111 @@ export class Supplier implements OnInit {
     this.setDefaultExpiry();
     this.loadStatuses();
     
-    // Listen for "Request Update" from the Watchlist
     this.supplierService.selectedSupplier$.subscribe(supplier => {
       if (supplier) {
         this.supplierData = supplier;
         this.patchSupplierForm(supplier);
-        this.step = 2; // Auto-jump to Compliance/Document step
+        this.step = 2; 
       }
     });
   }
 
-patchSupplierForm(supplier: any) {
-  if (this.form && supplier) {
-    // 1. Map the basic info
-    this.form.id = supplier.id;
-    this.form.name = supplier.name;
-    this.form.email = supplier.email || '';
-    
-    // 2. Map the critical "Logic" fields
-    // Ensure we use the value from the DB, not the default 'true'
-    this.form.hasCert = !!supplier.hasQualityCert; 
-    
-    // 3. Handle Date Formatting (Input type="date" requires YYYY-MM-DD)
-    if (supplier.expiryDate) {
-      this.form.expiryDate = new Date(supplier.expiryDate).toISOString().split('T')[0];
-    }
+  patchSupplierForm(supplier: any) {
+    if (this.form && supplier) {
+      this.form.id = supplier.id;
+      this.form.name = supplier.name;
+      this.form.email = supplier.email || '';
+      this.form.hasCert = !!supplier.hasQualityCert; 
+      this.form.poNumber = supplier.poNumber || '';
+      this.form.poDate = supplier.poDate || '';
 
-    // 4. Force the UI logic to recalculate the Path/Status based on THIS supplier
-    this.syncStatusLogic();
+      // Map Trade References
+      if (supplier.tradeReferences) {
+        this.form.tradeReferences = typeof supplier.tradeReferences === 'string' 
+          ? JSON.parse(supplier.tradeReferences) 
+          : supplier.tradeReferences;
+      }
+
+      // --- PATCH DOCUMENTS ---
+      if (supplier.Documents && supplier.Documents.length > 0) {
+        const evalDoc = supplier.Documents.find((d: any) => d.documentType === 'EVALUATION');
+        const qualDoc = supplier.Documents.find((d: any) => d.documentType === 'QUALITY_CERT' || d.documentType === 'QUALITY');
+        
+        this.form.currentEvaluationName = evalDoc ? evalDoc.fileName : '';
+        this.form.currentQualityCertName = qualDoc ? qualDoc.fileName : '';
+      }
+
+      if (supplier.expiryDate) {
+        this.form.expiryDate = new Date(supplier.expiryDate).toISOString().split('T')[0];
+      }
+
+      this.syncStatusLogic();
+    }
   }
-}
 
   // loadStatuses() {
   //   this.supplierService.getOnboardingStatuses().subscribe({
   //     next: (data: any) => {
   //       this.onboardingStatuses = data;
-  //       this.syncStatusLogic(); 
-  //     },
-  //     error: () => console.error("Could not load statuses")
+  //       if (this.supplierData) {
+  //         this.patchSupplierForm(this.supplierData);
+  //       }
+  //     }
   //   });
   // }
 
   loadStatuses() {
   this.supplierService.getOnboardingStatuses().subscribe({
-    next: (data: any) => {
+    next: (data: any[]) => {
       this.onboardingStatuses = data;
-      // Re-run sync once statuses are available
+      // Now that we have the list, calculate the ID
+      this.syncStatusLogic(); 
+      
       if (this.supplierData) {
         this.patchSupplierForm(this.supplierData);
       }
-    }
+    },
+    error: (err) => console.error('Could not load system statuses', err)
   });
 }
 
-  syncStatusLogic() {
-    let code = '';
-    if (this.form.hasCert) {
-      code = 'ONE_YEAR';
-    } else if (this.isRareCase) {
-      code = 'CONDITIONAL';
-    } else {
-      code = 'ONE_TIME';
-    }
+  // syncStatusLogic() {
+  //   let code = '';
+  //   if (this.form.hasCert) {
+  //     code = 'ONE_YEAR';
+  //   } else if (this.isRareCase) {
+  //     code = 'CONDITIONAL';
+  //   } else {
+  //     code = 'ONE_TIME';
+  //   }
 
-    const found = this.onboardingStatuses.find(s => s.code === code);
-    if (found) this.selectedStatusId = found.id;
+  //   const found = this.onboardingStatuses.find(s => s.code === code);
+  //   if (found) this.selectedStatusId = found.id;
+  // }
+
+  syncStatusLogic() {
+  // 1. Determine the code based on the form state
+  let code = '';
+  if (this.form.hasCert) {
+    code = 'ONE_YEAR';
+  } else if (this.isRareCase) {
+    code = 'CONDITIONAL';
+  } else {
+    code = 'ONE_TIME';
   }
+
+  // 2. Safety check: If statuses aren't loaded yet, we can't find the ID
+  if (!this.onboardingStatuses || this.onboardingStatuses.length === 0) {
+    return; 
+  }
+
+  // 3. Find and assign the ID
+  const found = this.onboardingStatuses.find(s => s.code === code);
+  if (found) {
+    this.selectedStatusId = found.id;
+    console.log(`System Status Auto-Mapped: ${found.label} (ID: ${found.id})`);
+  }
+}
 
   setDefaultExpiry() {
     const date = new Date();
@@ -161,84 +202,64 @@ patchSupplierForm(supplier: any) {
   next() { if (this.step < 3) this.step++; }
   prev() { if (this.step > 1) this.step--; }
 
-submit() {
-  this.loading = true;
-  const formData = new FormData();
+  submit() {
+    this.loading = true;
+    const formData = new FormData();
 
-  // 1. Core Identification (Include ID if updating)
-  if (this.form.id) {
-    formData.append('id', this.form.id.toString());
-  }
+    if (this.form.id) formData.append('id', this.form.id.toString());
+    formData.append('name', this.form.name);
+    formData.append('email', this.form.email);
+    formData.append('hasQualityCert', String(this.form.hasCert));
+    formData.append('expiryDate', this.form.expiryDate);
 
-  // 2. Basic Information
-  formData.append('name', this.form.name);
-  formData.append('email', this.form.email);
-  formData.append('hasQualityCert', String(this.form.hasCert));
-  formData.append('expiryDate', this.form.expiryDate);
+    const hasRefs = !this.form.hasCert && !this.isRareCase;
+    formData.append('hasSefAndTradeRef', String(hasRefs));
 
-  // 3. Status & Logic Fields 
-  // Note: Backend uses 'hasSefAndTradeRef' to check for "One-Time" vs "Conditional"
-  const hasRefs = !this.form.hasCert && !this.isRareCase;
-  formData.append('hasSefAndTradeRef', String(hasRefs));
-
-  if (this.selectedStatusId) {
-    formData.append('onboardingStatusId', this.selectedStatusId.toString());
-  }
-
-  // 4. Conditional PO & Trade Ref Data
-  if (!this.form.hasCert) {
-    formData.append('poNumber', this.form.poNumber || '');
-    formData.append('poDate', this.form.poDate || '');
-    if (!this.isRareCase) {
-      formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
+    if (this.selectedStatusId) {
+      formData.append('onboardingStatusId', this.selectedStatusId.toString());
     }
-  }
 
-  // 5. File Uploads
-  if (this.form.evaluationFile) {
-    formData.append('evaluationDoc', this.form.evaluationFile);
-  }
-  if (this.form.hasCert && this.form.qualityCertFile) {
-    formData.append('qualityDoc', this.form.qualityCertFile);
-  }
+    if (!this.form.hasCert) {
+      formData.append('poNumber', this.form.poNumber || '');
+      formData.append('poDate', this.form.poDate || '');
+      if (!this.isRareCase) {
+        formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
+      }
+    }
 
-  // 6. Branching Logic: Update vs Register
-  if (this.form.id) {
-    // --- UPDATE PATH (PUT) ---
-    this.supplierService.updateSupplier(this.form.id, formData).subscribe({
-      next: (response: any) => {
+    if (this.form.evaluationFile) formData.append('evaluationDoc', this.form.evaluationFile);
+    if (this.form.hasCert && this.form.qualityCertFile) formData.append('qualityDoc', this.form.qualityCertFile);
+
+    const request = this.form.id 
+      ? this.supplierService.updateSupplier(this.form.id, formData)
+      : this.supplierService.registerSupplier(formData);
+
+    request.subscribe({
+      next: (res: any) => {
         this.loading = false;
-        alert('Update Successful! Supplier documents have been refreshed.');
+        alert(this.form.id ? 'Update Successful!' : `Registered: ${res.internalSupplierNumber}`);
         this.resetForm();
       },
       error: (err) => {
         this.loading = false;
-        console.error('Update Error:', err);
-        alert(err.error?.message || 'Update failed. Check console for details.');
-      }
-    });
-  } else {
-    // --- REGISTER PATH (POST) ---
-    this.supplierService.registerSupplier(formData).subscribe({
-      next: (response: any) => {
-        this.loading = false;
-        const suplierNo = response.internalSupplierNumber || 'Success';
-        alert(`Registration Success! Supplier Number: ${suplierNo}`);
-        this.resetForm();
-      },
-      error: (err) => {
-        this.loading = false;
-        alert(err.error?.message || 'Registration failed.');
+        alert(err.error?.message || 'Operation failed');
       }
     });
   }
-}
+
   resetForm() {
     this.step = 1;
     this.form = {
       id: null, name: '', email: '', hasCert: true, poNumber: '', poDate: '',
-      tradeReferences: [{ companyName: '', email: '', phone: '', response: '' }, { companyName: '', email: '', phone: '', response: '' }, { companyName: '', email: '', phone: '', response: '' }, { companyName: '', email: '', phone: '', response: '' }],
-      evaluationFile: null, qualityCertFile: null, expiryDate: ''
+      tradeReferences: [
+        { companyName: '', email: '', phone: '', response: '' },
+        { companyName: '', email: '', phone: '', response: '' }, 
+        { companyName: '', email: '', phone: '', response: '' }, 
+        { companyName: '', email: '', phone: '', response: '' }
+      ],
+      evaluationFile: null, qualityCertFile: null, 
+      currentEvaluationName: '', currentQualityCertName: '', 
+      expiryDate: ''
     };
     this.setDefaultExpiry();
     this.syncStatusLogic();

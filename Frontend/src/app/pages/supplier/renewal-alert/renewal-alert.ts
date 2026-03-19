@@ -59,6 +59,6 @@ export class RenewalAlert implements OnInit {
 // renewal-alert.ts
 requestRenewal(supplier: any) {
   this.supplierService.setSupplierForUpdate(supplier);
-  this.router.navigate(['/dashboard//supplier']); // Navigates to the loadComponent: Supplier
+  this.router.navigate(['/dashboard/supplier']); // Navigates to the loadComponent: Supplier
 }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 @Injectable({
   providedIn: 'root',
@@ -45,4 +45,18 @@ getSuppliers(): Observable<any[]> {
 getOnboardingStatuses(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl + '/onboardingStatuses');
   }
+
+  private editSupplierSource = new BehaviorSubject<any>(null);
+  selectedSupplier$ = this.editSupplierSource.asObservable();
+
+  setSupplierForUpdate(supplier: any) {
+    this.editSupplierSource.next(supplier);
+  }
+
+  // src/app/pages/supplier/services/supplier.service.ts
+
+updateSupplier(id: number, formData: FormData): Observable<any> {
+  // Ensure the URL matches your backend route (e.g., /api/suppliers/123)
+  return this.http.put(`${this.baseUrl}/${id}`, formData);
+}
 }

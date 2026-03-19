@@ -277,6 +277,101 @@ exports.deleteSupplier = async (req, res) => {
 };
 
 
+/**
+ * UPDATE EXISTING SUPPLIER (For Renewals/Watchlist)
+ */
+/**
+ * UPDATE EXISTING SUPPLIER (Handles Text & Files)
+ */
+exports.updateSupplier = async (req, res) => {
+    const { id } = req.params;
+    const transaction = await sequelize.transaction();
+    
+    try {
+        const { 
+            name, email, hasQualityCert, hasSefAndTradeRef, 
+            expiryDate, poNumber, poDate, tradeReferences 
+        } = req.body;
+
+        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
+
+        // 1. Update the main Supplier record
+        const [updatedRows] = await Supplier.update({
+            name,
+            email,
+            hasQualityCert: isCertified,
+            hasSefAndTradeRef: hasSefAndTradeRef === 'true',
+            expiryDate: expiryDate,
+            poNumber: !isCertified ? poNumber : null,
+            poDate: !isCertified ? poDate : null,
+            tradeReferences: tradeReferences ? JSON.parse(tradeReferences) : null,
+            status: 'PENDING' // Reset to pending for re-approval after update
+        }, {
+            where: { id: id },
+            transaction
+        });
+
+        if (updatedRows === 0) {
+            await transaction.rollback();
+            return res.status(404).json({ success: false, message: "Supplier not found" });
+        }
+
+        // 2. Handle File Updates (S3)
+        const documentRecords = [];
+
+        if (req.files) {
+            // Process Evaluation Document
+            if (req.files.evaluationDoc) {
+                const file = req.files.evaluationDoc[0];
+                const uploadResult = await s3Service.uploadToS3(file, id);
+                
+                documentRecords.push({
+                    supplierId: id,
+                    documentType: 'EVALUATION',
+                    fileName: file.originalname,
+                    fileUrl: uploadResult.s3Key,
+                    s3Key: uploadResult.s3Key,
+                    status: 'ACTIVE'
+                });
+            }
+
+            // Process Quality Certificate
+            if (isCertified && req.files.qualityDoc) {
+                const file = req.files.qualityDoc[0];
+                const uploadResult = await s3Service.uploadToS3(file, id);
+                
+                documentRecords.push({
+                    supplierId: id,
+                    documentType: 'QUALITY_CERT', // or 'QUALITY' to match your enum
+                    fileName: file.originalname,
+                    fileUrl: uploadResult.s3Key,
+                    s3Key: uploadResult.s3Key,
+                    status: 'ACTIVE'
+                });
+            }
+        }
+
+        // 3. Save new document records to DB
+        if (documentRecords.length > 0) {
+            // Optional: Mark old documents of the same type as 'EXPIRED' or 'INACTIVE' here
+            await SupplierDocument.bulkCreate(documentRecords, { transaction });
+        }
+
+        await transaction.commit();
+        res.json({ 
+            success: true, 
+            message: "Supplier and documents updated successfully!",
+            newDocsCount: documentRecords.length 
+        });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error("Update Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
 
 
 exports.approveSupplier = async (req, res) => {

@@ -237,3 +237,79 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 12px;
   letter-spacing: 1px;
 }
+
+.trade-refs-container {
+  .section-subtitle {
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 5px;
+  }
+
+  .section-hint {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 25px;
+  }
+}
+
+.reference-card {
+  .ref-number {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+  }
+}
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.column-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #4b49ff; // The specific Aero blue
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.ref-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aero-input {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 12px 15px;
+  font-size: 0.9rem;
+  color: #495057;
+  width: 100%;
+
+  &::placeholder {
+    color: #adb5bd;
+    font-style: italic;
+  }
+}
+
+.aero-textarea {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 15px;
+  font-size: 0.9rem;
+  color: #495057;
+  width: 100%;
+  height: 140px; // Matches the taller response box
+  resize: none;
+
+  &::placeholder {
+    color: #adb5bd;
+    font-style: italic;
+  }
+}

@@ -59,10 +59,19 @@
     </div>
 
     <div *ngIf="step === 2" class="step-fade-in">
-      <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
+      <div class="alert alert-info d-flex align-items-center mb-4" *ngIf="form.id">
+    <i class="bi bi-pencil-square me-2"></i>
+    <span>Updating Documentation for: <strong>{{ form.name }}</strong></span>
+  </div>
+      <!-- <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
         <i class="bi bi-info-circle-fill"></i>
         <span>System Path: <strong>{{ getSelectedStatusLabel() }}</strong></span>
-      </div>
+      </div> -->
+
+      <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
+  <i class="bi bi-info-circle-fill"></i>
+  <span>System Path: <strong>{{ getSelectedStatusLabel() }}</strong></span>
+</div>
 
       <div class="logic-grid">
         <div class="glass-input highlight">

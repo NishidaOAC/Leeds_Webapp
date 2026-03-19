@@ -13,6 +13,7 @@ router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
 router.get('/', supplierCtrl.getAllSuppliers);
 router.delete('/:id', supplierCtrl.deleteSupplier);
 router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);
+router.put('/:id', upload.fields([{ name: 'evaluationDoc' }, { name: 'qualityDoc' }]), supplierCtrl.updateSupplier);
 
 // --- ADD THESE TWO ROUTES ---
 // 1. Fetch single supplier for the Audit page

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SupplierService } from '../services/supplier.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-renewal-alert',
@@ -12,7 +13,9 @@ import { SupplierService } from '../services/supplier.service';
 export class RenewalAlert implements OnInit {
   expiredSuppliers: any[] = [];
 
-  constructor(private supplierService: SupplierService) {}
+  constructor(private supplierService: SupplierService,
+    private router :Router
+  ) {}
 
   ngOnInit() {
     this.loadAlerts();
@@ -50,9 +53,12 @@ export class RenewalAlert implements OnInit {
   return days;
 }
 
+
+
+// renewal-alert.ts
+// renewal-alert.ts
 requestRenewal(supplier: any) {
-  // Add a nice feedback toast or alert
-  console.log("Sending request for:", supplier.name);
-  // this.supplierService.notifyRenewal(supplier.id).subscribe(...)
+  this.supplierService.setSupplierForUpdate(supplier);
+  this.router.navigate(['/dashboard//supplier']); // Navigates to the loadComponent: Supplier
 }
 }

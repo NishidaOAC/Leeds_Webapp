@@ -24,7 +24,21 @@ export const navItems: NavItem[] = [
   //   route: '/dashboard/payments',
   //   bgcolor: 'primary',
   //   roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
-  // },
+  // },'
+     {
+    displayName: 'Onboard Supplier',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/supplier',
+    bgcolor: 'primary',
+    roles: ['Admin']
+  },
+      {
+    displayName: 'Supplier Directory',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/supplier/supplierlist',
+    bgcolor: 'primary',
+    roles: ['Admin']
+  },
     {
     displayName: 'New Customer Account',
     iconName: 'layout-grid-add',
@@ -39,20 +53,7 @@ export const navItems: NavItem[] = [
     bgcolor: 'primary',
     roles: ['Admin'] 
   },
-    {
-    displayName: 'Onboard Supplier',
-    iconName: 'layout-grid-add',
-    route: '/dashboard/supplier',
-    bgcolor: 'primary',
-    roles: ['Admin']
-  },
-      {
-    displayName: 'Supplier Directory',
-    iconName: 'layout-grid-add',
-    route: '/dashboard/supplier/supplierlist',
-    bgcolor: 'primary',
-    roles: ['Admin']
-  },
+ 
 
   {
     displayName: 'Company',

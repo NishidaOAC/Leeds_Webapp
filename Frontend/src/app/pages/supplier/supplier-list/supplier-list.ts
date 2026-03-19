@@ -30,7 +30,23 @@ export class SupplierList implements OnInit {
 
   ngOnInit(): void {
     this.loadSuppliers();
+      this.loadCurrentMonthExpiries();
   }
+
+  
+urgentCount: number = 0;
+
+
+
+loadCurrentMonthExpiries(): void {
+  this.supplierService.getSuppliersinCurrentMonth().subscribe({
+    next: (res) => {
+      this.suppliers = res;
+      this.urgentCount = res.length; // The simplest way: just take the result count
+    },
+    error: (err) => console.error('Error fetching expiries', err)
+  });
+}
 
   loadSuppliersOLD(): void {
     this.loading = true;
@@ -198,10 +214,18 @@ getRefCount(refs: any): number {
     }
 }
 
-getUrgentCount(): number {
-    return this.suppliers.filter(s => this.isNearExpiry(s.expiryDate)).length;
-}
+// renewal-alert.component.ts
 
+getUrgentCount(): number {
+  if (!this.suppliers) return 0;
+  return this.suppliers.filter(supplier => {
+    const expiry = new Date(supplier.expiryDate);
+    const today = new Date();
+    // Returns true if expiry is in the same month and year
+    return expiry.getMonth() === today.getMonth() && 
+           expiry.getFullYear() === today.getFullYear();
+  }).length;
+}
 isNearExpiry(date: string): boolean {
     if (!date) return false;
     const expiry = new Date(date);

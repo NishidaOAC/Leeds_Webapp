@@ -10,11 +10,15 @@
       <div class="stats-bar">
         <div class="stat-card">
           <span class="label">Total Records</span>
+          <br>
           <span class="value">{{suppliers.length}}</span>
         </div>
         <div class="stat-card urgent">
           <span class="label">Near Expiry</span>
-          <span class="value">{{getUrgentCount()}}</span>
+          <br>
+          <!-- <span class="value">{{getUrgentCount()}}</span> -->
+          <span class="value">{{ urgentCount }}</span>
+          <span class="suffix">{{ urgentCount === 1 ? 'Supplier' : 'Suppliers' }} Expiring</span>
         </div>
       </div>
     </header>

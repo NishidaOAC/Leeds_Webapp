@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SupplierService } from '../services/supplier.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-renewal-alert',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,
+    RouterLink
+  ],
   templateUrl: './renewal-alert.html',
   styleUrl: './renewal-alert.scss',
 })
@@ -22,7 +24,7 @@ export class RenewalAlert implements OnInit {
   }
 
   loadAlerts() {
-    this.supplierService.getSuppliers().subscribe({
+    this.supplierService.getSuppliersinCurrentMonth().subscribe({
       next: (data) => {
         const today = new Date();
         

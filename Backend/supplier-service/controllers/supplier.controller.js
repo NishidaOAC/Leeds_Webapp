@@ -109,7 +109,69 @@ exports.onboardSupplier = async (req, res) => {
 
 /**
  * 2. GET ALL SUPPLIERS (With Documents)
+ * 
+ * 
  */
+
+
+const { Op } = require('sequelize'); // Ensure you import Op
+
+
+
+
+exports.getUpcomingExpiries = async (req, res) => {
+    try {
+        const today = new Date();
+        // Option A: Look ahead 6 months (Recommended)
+        const lookAheadDate = new Date();
+        lookAheadDate.setMonth(today.getMonth() + 6); 
+
+        const suppliers = await Supplier.findAll({
+            where: {
+                expiryDate: {
+                    // This will find everything from Today until 6 months from now
+                    [Op.between]: [today, lookAheadDate]
+                }
+            },
+            include: [
+                { model: SupplierDocument, as: 'Documents' },
+                { model: OnboardingStatus, as: 'OnboardingStatus' }
+            ],
+            order: [['expiryDate', 'ASC']]
+        });
+
+        res.status(200).json(suppliers);
+    } catch (error) {
+        res.status(500).json({ message: "Error", error: error.message });
+    }
+};
+
+exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
+    try {
+        const today = new Date();
+        // Option A: Look ahead 6 months (Recommended)
+        const lookAheadDate = new Date();
+        lookAheadDate.setMonth(today.getMonth() + 6); 
+
+        const suppliers = await Supplier.findAll({
+            where: {
+                expiryDate: {
+                    // This will find everything from Today until 6 months from now
+                    [Op.between]: [today, lookAheadDate]
+                }
+            },
+            include: [
+                { model: SupplierDocument, as: 'Documents' },
+                { model: OnboardingStatus, as: 'OnboardingStatus' }
+            ],
+            order: [['expiryDate', 'ASC']]
+        });
+
+        res.status(200).json(suppliers);
+    } catch (error) {
+        res.status(500).json({ message: "Error", error: error.message });
+    }
+};
 exports.getAllSuppliers = async (req, res) => {
     try {
         const suppliers = await Supplier.findAll({

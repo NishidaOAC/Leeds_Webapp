@@ -27,6 +27,10 @@ getSuppliers(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl);
   }
 
+  getSuppliersinCurrentMonth(): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl + '/expirycurrentmonth');
+  }
+
   // Gets the pre-signed S3 URL for a document
   viewSupplierDocument(documentId: string): Observable<{ success: boolean, url: string }> {
     return this.http.get<{ success: boolean, url: string }>(`${this.baseUrl}/document/${documentId}`);

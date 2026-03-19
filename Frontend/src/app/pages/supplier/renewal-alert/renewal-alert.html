@@ -1,4 +1,4 @@
-<div class="renewal-container animate-in" *ngIf="expiredSuppliers.length > 0">
+<div class="renewal-container animate-in" *ngIf="expiredSuppliers.length > 0; else noExpiries">
   <div class="alert-header">
     <div class="header-title">
       <i class="bi bi-shield-exclamation"></i>
@@ -15,7 +15,7 @@
          [class.warning-border]="getDays(supplier.expiryDate) > 0">
       
       <div class="card-left">
-        <div class="status-icon">
+        <div class="status-icon" [ngClass]="getDays(supplier.expiryDate) <= 0 ? 'text-danger' : 'text-warning'">
           <i class="bi" [ngClass]="getDays(supplier.expiryDate) <= 0 ? 'bi-slash-circle-fill' : 'bi-clock-history'"></i>
         </div>
         <div class="supplier-info">
@@ -42,3 +42,27 @@
     </div>
   </div>
 </div>
+
+<ng-template #noExpiries>
+ <div class="dashboard-empty-container">
+  <div class="hero-status-card glass-effect animate-slide-up">
+    <div class="status-icon-wrapper">
+      <div class="success-ring"></div>
+      <i class="bi bi-shield-check"></i>
+    </div>
+
+    <div class="card-content">
+      <h2 class="status-title">All Clear for March</h2>
+      <p class="status-description">
+        No supplier certifications or renewals are set to expire in the current period. 
+        Your compliance tracking is fully up to date.
+      </p>
+      
+      <button class="btn-aero-primary" [routerLink]="['/dashboard/supplier/supplierlist']">
+        <span>Go to Supplier Directory</span>
+        <i class="bi bi-arrow-right-short"></i>
+      </button>
+    </div>
+  </div>
+</div>
+</ng-template>

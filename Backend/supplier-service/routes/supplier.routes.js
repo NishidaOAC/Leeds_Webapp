@@ -11,6 +11,7 @@ const cpUpload = upload.fields([
 // Registration and List
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
 router.get('/', supplierCtrl.getAllSuppliers);
+router.get('/expirycurrentmonth', supplierCtrl.getAllSuppliersExpiryinCurrentmonth);
 router.delete('/:id', supplierCtrl.deleteSupplier);
 router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);
 router.put('/:id', upload.fields([{ name: 'evaluationDoc' }, { name: 'qualityDoc' }]), supplierCtrl.updateSupplier);

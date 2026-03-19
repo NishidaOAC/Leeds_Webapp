@@ -1,7 +1,7 @@
 <div class="manage-container">
   <header class="header-bar">
     <div class="header-left">
-      <button class="back-link" routerLink="/dashboard">
+      <button class="back-link" routerLink="/dashboard/supplier">
         <span class="icon">←</span> Back to List
       </button>
       <div class="title-group">
@@ -25,66 +25,81 @@
       <p>Fetching supplier records...</p>
     </div>
 
-    <div class="doc-grid" *ngIf="!loading && documents.length > 0">
-      <div class="doc-card" *ngFor="let doc of documents">
-        <div class="card-header">
-          <div class="icon-wrapper">
-            {{ doc.fileName.endsWith('.pdf') ? '📕' : '🖼️' }}
-          </div>
-          <div class="status-badge" [ngClass]="doc.status.toLowerCase()">
-            {{ doc.status }}
-          </div>
+    <ng-container *ngIf="!loading">
+      <div class="trade-refs-section-wrapper" *ngIf="supplierData?.tradeReferences?.length > 0">
+        <div class="section-header-group">
+          <h3 class="section-subtitle">Trade References</h3>
+          <p class="section-hint">Historical performance and reliability data for this supplier.</p>
         </div>
 
-        <div class="card-body">
-          <h3 class="doc-type">{{ doc.documentType }}</h3>
-          <p class="file-name" [title]="doc.fileName">{{ doc.fileName }}</p>
-          
-          <div class="file-meta">
-            <span>{{ formatFileSize(doc.fileSize) }}</span>
-            <span class="separator">•</span>
-            <span>{{ doc.fileName.endsWith('.pdf') ? 'PDF' : 'Image' }}</span>
-          </div>
-
-          <div class="expiry-box" *ngIf="doc.validTo" [class.urgent]="isNearExpiry(doc.validTo)">
-            <label>Expires on</label>
-            <span>{{ doc.validTo | date:'dd MMM yyyy' }}</span>
-          </div>
-
-          <div class="remarks-preview" *ngIf="doc.remarks">
-            <label class="d-block mb-1">Remarks / Details:</label>
+        <div class="aero-refs-grid">
+          <div *ngFor="let ref of supplierData.tradeReferences; let i = index" class="reference-card-view">
+            <h4 class="ref-number">Reference #{{ i + 1 }}</h4>
             
-            <ng-container *ngIf="isJson(doc.remarks); else plainText">
-              <div class="trade-ref-list">
-                <div class="ref-entry" *ngFor="let ref of getParsedRefs(doc.remarks)">
-                  <div class="ref-header" *ngIf="ref.companyName">
-                    <span class="company-name">{{ ref.companyName }}</span>
-                    <span class="contact-info">{{ ref.email }} | {{ ref.phone }}</span>
-                  </div>
-                  <p class="ref-comment" *ngIf="ref.response">"{{ ref.response }}"</p>
+            <div class="ref-content-split">
+              <div class="ref-column">
+                <label class="column-label">COMPANY IDENTITY</label>
+                <div class="ref-data-display">
+                  <div class="data-item"><strong>Name:</strong> {{ ref.companyName || 'N/A' }}</div>
+                  <div class="data-item"><strong>Email:</strong> {{ ref.email || 'N/A' }}</div>
+                  <div class="data-item"><strong>Contact:</strong> {{ ref.phone || 'N/A' }}</div>
                 </div>
               </div>
-            </ng-container>
 
-            <ng-template #plainText>
-              <p class="plain-text-remarks">"{{ doc.remarks }}"</p>
-            </ng-template>
+              <div class="ref-column">
+                <label class="column-label">TRADE RESPONSE / RELIABILITY</label>
+                <div class="aero-view-textarea">
+                  {{ ref.response || 'No reliability report provided.' }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+        <hr class="section-divider">
+      </div>
 
-        <div class="card-footer">
-          <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)">
-            Preview
-          </button>
-          <button class="btn-icon-delete" title="Delete Document">🗑️</button>
+      <h3 class="section-subtitle px-3 mb-3" *ngIf="documents.length > 0">Compliance Documents</h3>
+      <div class="doc-grid" *ngIf="documents.length > 0">
+        <div class="doc-card" *ngFor="let doc of documents">
+          <div class="card-header">
+            <div class="icon-wrapper">
+              {{ doc.fileName?.endsWith('.pdf') ? '📕' : '🖼️' }}
+            </div>
+            <div class="status-badge" [ngClass]="doc.status?.toLowerCase()">
+              {{ doc.status }}
+            </div>
+          </div>
+
+          <div class="card-body">
+            <h3 class="doc-type">{{ doc.documentType }}</h3>
+            <p class="file-name" [title]="doc.fileName">{{ doc.fileName }}</p>
+            
+            <div class="file-meta">
+              <span>{{ formatFileSize(doc.fileSize) }}</span>
+              <span class="separator">•</span>
+              <span>{{ doc.fileName?.endsWith('.pdf') ? 'PDF' : 'Image' }}</span>
+            </div>
+
+            <div class="expiry-box" *ngIf="doc.validTo" [class.urgent]="isNearExpiry(doc.validTo)">
+              <label>Expires on</label>
+              <span>{{ doc.validTo | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)">
+              Preview
+            </button>
+            <button class="btn-icon-delete" title="Delete Document">🗑️</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="empty-state" *ngIf="!loading && documents.length === 0">
-      <div class="icon-circle">📂</div>
-      <h3>No Documents Found</h3>
-      <p>This supplier doesn't have any compliance files uploaded yet.</p>
-    </div>
+      <div class="empty-state" *ngIf="documents.length === 0">
+        <div class="icon-circle">📂</div>
+        <h3>No Documents Found</h3>
+        <p>This supplier doesn't have any compliance files uploaded yet.</p>
+      </div>
+    </ng-container>
   </div>
 </div>

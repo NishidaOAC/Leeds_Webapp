@@ -83,9 +83,16 @@ export class Supplier implements OnInit {
         this.form.currentQualityCertName = qualDoc ? qualDoc.fileName : '';
       }
 
-      if (supplier.expiryDate) {
-        this.form.expiryDate = new Date(supplier.expiryDate).toISOString().split('T')[0];
-      }
+      // if (supplier.expiryDate) {
+      //   this.form.expiryDate = new Date(supplier.expiryDate).toISOString().split('T')[0];
+      // }
+      // Date Patching Fix
+    if (supplier.expiryDate) {
+      // Split by 'T' to get only the date part, avoiding timezone conversion
+      this.form.expiryDate = supplier.expiryDate.split('T')[0];
+    } else {
+      this.setDefaultExpiry();
+    }
 
       this.syncStatusLogic();
     }
@@ -155,11 +162,20 @@ export class Supplier implements OnInit {
   }
 }
 
-  setDefaultExpiry() {
+setDefaultExpiry() {
+  // Only set if we aren't editing
+  if (!this.form.id) {
     const date = new Date();
     date.setFullYear(date.getFullYear() + 1);
-    this.form.expiryDate = date.toISOString().split('T')[0];
+    
+    // Correct way to get YYYY-MM-DD without UTC timezone shift
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    this.form.expiryDate = `${year}-${month}-${day}`;
   }
+}
 
   setQualityStatus(val: boolean) {
     this.form.hasCert = val;

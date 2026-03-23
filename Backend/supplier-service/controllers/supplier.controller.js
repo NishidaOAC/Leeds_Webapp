@@ -4,110 +4,10 @@ const s3Service = require('../services/s3Service.js');
 const { Supplier, SupplierDocument } = require('../models/index');
 const OnboardingStatus = require('../models/OnboardingStatus.js');
 const moment = require('moment');
-exports.onboardSupplieroLD = async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-        const {
-            name, email, hasQualityCert, hasSefAndTradeRef,
-            expiryDate, poNumber, poDate, tradeReferences
-        } = req.body;
-
-        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
-        const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
-
-        // 1. Logic for Status
-        let statusCode;
-        let initialReviewer = 'SALES';
-
-        if (isCertified) {
-            statusCode = 'ONE_YEAR';
-            initialReviewer = 'QUALITY';
-        } else if (hasRefs) {
-            statusCode = 'ONE_TIME';
-        } else {
-            statusCode = 'CONDITIONAL';
-        }
-
-        const statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });
-
-        // 2. Generate Internal Supplier Number
-        const count = await Supplier.count();
-        const internalNo = `SUP-${moment().format('YY')}-${(count + 1).toString().padStart(4, '0')}`;
-
-        // 3. Create Supplier 
-        const supplier = await Supplier.create({
-            name,
-            email,
-            internalSupplierNumber: internalNo,
-            hasQualityCert: isCertified,
-            hasSefAndTradeRef: hasRefs,
-            currentReviewer: initialReviewer,
-            status: 'PENDING',
-            onboardingStatusId: statusRecord?.id,
-            expiryDate: expiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
-            poNumber: !isCertified ? poNumber : null,
-            poDate: !isCertified ? poDate : null,
-            tradeReferences: tradeReferences ? JSON.parse(tradeReferences) : null
-        }, { transaction });
-
-        // 4. Handle S3 Uploads & SupplierDocument Records
-        const documentRecords = [];
-
-        // Check for Evaluation Document (Mandatory in most flows)
-        if (req.files && req.files.evaluationDoc) {
-            const file = req.files.evaluationDoc[0];
-            const uploadResult = await s3Service.uploadToS3(file, supplier.id);
-
-            documentRecords.push({
-                supplierId: supplier.id,
-                documentType: 'EVALUATION',
-                fileName: file.originalname,
-                fileUrl: uploadResult.s3Key, // Store the S3 Key here
-                status: 'ACTIVE'
-            });
-        }
-
-        // Check for Quality Certificate (Only if isCertified)
-        if (isCertified && req.files.qualityDoc) {
-            const file = req.files.qualityDoc[0];
-            const uploadResult = await s3Service.uploadToS3(file, supplier.id);
-
-            // Inside your onboardSupplier function, when creating documentRecords:
-            documentRecords.push({
-                supplierId: supplier.id,
-                documentType: 'EVALUATION',
-                fileName: file.originalname,
-                fileUrl: uploadResult.s3Key, // This is what the DB shows currently
-                s3Key: uploadResult.s3Key,   // ADD THIS: Populate the s3Key column explicitly
-                status: 'ACTIVE'
-            });
-        }
-
-        // Save document metadata to DB
-        if (documentRecords.length > 0) {
-            await SupplierDocument.bulkCreate(documentRecords, { transaction });
-        }
-
-        await transaction.commit();
-
-        // 5. Response
-        res.status(201).json({
-            success: true,
-            supplierId: supplier.id,
-            internalSupplierNumber: supplier.internalSupplierNumber,
-            assignedStatus: statusCode,
-            documentsUploaded: documentRecords.length
-        });
-
-    } catch (error) {
-        if (transaction) await transaction.rollback();
-        console.error("Onboarding Error:", error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+const { Op } = require('sequelize'); 
 
 
-exports.onboardSupplier = async (req, res) => {
+exports.onboardSupplieOldr = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const {
@@ -241,14 +141,141 @@ exports.onboardSupplier = async (req, res) => {
     }
 };
 
-/**
- * 2. GET ALL SUPPLIERS (With Documents)
- * 
- * 
- */
+exports.onboardSupplier = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const {
+            name, email, hasQualityCert, hasSefAndTradeRef,
+            expiryDate, poNumber, poDate, tradeReferences,
+            qualityDocNames // Array of names for the certs (e.g., ["FAA", "EASA"])
+        } = req.body;
+
+        // 1. PRE-CHECK FOR DUPLICATE EMAIL
+        const existingEmail = await Supplier.findOne({ where: { email } });
+        if (existingEmail) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `The email ${email} is already registered to another supplier.` 
+            });
+        }
+
+        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
+        const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
+
+        // 2. Logic for Status & ID Generation
+        let statusCode = isCertified ? 'ONE_YEAR' : (hasRefs ? 'ONE_TIME' : 'CONDITIONAL');
+        let initialReviewer = isCertified ? 'QUALITY' : 'SALES';
+
+        const statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });
+
+        const currentYear = moment().format('YY');
+        const lastSupplier = await Supplier.findOne({
+            where: { internalSupplierNumber: { [Op.like]: `SUP-${currentYear}-%` } },
+            order: [['internalSupplierNumber', 'DESC']],
+            transaction
+        });
+
+        let nextSequence = 1;
+        if (lastSupplier) {
+            const parts = lastSupplier.internalSupplierNumber.split('-');
+            if (parts.length === 3) nextSequence = parseInt(parts[2], 10) + 1;
+        }
+        const internalNo = `SUP-${currentYear}-${nextSequence.toString().padStart(4, '0')}`;
+
+        // 3. Handle Files and Metadata Prep
+        const documentRecords = [];
+        const certsJsonData = []; // To populate the certifications JSON field
+
+        // --- Evaluation Document ---
+        if (req.files && req.files.evaluationDoc) {
+            const file = req.files.evaluationDoc[0];
+            const uploadResult = await s3Service.uploadToS3(file, internalNo);
+
+            documentRecords.push({
+                documentType: 'EVALUATION',
+                fileName: file.originalname,
+                fileUrl: uploadResult.s3Key, 
+                s3Key: uploadResult.s3Key,
+                status: 'ACTIVE'
+            });
+        }
+
+        // --- Multiple Quality Certificates ---
+        if (isCertified && req.files && req.files.qualityDocs) {
+            const files = req.files.qualityDocs;
+            // Ensure names is an array even if only one is sent
+            const names = Array.isArray(qualityDocNames) ? qualityDocNames : [qualityDocNames];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const customName = names[i] || `Cert_${i + 1}`;
+                
+                const uploadResult = await s3Service.uploadToS3(file, internalNo);
+
+                // Add to table records
+                documentRecords.push({
+                    documentType: 'QUALITY_CERT',
+                    fileName: customName, // Store the user-defined name (e.g. "EASA Part 145")
+                    fileUrl: uploadResult.s3Key, 
+                    s3Key: uploadResult.s3Key,   
+                    status: 'ACTIVE'
+                });
+
+                // Add to the JSON array for the Supplier table
+                certsJsonData.push({
+                    type: customName,
+                    fileName: file.originalname,
+                    s3Key: uploadResult.s3Key
+                });
+            }
+        }
+
+        // 4. Create Supplier with JSON certifications
+        const supplier = await Supplier.create({
+            name,
+            email,
+            internalSupplierNumber: internalNo,
+            hasQualityCert: isCertified,
+            certifications: certsJsonData, // The new JSON field
+            hasSefAndTradeRef: hasRefs,
+            currentReviewer: initialReviewer,
+            status: 'PENDING',
+            onboardingStatusId: statusRecord?.id,
+            expiryDate: expiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
+            poNumber: !isCertified ? poNumber : null,
+            poDate: !isCertified ? poDate : null,
+            tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null
+        }, { transaction });
+
+        // 5. Link documents to created Supplier
+        if (documentRecords.length > 0) {
+            const finalDocs = documentRecords.map(doc => ({ ...doc, supplierId: supplier.id }));
+            await SupplierDocument.bulkCreate(finalDocs, { transaction });
+        }
+
+        await transaction.commit();
+
+        res.status(201).json({
+            success: true,
+            supplierId: supplier.id,
+            internalSupplierNumber: supplier.internalSupplierNumber,
+            assignedStatus: statusCode,
+            documentsUploaded: documentRecords.length
+        });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error("Onboarding Error:", error);
+
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(409).json({ success: false, message: "A supplier with this Email or ID already exists." });
+        }
+
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 
-const { Op } = require('sequelize'); // Ensure you import Op
 
 
 
@@ -306,6 +333,8 @@ exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
         res.status(500).json({ message: "Error", error: error.message });
     }
 };
+
+
 exports.getAllSuppliers = async (req, res) => {
     try {
         const suppliers = await Supplier.findAll({
@@ -412,13 +441,8 @@ exports.deleteSupplier = async (req, res) => {
 };
 
 
-/**
- * UPDATE EXISTING SUPPLIER (For Renewals/Watchlist)
- */
-/**
- * UPDATE EXISTING SUPPLIER (Handles Text & Files)
- */
-exports.updateSupplier = async (req, res) => {
+
+exports.updateSupplierOld = async (req, res) => {
     const { id } = req.params;
     const transaction = await sequelize.transaction();
 
@@ -509,6 +533,118 @@ exports.updateSupplier = async (req, res) => {
     } catch (error) {
         if (transaction) await transaction.rollback();
         console.error("Update Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.updateSupplier = async (req, res) => {
+    const { id } = req.params;
+    const transaction = await sequelize.transaction();
+
+    try {
+        const {
+            name, email, hasQualityCert, hasSefAndTradeRef,
+            expiryDate, poNumber, poDate, tradeReferences,
+            qualityDocNames, // Names for NEW uploads
+            existingCerts // IMPORTANT: Send the current JSON array from Angular back to Node
+        } = req.body;
+
+        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
+        const currentSupplier = await Supplier.findByPk(id);
+        
+        // 1. Parse existing certs sent from Frontend (those the user KEPT in the list)
+        let keptCerts = [];
+        if (existingCerts) {
+            keptCerts = typeof existingCerts === 'string' ? JSON.parse(existingCerts) : existingCerts;
+        }
+
+        // 2. Identify and Delete Certificates that were REMOVED in the UI
+        const oldCerts = currentSupplier.certifications || [];
+        const certsToDelete = oldCerts.filter(old => !keptCerts.find(k => k.s3Key === old.s3Key));
+
+        for (const cert of certsToDelete) {
+            // Delete from S3
+            if (cert.s3Key) await s3Service.deleteFile(cert.s3Key).catch(e => console.error(e));
+            // Delete from SupplierDocument Table
+            await SupplierDocument.destroy({ where: { s3Key: cert.s3Key }, transaction });
+        }
+
+        // 3. Handle NEW Quality Certificate Uploads
+        const newDocumentRecords = [];
+        const newCertsJson = [...keptCerts]; // Start with the ones we kept
+
+        if (isCertified && req.files && req.files.qualityDocs) {
+            const files = req.files.qualityDocs;
+            const names = Array.isArray(qualityDocNames) ? qualityDocNames : [qualityDocNames];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const certLabel = names[i] || `Cert_${Date.now()}`;
+
+                const uploadResult = await s3Service.uploadToS3(file, currentSupplier.internalSupplierNumber);
+
+                newDocumentRecords.push({
+                    supplierId: id,
+                    documentType: 'QUALITY_CERT',
+                    fileName: certLabel,
+                    fileUrl: uploadResult.s3Key,
+                    s3Key: uploadResult.s3Key,
+                    status: 'ACTIVE'
+                });
+
+                newCertsJson.push({
+                    type: certLabel,
+                    fileName: file.originalname,
+                    s3Key: uploadResult.s3Key,
+                    uploadedAt: new Date()
+                });
+            }
+        }
+
+        // 4. Handle Mandatory Evaluation Form (Standard Replace)
+        if (req.files && req.files.evaluationDoc) {
+            const file = req.files.evaluationDoc[0];
+            const oldEval = await SupplierDocument.findOne({ where: { supplierId: id, documentType: 'EVALUATION' } });
+            
+            if (oldEval) {
+                await s3Service.deleteFile(oldEval.s3Key).catch(e => console.error(e));
+                await oldEval.destroy({ transaction });
+            }
+
+            const uploadResult = await s3Service.uploadToS3(file, currentSupplier.internalSupplierNumber);
+            newDocumentRecords.push({
+                supplierId: id,
+                documentType: 'EVALUATION',
+                fileName: file.originalname,
+                fileUrl: uploadResult.s3Key,
+                s3Key: uploadResult.s3Key,
+                status: 'ACTIVE'
+            });
+        }
+
+        // 5. Final Update to Supplier Table
+        await Supplier.update({
+            name,
+            email,
+            hasQualityCert: isCertified,
+            certifications: newCertsJson, // This now ONLY contains Kept + New certs
+            hasSefAndTradeRef: hasSefAndTradeRef === 'true',
+            expiryDate,
+            poNumber: !isCertified ? poNumber : null,
+            poDate: !isCertified ? poDate : null,
+            tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null,
+            status: 'PENDING'
+        }, { where: { id }, transaction });
+
+        if (newDocumentRecords.length > 0) {
+            await SupplierDocument.bulkCreate(newDocumentRecords, { transaction });
+        }
+
+        await transaction.commit();
+        res.json({ success: true, message: "Sync successful. Old files removed." });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
         res.status(500).json({ success: false, message: error.message });
     }
 };

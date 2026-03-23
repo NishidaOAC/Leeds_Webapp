@@ -1,7 +1,7 @@
 <div class="onboarding-wrapper">
   <header class="onboarding-header">
     <div class="brand">
-   
+
       <h1>Supplier Onboarding Portal</h1>
     </div>
 
@@ -81,8 +81,44 @@
               <input type="date" [(ngModel)]="form.poDate">
             </div>
           </div>
+
+          <div class="trade-references-section mt-4 animate-slide" *ngIf="!form.hasCert && !isRareCase">
+            <h3 class="section-subtitle">Trade References</h3>
+            <p class="section-hint mb-3">Please provide details for 3-4 trade references.</p>
+
+            <div class="table-responsive">
+              <table class="table table-borderless custom-trade-table">
+                <thead>
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Contact Email</th>
+                    <th>Phone</th>
+                    <th>Latest Response/Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let ref of form.tradeReferences; let i = index">
+                    <td>
+                      <input type="text" class="form-control" [(ngModel)]="ref.companyName"
+                        placeholder="Company {{i+1}}">
+                    </td>
+                    <td>
+                      <input type="email" class="form-control" [(ngModel)]="ref.email" placeholder="email@example.com">
+                    </td>
+                    <td>
+                      <input type="text" class="form-control" [(ngModel)]="ref.phone" placeholder="+123...">
+                    </td>
+                    <td>
+                      <input type="text" class="form-control" [(ngModel)]="ref.response" placeholder="N/A or Pending">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
           <div class="form-check form-switch mt-3">
-            <input class="form-check-input" type="checkbox" id="condSwitch" [(ngModel)]="isRareCase" (change)="toggleConditional()">
+            <input class="form-check-input" type="checkbox" id="condSwitch" [(ngModel)]="isRareCase"
+              (change)="toggleConditional()">
             <label class="form-check-label" for="condSwitch">Rare Case: No SEF/Trade Refs</label>
           </div>
         </div>
@@ -101,42 +137,39 @@
         </div>
       </div>
 
-<div class="certification-area mt-4" *ngIf="form.hasCert">
-  <h3 class="section-subtitle">Aviation & Quality Certifications</h3>
-  <p class="section-hint mb-3">Add all relevant certificates (EASA Part 145, FAA, AS9100, etc.)</p>
+      <div class="certification-area mt-4" *ngIf="form.hasCert">
+        <h3 class="section-subtitle">Aviation & Quality Certifications</h3>
+        <p class="section-hint mb-3">Add all relevant certificates (EASA Part 145, FAA, AS9100, etc.)</p>
 
-  <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-upload-compact animate-slide">
-    <i class="bi bi-file-earmark-check text-muted" style="font-size: 1.2rem;"></i>
+        <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-upload-compact animate-slide">
+          <i class="bi bi-file-earmark-check text-muted" style="font-size: 1.2rem;"></i>
 
-    <input type="text" 
-           class="cert-name-input" 
-           [(ngModel)]="cert.name" 
-           placeholder="Cert Name (e.g. FAA)">
+          <input type="text" class="cert-name-input" [(ngModel)]="cert.name" placeholder="Cert Name (e.g. FAA)">
 
-    <div class="file-status">
-      <span *ngIf="cert.file || cert.currentFileName" class="success-text">
-        <i class="bi bi-check2-circle"></i> 
-        {{ cert.file ? cert.file.name : cert.currentFileName }}
-      </span>
-      <span *ngIf="!cert.file && !cert.currentFileName">No file selected</span>
-    </div>
+          <div class="file-status">
+            <span *ngIf="cert.file || cert.currentFileName" class="success-text">
+              <i class="bi bi-check2-circle"></i>
+              {{ cert.file ? cert.file.name : cert.currentFileName }}
+            </span>
+            <span *ngIf="!cert.file && !cert.currentFileName">No file selected</span>
+          </div>
 
-    <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
-    <label [for]="'certFile' + i" class="btn-upload-sm">Select File</label>
+          <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
+          <label [for]="'certFile' + i" class="btn-upload-sm">Select File</label>
 
-    <div class="btn-remove" (click)="removeCert(i)" *ngIf="form.additionalCerts.length > 1">
-      <i class="bi bi-x-circle-fill"></i>
-    </div>
-  </div>
+          <div class="btn-remove" (click)="removeCert(i)" *ngIf="form.additionalCerts.length > 1">
+            <i class="bi bi-x-circle-fill"></i>
+          </div>
+        </div>
 
-  <!-- <button type="button" class="btn-aero-primary mt-2" (click)="addCertSlot()">
+        <!-- <button type="button" class="btn-aero-primary mt-2" (click)="addCertSlot()">
     <i class="bi bi-plus-circle-dotted"></i> Add Another Certification
   </button> -->
-  <button type="button" class="btn-add-outline" (click)="addCertSlot()">
-  <i class="bi bi-plus-circle"></i> 
-  Add Another Certification
-</button>
-</div>
+        <button type="button" class="btn-add-outline" (click)="addCertSlot()">
+          <i class="bi bi-plus-circle"></i>
+          Add Another Certification
+        </button>
+      </div>
 
 
     </div>

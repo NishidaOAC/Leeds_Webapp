@@ -101,38 +101,44 @@
         </div>
       </div>
 
-      <div class="certification-area mt-5" *ngIf="form.hasCert">
-        <h3 class="section-subtitle">Aviation & Quality Certifications</h3>
-        <p class="section-hint">Add all relevant certificates (EASA Part 145, FAA, AS9100, etc.)</p>
+<div class="certification-area mt-4" *ngIf="form.hasCert">
+  <h3 class="section-subtitle">Aviation & Quality Certifications</h3>
+  <p class="section-hint mb-3">Add all relevant certificates (EASA Part 145, FAA, AS9100, etc.)</p>
 
-        <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-row mb-3 p-3 border rounded shadow-sm bg-light">
-          <div class="row align-items-end">
-            <div class="col-md-5">
-              <div class="glass-input">
-                <label>Certification Type/Name</label>
-                <input type="text" [(ngModel)]="cert.name" placeholder="e.g. EASA Part 145">
-              </div>
-            </div>
-            <div class="col-md-5">
-              <div class="upload-inline">
-                <small class="d-block mb-1 text-muted" *ngIf="cert.currentFileName">Current: {{cert.currentFileName}}</small>
-                <small class="d-block mb-1 text-primary" *ngIf="cert.file">{{cert.file.name}}</small>
-                <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
-                <label [for]="'certFile' + i" class="btn btn-sm btn-outline-primary">Select File</label>
-              </div>
-            </div>
-            <div class="col-md-2 text-end">
-              <button class="btn btn-outline-danger btn-sm" (click)="removeCert(i)" *ngIf="form.additionalCerts.length > 1">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
+  <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-upload-compact animate-slide">
+    <i class="bi bi-file-earmark-check text-muted" style="font-size: 1.2rem;"></i>
 
-        <button type="button" class="btn-aero-primary" (click)="addCertSlot()">
-          <i class="bi bi-plus-circle me-1"></i> Add Another Certification
-        </button>
-      </div>
+    <input type="text" 
+           class="cert-name-input" 
+           [(ngModel)]="cert.name" 
+           placeholder="Cert Name (e.g. FAA)">
+
+    <div class="file-status">
+      <span *ngIf="cert.file || cert.currentFileName" class="success-text">
+        <i class="bi bi-check2-circle"></i> 
+        {{ cert.file ? cert.file.name : cert.currentFileName }}
+      </span>
+      <span *ngIf="!cert.file && !cert.currentFileName">No file selected</span>
+    </div>
+
+    <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
+    <label [for]="'certFile' + i" class="btn-upload-sm">Select File</label>
+
+    <div class="btn-remove" (click)="removeCert(i)" *ngIf="form.additionalCerts.length > 1">
+      <i class="bi bi-x-circle-fill"></i>
+    </div>
+  </div>
+
+  <!-- <button type="button" class="btn-aero-primary mt-2" (click)="addCertSlot()">
+    <i class="bi bi-plus-circle-dotted"></i> Add Another Certification
+  </button> -->
+  <button type="button" class="btn-add-outline" (click)="addCertSlot()">
+  <i class="bi bi-plus-circle"></i> 
+  Add Another Certification
+</button>
+</div>
+
+
     </div>
 
     <div *ngIf="step === 3" class="step-fade-in">

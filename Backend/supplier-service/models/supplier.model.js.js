@@ -22,11 +22,16 @@ const Supplier = sequelize.define('Supplier', {
     type: DataTypes.STRING,
     unique: true
   },
-
   onboardingStatusId: {
     type: DataTypes.INTEGER,
     references: { model: 'onboarding_statuses', key: 'id' },
     allowNull: true
+  },
+  // Added JSON field for multi-cert support
+  certifications: {
+    type: DataTypes.JSON, 
+    allowNull: true,
+    comment: "Stores array: [{type: 'FAA', expiry: '2026-01-01', s3Key: 'path/to/file.pdf'}]"
   },
   hasQualityCert: { 
     type: DataTypes.BOOLEAN, 
@@ -40,11 +45,9 @@ const Supplier = sequelize.define('Supplier', {
     type: DataTypes.JSON,
     allowNull: true
   },
-
   poNumber: { type: DataTypes.STRING, allowNull: true },
   poDate: { type: DataTypes.DATEONLY, allowNull: true },
   expiryDate: { type: DataTypes.DATEONLY, allowNull: true },
-
   status: {
     type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
     defaultValue: 'PENDING'

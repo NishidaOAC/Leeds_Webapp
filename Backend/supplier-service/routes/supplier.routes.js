@@ -3,18 +3,30 @@ const router = express.Router();
 const supplierCtrl = require('../controllers/supplier.controller');
 const upload = require('../middlewares/multerConfig'); 
 
+// UPDATED: Changed qualityDoc to qualityDocs and increased maxCount
 const cpUpload = upload.fields([
   { name: 'evaluationDoc', maxCount: 1 },
-  { name: 'qualityDoc', maxCount: 1 }
+  { name: 'qualityDocs', maxCount: 10 } // Allow up to 10 certifications
 ]);
 
 // Registration and List
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
+
 router.get('/', supplierCtrl.getAllSuppliers);
 router.get('/expirycurrentmonth', supplierCtrl.getAllSuppliersExpiryinCurrentmonth);
 router.delete('/:id', supplierCtrl.deleteSupplier);
 router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);
-router.put('/:id', upload.fields([{ name: 'evaluationDoc' }, { name: 'qualityDoc' }]), supplierCtrl.updateSupplier);
+
+// UPDATED: Update route also needs to support the plural 'qualityDocs'
+router.put('/:id', upload.fields([
+  { name: 'evaluationDoc', maxCount: 1 }, 
+  { name: 'qualityDocs', maxCount: 10 }
+]), supplierCtrl.updateSupplier);
+
+// Approval and Document Preview
+router.put('/approve/:supplierId', supplierCtrl.approveSupplier);
+router.get('/document/:documentId', supplierCtrl.viewSupplierDocument);
+
 
 // --- ADD THESE TWO ROUTES ---
 // 1. Fetch single supplier for the Audit page
@@ -33,9 +45,6 @@ router.get('/:id', async (req, res) => {
 });
 
 // 2. Approval endpoint
-router.put('/approve/:supplierId', supplierCtrl.approveSupplier);
 
-// Document Preview
-router.get('/document/:documentId', supplierCtrl.viewSupplierDocument);
 
 module.exports = router;

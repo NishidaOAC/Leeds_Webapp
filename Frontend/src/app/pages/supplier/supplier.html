@@ -25,15 +25,15 @@
 
   <main class="form-container shadow-xl">
     <div *ngIf="step === 1" class="step-fade-in">
-      <h2 class="section-title">Company Identity</h2>
+      <h2 class="section-title">Supplier Identity</h2>
       <div class="input-grid">
         <div class="glass-input">
-          <label>Company Legal Name</label>
+          <label>Supplier Legal Name</label>
           <input type="text" [(ngModel)]="form.name" placeholder="Enter Registered Name">
         </div>
         <div class="glass-input">
-          <label>Corporate Email</label>
-          <input type="email" [(ngModel)]="form.email" placeholder="email@company.com">
+          <label>Supplier Email</label>
+          <input type="email" [(ngModel)]="form.email" placeholder="email@supplier.com">
         </div>
       </div>
 
@@ -50,7 +50,7 @@
           <div class="card" [class.selected]="!form.hasCert" (click)="setQualityStatus(false)">
             <i class="bi bi-exclamation-triangle"></i>
             <div class="text">
-              <strong>Non-Certified</strong>
+              <strong>Non-Certified Supplier</strong>
               <small>SEF / Trade References / One-Time</small>
             </div>
           </div>
@@ -112,9 +112,9 @@
     
     <div class="ref-grid">
       <div class="ref-column">
-        <label class="column-label">COMPANY IDENTITY</label>
+        <label class="column-label">SUPPLIER IDENTITY</label>
         <div class="ref-input-group">
-          <input type="text" [(ngModel)]="ref.companyName" placeholder="Company Name" class="aero-input">
+          <input type="text" [(ngModel)]="ref.companyName" placeholder="Supplier Name" class="aero-input">
           <input type="email" [(ngModel)]="ref.email" placeholder="Contact Email" class="aero-input">
           <input type="text" [(ngModel)]="ref.phone" placeholder="Contact Person" class="aero-input">
         </div>

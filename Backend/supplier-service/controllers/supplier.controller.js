@@ -4,7 +4,7 @@ const s3Service = require('../services/s3Service.js');
 const { Supplier, SupplierDocument } = require('../models/index');
 const OnboardingStatus = require('../models/OnboardingStatus.js');
 const moment = require('moment');
-exports.onboardSupplier = async (req, res) => {
+exports.onboardSupplieroLD = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const {
@@ -106,6 +106,140 @@ exports.onboardSupplier = async (req, res) => {
     }
 };
 
+
+exports.onboardSupplier = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const {
+            name, email, hasQualityCert, hasSefAndTradeRef,
+            expiryDate, poNumber, poDate, tradeReferences
+        } = req.body;
+
+        // --- CHANGE 1: PRE-CHECK FOR DUPLICATE EMAIL ---
+        const existingEmail = await Supplier.findOne({ where: { email } });
+        if (existingEmail) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `The email ${email} is already registered to another supplier.` 
+            });
+        }
+
+        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
+        const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
+
+        // 1. Logic for Status
+        let statusCode;
+        let initialReviewer = 'SALES';
+
+        if (isCertified) {
+            statusCode = 'ONE_YEAR';
+            initialReviewer = 'QUALITY';
+        } else if (hasRefs) {
+            statusCode = 'ONE_TIME';
+        } else {
+            statusCode = 'CONDITIONAL';
+        }
+
+        const statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });
+
+        // --- CHANGE 2: FIX ID GENERATION (DON'T USE COUNT) ---
+        // We find the ACTUAL highest number currently in the DB for this year
+        const currentYear = moment().format('YY');
+        const lastSupplier = await Supplier.findOne({
+            where: { internalSupplierNumber: { [Op.like]: `SUP-${currentYear}-%` } },
+            order: [['internalSupplierNumber', 'DESC']],
+            transaction
+        });
+
+        let nextSequence = 1;
+        if (lastSupplier) {
+            // Safe extraction of the number part from "SUP-26-0011"
+            const parts = lastSupplier.internalSupplierNumber.split('-');
+            if (parts.length === 3) {
+                nextSequence = parseInt(parts[2], 10) + 1;
+            }
+        }
+        const internalNo = `SUP-${currentYear}-${nextSequence.toString().padStart(4, '0')}`;
+
+        // 3. Create Supplier 
+        const supplier = await Supplier.create({
+            name,
+            email,
+            internalSupplierNumber: internalNo,
+            hasQualityCert: isCertified,
+            hasSefAndTradeRef: hasRefs,
+            currentReviewer: initialReviewer,
+            status: 'PENDING',
+            onboardingStatusId: statusRecord?.id,
+            expiryDate: expiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
+            poNumber: !isCertified ? poNumber : null,
+            poDate: !isCertified ? poDate : null,
+            tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null
+        }, { transaction });
+
+        // 4. Handle S3 Uploads & SupplierDocument Records
+        const documentRecords = [];
+
+        // Evaluation Document
+        if (req.files && req.files.evaluationDoc) {
+            const file = req.files.evaluationDoc[0];
+            const uploadResult = await s3Service.uploadToS3(file, supplier.id);
+
+            documentRecords.push({
+                supplierId: supplier.id,
+                documentType: 'EVALUATION',
+                fileName: file.originalname,
+                fileUrl: uploadResult.s3Key, 
+                s3Key: uploadResult.s3Key, // Explicitly populate s3Key column
+                status: 'ACTIVE'
+            });
+        }
+
+        // Quality Certificate
+        if (isCertified && req.files.qualityDoc) {
+            const file = req.files.qualityDoc[0];
+            const uploadResult = await s3Service.uploadToS3(file, supplier.id);
+
+            documentRecords.push({
+                supplierId: supplier.id,
+                documentType: 'QUALITY_CERT', // CHANGE 3: Fixed DocumentType label
+                fileName: file.originalname,
+                fileUrl: uploadResult.s3Key, 
+                s3Key: uploadResult.s3Key,   
+                status: 'ACTIVE'
+            });
+        }
+
+        // Save document metadata to DB
+        if (documentRecords.length > 0) {
+            await SupplierDocument.bulkCreate(documentRecords, { transaction });
+        }
+
+        await transaction.commit();
+
+        res.status(201).json({
+            success: true,
+            supplierId: supplier.id,
+            internalSupplierNumber: supplier.internalSupplierNumber,
+            assignedStatus: statusCode,
+            documentsUploaded: documentRecords.length
+        });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error("Onboarding Error:", error);
+
+        // --- CHANGE 4: SPECIFIC ERROR CATCHING ---
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(409).json({ 
+                success: false, 
+                message: "A supplier with this Email or ID already exists." 
+            });
+        }
+
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 /**
  * 2. GET ALL SUPPLIERS (With Documents)

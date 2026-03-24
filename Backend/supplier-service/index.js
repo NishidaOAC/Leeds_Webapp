@@ -27,22 +27,24 @@ const logger = winston.createLogger({
 
 const app = express();
 
-// Middleware
+// --- 1. BODY PARSING LIMITS (Set once here) ---
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// --- 2. SECURITY & CORS ---
 app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Request logging
+// --- 3. REQUEST LOGGING ---
 app.use((req, res, next) => {
   logger.info({ method: req.method, url: req.url, ip: req.ip });
   next();
 });
 
-// Routes
+// --- 4. ROUTES ---
 app.use('/', supplierRoutes);
 
 // Health check
@@ -55,7 +57,7 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// Error handling
+// --- 5. ERROR HANDLING ---
 app.use((err, req, res, next) => {
   logger.error({ error: err.message, stack: err.stack });
   res.status(err.status || 500).json({ success: false, message: err.message });
@@ -83,10 +85,9 @@ async function startServer() {
       await sequelize.sync({ alter: true });
     } 
 
-    // --- CRITICAL ADDITION: SEED THE DATA ---
+    // Seed the data
     logger.info('Checking for Onboarding Status data...');
     await OnboardingStatus.seed(); 
-    // ----------------------------------------
 
     logger.info('Supplier Service Database synchronization & seeding completed');
 

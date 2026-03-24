@@ -174,20 +174,104 @@
 
     </div>
 
-    <div *ngIf="step === 3" class="step-fade-in">
-      <div class="review-card">
-        <h3>Review Registration</h3>
-        <p><strong>Supplier:</strong> {{form.name}}</p>
-        <hr>
-        <h6>Documents to be uploaded:</h6>
-        <ul>
-          <li *ngIf="form.evaluationFile || form.currentEvaluationName">Evaluation Form ✅</li>
-          <li *ngFor="let cert of form.additionalCerts">
-            {{ cert.name || 'Unnamed Cert' }} <span *ngIf="cert.file || cert.currentFileName">✅</span>
-          </li>
-        </ul>
+   <div *ngIf="step === 3" class="step-fade-in">
+  <div class="review-container">
+    <div class="review-header mb-4">
+      <h2 class="section-title">Final Review</h2>
+      <p class="section-hint">Please verify all information before submitting the onboarding request.</p>
+    </div>
+
+    <div class="review-grid">
+      <div class="review-card shadow-sm">
+        <div class="card-head">
+          <i class="bi bi-person-badge"></i>
+          <span>Supplier Identity</span>
+        </div>
+        <div class="card-body">
+          <div class="review-item">
+            <label>Legal Name</label>
+            <p>{{ form.name || 'Not Provided' }}</p>
+          </div>
+          <div class="review-item">
+            <label>Contact Email</label>
+            <p>{{ form.email || 'Not Provided' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card shadow-sm">
+        <div class="card-head">
+          <i class="bi bi-shield-check"></i>
+          <span>Compliance Path</span>
+        </div>
+        <div class="card-body">
+          <div class="review-item">
+            <label>Assessment Type</label>
+            <p class="status-tag" [attr.data-type]="getSelectedStatusCode()">
+              {{ getSelectedStatusLabel() }}
+            </p>
+          </div>
+          <div class="review-item" *ngIf="form.expiryDate">
+            <label>System Expiry</label>
+            <p>{{ form.expiryDate | date:'mediumDate' }}</p>
+          </div>
+          <div class="review-item" *ngIf="!form.hasCert && form.poNumber">
+            <label>Target PO</label>
+            <p>#{{ form.poNumber }} ({{ form.poDate | date:'shortDate' }})</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card shadow-sm full-width">
+        <div class="card-head">
+          <i class="bi bi-file-earmark-zip"></i>
+          <span>Document & Evidence Checklist</span>
+        </div>
+        <div class="card-body document-list">
+          <div class="doc-row">
+            <div class="doc-info">
+              <i class="bi bi-file-earmark-pdf"></i>
+              <span>Supplier Evaluation Form</span>
+            </div>
+            <div class="doc-status">
+              <span *ngIf="form.evaluationFile || form.currentEvaluationName" class="badge-success">
+                <i class="bi bi-check-circle-fill"></i> Ready
+              </span>
+              <span *ngIf="!form.evaluationFile && !form.currentEvaluationName" class="badge-warning">
+                <i class="bi bi-exclamation-circle"></i> Missing
+              </span>
+            </div>
+          </div>
+
+          <div class="doc-row" *ngIf="!form.hasCert && !isRareCase">
+            <div class="doc-info">
+              <i class="bi bi-people"></i>
+              <span>Trade References ({{form.tradeReferences.length}} provided)</span>
+            </div>
+            <div class="doc-status">
+               <span class="badge-success"><i class="bi bi-check-circle-fill"></i> Linked</span>
+            </div>
+          </div>
+
+          <div class="doc-row" *ngFor="let cert of form.additionalCerts">
+            <div class="doc-info">
+              <i class="bi bi-patch-check"></i>
+              <span>{{ cert.name || 'Unnamed Certificate' }}</span>
+            </div>
+            <div class="doc-status">
+              <span *ngIf="cert.file || cert.currentFileName" class="badge-success">
+                <i class="bi bi-check-circle-fill"></i> Uploaded
+              </span>
+              <span *ngIf="!cert.file && !cert.currentFileName" class="badge-warning">
+                <i class="bi bi-dash-circle"></i> No File
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
+</div>
 
     <footer class="form-footer">
       <button class="btn-back" (click)="prev()" *ngIf="step > 1">Back</button>

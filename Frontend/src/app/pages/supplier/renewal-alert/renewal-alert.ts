@@ -28,7 +28,7 @@ get currentMonth(): string {
   return new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date());
 }
 
-  loadAlerts() {
+  loadAlertsOlf() {
     this.supplierService.getSuppliersinCurrentMonth().subscribe({
       next: (data) => {
         const today = new Date();
@@ -51,7 +51,35 @@ get currentMonth(): string {
       error: (err) => console.error("Error loading alerts", err)
     });
   }
+loadAlerts() {
+  this.supplierService.getSuppliersinCurrentMonth().subscribe({
+    next: (data) => {
+      const today = new Date();
+      
+      this.expiredSuppliers = data.filter(s => {
+        // FLAG 1: If no date exists, they need action!
+        if (!s.expiryDate) {
+          console.log(`Supplier: ${s.name || 'Unknown'} - No expiry date found (Flagged)`);
+          return true;
+        }
 
+        const expiry = new Date(s.expiryDate);
+        const diff = expiry.getTime() - today.getTime();
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+        // DEBUG LOG: See the calculated days for every supplier
+        console.log(`Supplier: ${s.name || 'Unknown'} | Expiry: ${s.expiryDate} | Days remaining: ${days}`);
+
+        // FLAG 2: Show if expired, expiring soon (30 days), 
+        // or use 400 temporarily to verify your UI is working
+        return days <= 400; 
+      });
+      
+      console.log("--- Final List of Filtered Suppliers ---", this.expiredSuppliers);
+    },
+    error: (err) => console.error("Error loading alerts", err)
+  });
+}
 
   getDays(date: string | null): number {
   if (!date) return 0;

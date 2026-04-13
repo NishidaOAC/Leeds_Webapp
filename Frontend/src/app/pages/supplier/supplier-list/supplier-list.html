@@ -99,34 +99,40 @@
             </td>
 
             <td>
-              <div class="doc-links">
+              <div class="doc-links doc-container">
                 <button *ngFor="let doc of s.Documents" (click)="previewDoc(doc.id, doc.fileName || '', s.id)"
-                  class="doc-pill" [attr.title]="doc.fileName" [class.viewing]="selectedDocName === doc.fileName">
+                  class="doc-pill">
+
                   <i class="bi"
                     [ngClass]="doc.documentType === 'QUALITY_CERT' ? 'bi-patch-check' : 'bi-file-earmark-text'"></i>
-                  {{ doc.documentType === 'QUALITY_CERT' ? 'QC' : 'EVAL' }}
+
+                  <span class="pill-text">
+                    {{ (doc.documentType === 'SAF' || doc.documentType === 'EVALUATION') ? 'SAF' : doc.fileName }}
+                  </span>
                 </button>
+
                 <span *ngIf="!s.Documents?.length" class="no-docs">No Files</span>
               </div>
             </td>
-<td class="actions">
-  <div class="action-group">
-    <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]" title="Audit Documents">
-      <i class="bi bi-shield-check"></i>
-      <span>View</span>
-    </button>
+            <td class="actions">
+              <div class="action-group">
+                <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]"
+                  title="Audit Documents">
+                  <i class="bi bi-shield-check"></i>
+                  <span>View</span>
+                </button>
 
-    <button class="btn-icon btn-edit" (click)="editSupplier(s)" title="Edit Supplier">
-      <i class="bi bi-pencil-square"></i>
-      <span>Edit</span>
-    </button>
+                <button class="btn-icon btn-edit" (click)="editSupplier(s)" title="Edit Supplier">
+                  <i class="bi bi-pencil-square"></i>
+                  <span>Edit</span>
+                </button>
 
-    <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)" title="Delete Record">
-      <i class="bi bi-trash3"></i>
-      <span>Delete</span>
-    </button>
-  </div>
-</td>
+                <button class="btn-icon btn-delete" (click)="onDelete(s.id, s.name)" title="Delete Record">
+                  <i class="bi bi-trash3"></i>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>

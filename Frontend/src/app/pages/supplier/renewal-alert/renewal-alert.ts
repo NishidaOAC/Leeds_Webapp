@@ -81,6 +81,37 @@ loadAlerts() {
   });
 }
 
+// Inside your RenewalAlert class
+getUrgencyLevel(supplier: any): 'critical' | 'warning' | 'info' {
+  const days = this.getDays(supplier.expiryDate);
+  const statusCode = supplier.onboardingStatus?.code;
+
+  // 1. CRITICAL: Anything 2 days or less OR Expired
+  if (days <= 2) return 'critical';
+
+  // 2. CONDITIONAL: More sensitive. If it's conditional and < 14 days, mark as warning
+  if (statusCode === 'CONDITIONAL' && days <= 14) return 'warning';
+
+  // 3. ONE_YEAR: Standard warning at 7 days
+  if (days <= 7) return 'warning';
+
+  return 'info';
+}
+getStatusColor(expiryDate: string | Date): string {
+  if (!expiryDate) return 'gray'; // No date, no color or default
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expiry = new Date(expiryDate);
+  const diff = expiry.getTime() - today.getTime();
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+  if (days <= 0) return 'red';      // Already expired
+  if (days <= 2) return 'orange';   // Critical: 1-2 days left
+  if (days <= 7) return 'yellow';   // Warning: 1 week left
+  return 'green';                   // Safe
+}
+
   getDays(date: string | null): number {
   if (!date) return 0;
   const diff = new Date(date).getTime() - new Date().getTime();

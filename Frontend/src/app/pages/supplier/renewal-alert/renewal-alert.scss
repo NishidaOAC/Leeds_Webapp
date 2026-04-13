@@ -303,3 +303,62 @@ $success-green: #22c55e;
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+.critical-border { border-left: 6px solid #d9534f !important; background-color: #fff8f8; }
+.warning-border { border-left: 6px solid #f0ad4e !important; }
+
+.type-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.type-one-year {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-color: #bbdefb;
+}
+
+.type-conditional {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  border-color: #e1bee7;
+}
+
+.text-danger { color: #d9534f !important; font-weight: bold; }
+
+
+/* Card Border */
+.critical-border {
+  border-left: 6px solid #dc3545 !important; /* Red */
+  background-color: #fff5f5; /* Light Red tint */
+}
+
+/* The Status Pill (Expiring Soon vs Urgent) */
+.status-pill.urgent {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+/* Approval Type Badges (Distinguishing One Year vs Conditional) */
+.badge-one-year {
+  background-color: #e3f2fd;
+  color: #0d6efd;
+  border: 1px solid #0d6efd;
+}
+
+.badge-one-time {
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.badge-conditional {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}

@@ -9,37 +9,39 @@
   </div>
 
   <div class="alert-list">
-    <div *ngFor="let supplier of expiredSuppliers" 
-         class="standard-card"
-         [class.danger-border]="getDays(supplier.expiryDate) <= 0"
-         [class.warning-border]="getDays(supplier.expiryDate) > 0">
-      
-      <div class="card-left">
-        <div class="status-icon" [ngClass]="getDays(supplier.expiryDate) <= 0 ? 'text-danger' : 'text-warning'">
-          <i class="bi" [ngClass]="getDays(supplier.expiryDate) <= 0 ? 'bi-slash-circle-fill' : 'bi-clock-history'"></i>
-        </div>
-        <div class="supplier-info">
-          <div class="name-row">
-            <h4>{{ supplier.name }}</h4>
-            <span class="status-pill" [class.expired]="getDays(supplier.expiryDate) <= 0">
-               {{ getDays(supplier.expiryDate) <= 0 ? 'Expired' : 'Expiring Soon' }}
-            </span>
-          </div>
-          <div class="date-details">
-            <i class="bi bi-calendar3"></i>
-            <span>Expires: <strong>{{ supplier.expiryDate | date:'mediumDate' }}</strong></span>
-            <span class="days-text">({{ getDays(supplier.expiryDate) }} days remaining)</span>
-          </div>
-        </div>
+<div *ngFor="let supplier of expiredSuppliers" 
+     class="standard-card"
+     [class.critical-border]="getDays(supplier.expiryDate) <= 2">
+  
+  <div class="card-left">
+    <div class="supplier-info">
+      <div class="name-row">
+        <h4>{{ supplier.name }}</h4>
+
+        <span class="type-badge" [ngClass]="{
+          'badge-one-year': supplier.OnboardingStatus?.code === 'ONE_YEAR',
+          'badge-one-time': supplier.OnboardingStatus?.code === 'ONE_TIME',
+          'badge-conditional': supplier.OnboardingStatus?.code === 'CONDITIONAL'
+        }">
+          {{ supplier.OnboardingStatus?.label }}
+        </span>
+
+        <span class="status-pill" 
+              [ngClass]="getDays(supplier.expiryDate) <= 2 ? 'urgent' : 'warning'">
+            {{ getDays(supplier.expiryDate) <= 2 ? 'URGENT RENEWAL' : 'EXPIRING SOON' }}
+        </span>
       </div>
 
-      <div class="card-right">
-        <button class="btn-standard-outline" (click)="requestRenewal(supplier)">
-          <i class="bi bi-send-fill"></i>
-          Request Update
-        </button>
+      <div class="date-details">
+        <i class="bi bi-calendar3"></i>
+        <span>Expires: {{ supplier.expiryDate | date:'mediumDate' }} </span>
+        <span [style.color]="getDays(supplier.expiryDate) <= 2 ? '#dc3545' : 'inherit'" style="font-weight: bold;">
+          ({{ getDays(supplier.expiryDate) }} days remaining)
+        </span>
       </div>
     </div>
+  </div>
+</div>
   </div>
 </div>
 

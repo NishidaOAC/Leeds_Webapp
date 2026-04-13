@@ -42,6 +42,7 @@ loadCurrentMonthExpiries(): void {
   this.supplierService.getSuppliersinCurrentMonth().subscribe({
     next: (res) => {
       this.suppliers = res;
+      console.log('Current month expiries:', res);
       this.urgentCount = res.length; // The simplest way: just take the result count
     },
     error: (err) => console.error('Error fetching expiries', err)
@@ -180,6 +181,9 @@ loadSuppliers(): void {
         if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
         return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
       });
+
+      console.log('Suppliers Loaded Successfully:');
+      console.table(this.suppliers);
 
       this.loading = false;
     },

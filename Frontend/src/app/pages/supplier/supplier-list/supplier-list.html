@@ -30,7 +30,7 @@
             <th>Supplier Details</th>
             <th>Type & Pathway</th>
             <th>Status</th>
-            <th>Compliance / PO</th>
+            <th>Compliance</th>
             <th>Expiry Date</th>
             <th>Documents</th>
             <th class="text-center">Action</th>
@@ -113,7 +113,7 @@
   <div class="action-group">
     <button class="btn-icon btn-audit" [routerLink]="['/dashboard/supplier/managedocuments', s.id]" title="Audit Documents">
       <i class="bi bi-shield-check"></i>
-      <span>Audit</span>
+      <span>View</span>
     </button>
 
     <button class="btn-icon btn-edit" (click)="editSupplier(s)" title="Edit Supplier">

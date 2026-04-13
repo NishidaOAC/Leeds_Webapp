@@ -21,7 +21,10 @@ export class Supplier implements OnInit {
 
   onboardingStatuses: any[] = [];
   selectedStatusId: number | null = null;
-
+readonly CERT_OPTIONS = [
+  'FAA AC 00-56', 'EASA Part 145', 'AFRA ACCREDITED', 'ISO 9001', 
+  'AS9100/EN9100', 'OEM AUTHORIZED', 'REPAIR STATION', 'OTHER'
+];
 // --- UPDATE THIS SECTION AT THE TOP OF YOUR CLASS ---
 form = {
   id: null as number | null,
@@ -135,8 +138,19 @@ patchSupplierForm(supplier: any) {
       }
     });
   }
-
   syncStatusLogic() {
+  // Logic: 
+  // hasCert = true -> ONE_YEAR
+  // hasCert = false AND isRareCase = true -> CONDITIONAL
+  // hasCert = false AND isRareCase = false -> ONE_TIME
+  let code = this.form.hasCert ? 'ONE_YEAR' : (this.isRareCase ? 'CONDITIONAL' : 'ONE_TIME');
+  
+  if (!this.onboardingStatuses.length) return;
+  const found = this.onboardingStatuses.find(s => s.code === code);
+  if (found) this.selectedStatusId = found.id;
+}
+
+  syncStatusLogicOld() {
     let code = this.form.hasCert ? 'ONE_YEAR' : (this.isRareCase ? 'CONDITIONAL' : 'ONE_TIME');
     if (!this.onboardingStatuses.length) return;
     const found = this.onboardingStatuses.find(s => s.code === code);

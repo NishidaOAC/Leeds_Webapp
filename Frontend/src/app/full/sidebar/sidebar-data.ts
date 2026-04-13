@@ -37,7 +37,7 @@ export const navItems: NavItem[] = [
     route: '/dashboard/users',
     roles: ['Admin', 'Quality Super Administrator']
   },
-  // Items without 'Quality Super Administrator' will be hidden
+  // Quality Admin is NOT in the roles below, so they will be filtered out
   {
     displayName: 'Company',
     iconName: 'layout-grid-add',
@@ -48,6 +48,18 @@ export const navItems: NavItem[] = [
     displayName: 'Role',
     iconName: 'layout-grid-add',
     route: '/dashboard/users/roles',
+    roles: ['Admin']
+  },
+  {
+    displayName: 'Team',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/users/teams',
+    roles: ['Admin']
+  },
+  {
+    displayName: 'Report',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/payments/report',
     roles: ['Admin']
   }
 ];

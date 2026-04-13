@@ -1,20 +1,13 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BrandingComponent } from './branding.component';
 import { NavItem } from './nav-item/nav-item';
-import { navItems } from './sidebar-data'; // Ensure this path is correct
+import { navItems } from './sidebar-data';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  // CommonModule fixes @for/@if; RouterModule fixes [routerLink]
   imports: [BrandingComponent, CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
 })
@@ -23,7 +16,7 @@ export class SidebarComponent implements OnInit {
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
 
-  // This fixes the "Property 'filteredNavItems' does not exist" error
+  // This variable is required to fix your TS2339 error
   public filteredNavItems: NavItem[] = [];
 
   constructor() {}
@@ -33,25 +26,23 @@ export class SidebarComponent implements OnInit {
   }
 
   filterNavByRole(): void {
-    // In your image, 'user' contains the object with the 'name' field
-    const userDataString = localStorage.getItem('user');
+    // 1. Get the 'user' object from localStorage as seen in your screenshot
+    const userString = localStorage.getItem('user');
     
-    if (userDataString) {
+    if (userString) {
       try {
-        const userData = JSON.parse(userDataString);
-        // From your screenshot, the role is stored in 'name'
-        const userRole = userData.name; 
+        const userObj = JSON.parse(userString);
+        // 2. Access the 'name' field which contains "Quality Super Administrator"
+        const userRole = userObj.name; 
 
-        // Filter: Match the user's role against the roles array in sidebar-data.ts
+        // 3. Filter the list
         this.filteredNavItems = navItems.filter(item => 
           item.roles && item.roles.includes(userRole)
         );
       } catch (error) {
-        console.error("Error parsing user data", error);
+        console.error("Auth Error:", error);
         this.filteredNavItems = [];
       }
-    } else {
-      this.filteredNavItems = [];
     }
   }
 }

@@ -433,3 +433,26 @@ $warning: #F59E0B;
 
 .badge-success { color: #27ae60; font-weight: 600; }
 .badge-warning { color: #f39c12; font-weight: 600; }
+.cert-name-input {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 6px;
+  padding: 4px 8px;
+  flex: 1;
+  max-width: 250px;
+  
+  option {
+    background: #2c3e50; /* Adjust to match your theme background */
+    color: white;
+  }
+}
+
+.custom-trade-table {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  
+  th { color: #aab2bd; font-weight: 500; font-size: 0.85rem; }
+  input { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.1); color: white; }
+}

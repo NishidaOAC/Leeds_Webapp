@@ -137,3 +137,56 @@
   }
 }
 
+/* Container to keep pills in one line */
+.doc-container {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+  max-width: 400px; /* Adjust based on your column width */
+  overflow-x: auto; /* Adds a scrollbar if there are too many certs */
+  padding-bottom: 4px;
+}
+
+/* The Pill Design */
+.doc-pill {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  transition: all 0.2s;
+  height: 28px;
+}
+
+.doc-pill i {
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+/* Handle long filenames like that "WAR LOCKDOWN..." one */
+.pill-text {
+  max-width: 100px; /* Caps the width of long names */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adds "..." to long text */
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.doc-pill:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Styling for the Active/Selected doc */
+.doc-pill.viewing {
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
+}
+

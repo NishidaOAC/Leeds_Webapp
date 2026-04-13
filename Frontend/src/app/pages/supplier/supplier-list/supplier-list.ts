@@ -195,6 +195,15 @@ loadSuppliers(): void {
 }
 
 
+getCertName(supplier: any, doc: any): string {
+  if (doc.documentType === 'QUALITY_CERT') {
+    // Find the certification entry where the filename matches the document filename
+    const cert = supplier.certifications?.find((c: any) => c.fileName === doc.fileName);
+    return cert ? cert.type : 'QC';
+  }
+  return doc.documentType === 'EVAL_FORM' ? 'SAF' : doc.documentType;
+}
+
 // Add these to your component class
 getPathLabel(s: any): string {
     if (s.hasQualityCert) return 'Standard (Certified)';

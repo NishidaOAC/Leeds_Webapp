@@ -23,6 +23,11 @@ export class RenewalAlert implements OnInit {
     this.loadAlerts();
   }
 
+  // Add this inside your component class
+get currentMonth(): string {
+  return new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date());
+}
+
   loadAlerts() {
     this.supplierService.getSuppliersinCurrentMonth().subscribe({
       next: (data) => {

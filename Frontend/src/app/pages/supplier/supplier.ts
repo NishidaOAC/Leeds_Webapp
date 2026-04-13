@@ -23,7 +23,7 @@ export class Supplier implements OnInit {
   selectedStatusId: number | null = null;
 readonly CERT_OPTIONS = [
   'FAA AC 00-56', 'EASA Part 145', 'AFRA ACCREDITED', 'ISO 9001', 
-  'AS9100/EN9100', 'OEM AUTHORIZED', 'REPAIR STATION', 'OTHER'
+  'AS9100/EN9100', 'OEM AUTHORIZED', 'REPAIR STATION', 
 ];
 // --- UPDATE THIS SECTION AT THE TOP OF YOUR CLASS ---
 form = {

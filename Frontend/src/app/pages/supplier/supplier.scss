@@ -456,3 +456,39 @@ $warning: #F59E0B;
   th { color: #aab2bd; font-weight: 500; font-size: 0.85rem; }
   input { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.1); color: white; }
 }
+
+/* Highlight for the "Clear" button */
+.text-warning {
+  color: #ffb100 !important; // Deep yellow for better visibility
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+  
+  &:hover {
+    color: #e69500 !important;
+    opacity: 0.8;
+  }
+}
+
+/* Highlight for the "Trash" button */
+.text-danger {
+  color: #ff4d4d !important; // Bright red
+  transition: transform 0.2s;
+
+  &:hover {
+    color: #e60000 !important;
+    transform: scale(1.2); // Makes the trash icon grow slightly on hover
+  }
+}
+
+/* Ensure the filename doesn't push buttons off-screen */
+.file-status {
+  display: flex;
+  align-items: center;
+  max-width: 60%; 
+  
+  .success-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; // Adds "..." to long filenames
+  }
+}

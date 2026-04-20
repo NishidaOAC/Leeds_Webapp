@@ -110,38 +110,52 @@
         </div>
       </div>
       <br>
+<div class="certification-area mt-4" *ngIf="form.hasCert">
+  <h3 class="section-subtitle">Aviation & Quality Certifications</h3>
 
-      <div class="certification-area mt-4" *ngIf="form.hasCert">
-        <h3 class="section-subtitle">Aviation & Quality Certifications</h3>
+  <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-upload-compact animate-slide">
+    <i class="bi bi-patch-check text-primary"></i>
 
-        <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-upload-compact animate-slide">
-          <i class="bi bi-patch-check text-primary"></i>
+    <select class="cert-name-input form-select-sm" [(ngModel)]="cert.name">
+      <option value="" disabled selected>Select Certification Type</option>
+      <option *ngFor="let opt of CERT_OPTIONS" [value]="opt">{{opt}}</option>
+    </select>
 
-          <select class="cert-name-input form-select-sm" [(ngModel)]="cert.name">
-            <option value="" disabled selected>Select Certification Type</option>
-            <option *ngFor="let opt of CERT_OPTIONS" [value]="opt">{{opt}}</option>
-          </select>
+    <div class="file-status d-flex align-items-center justify-content-between flex-grow-1 ms-2">
+      <span *ngIf="cert.file || cert.currentFileName" class="success-text text-truncate" style="max-width: 250px;">
+        <i class="bi bi-check2-circle"></i>
+        {{ cert.file ? cert.file.name : cert.currentFileName }}
+      </span>
+      <span *ngIf="!cert.file && !cert.currentFileName" class="text-muted small">No file attached</span>
 
-          <div class="file-status">
-            <span *ngIf="cert.file || cert.currentFileName" class="success-text">
-              <i class="bi bi-check2-circle"></i>
-              {{ cert.file ? cert.file.name : cert.currentFileName }}
-            </span>
-            <span *ngIf="!cert.file && !cert.currentFileName" class="text-muted small">No file</span>
-          </div>
+      <div class="d-flex align-items-center">
+        <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
+        
+        <label [for]="'certFile' + i" class="btn-upload-sm" *ngIf="!cert.file && !cert.currentFileName">
+          Upload
+        </label>
 
-          <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
-          <label [for]="'certFile' + i" class="btn-upload-sm">Upload</label>
+    <button type="button" class="btn btn-link text-warning p-0 ms-3 fw-bold text-decoration-none text-uppercase" 
+        (click)="clearCertFile(i)" 
+        *ngIf="cert.file || cert.currentFileName" 
+        title="Clear File">
+  <i class="bi bi-x-circle-fill me-1"></i>Clear
+</button>
 
-          <div class="btn-remove" (click)="removeCert(i)" *ngIf="form.additionalCerts.length > 1">
-            <i class="bi bi-x-circle-fill"></i>
-          </div>
-        </div>
-
-        <button type="button" class="btn-add-outline" (click)="addCertSlot()">
-          <i class="bi bi-plus-circle"></i> Add Certification
-        </button>
+<button type="button" class="btn btn-link text-danger p-0 ms-3 fw-bold" 
+        (click)="removeCert(i)" 
+        *ngIf="form.additionalCerts.length > 1" 
+        title="Remove Certification Slot">
+  <i class="bi bi-trash3-fill" style="font-size: 1.1rem;"></i>
+</button>
       </div>
+    </div>
+  </div>
+
+  <button type="button" class="btn-add-outline mt-2" (click)="addCertSlot()">
+    <i class="bi bi-plus-circle"></i> Add Certification
+  </button>
+</div>
 
          <div class="trade-references-section mt-4 animate-slide" *ngIf="!form.hasCert">
             <h3 class="section-subtitle">Trade References <span class="text-danger">*</span></h3>

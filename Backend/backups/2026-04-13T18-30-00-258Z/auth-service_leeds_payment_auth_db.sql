@@ -18,20 +18,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: enum_Users_status; Type: TYPE; Schema: public; Owner: oac_softwares
---
-
-CREATE TYPE public."enum_Users_status" AS ENUM (
-    'pending_approval',
-    'approved',
-    'rejected',
-    'suspended'
-);
-
-
-ALTER TYPE public."enum_Users_status" OWNER TO oac_softwares;
-
---
 -- Name: enum_roles_power; Type: TYPE; Schema: public; Owner: oac_softwares
 --
 
@@ -189,55 +175,6 @@ ALTER SEQUENCE public."Team_id_seq" OWNED BY public."Team".id;
 
 
 --
--- Name: Users; Type: TABLE; Schema: public; Owner: oac_softwares
---
-
-CREATE TABLE public."Users" (
-    id integer NOT NULL,
-    email character varying(255) NOT NULL,
-    password character varying(255) NOT NULL,
-    name character varying(255) NOT NULL,
-    emp_no character varying(255),
-    role_id integer DEFAULT 1 NOT NULL,
-    is_active boolean DEFAULT false,
-    status public."enum_Users_status" DEFAULT 'pending_approval'::public."enum_Users_status",
-    approved_by integer,
-    approved_at timestamp with time zone,
-    last_login timestamp with time zone,
-    failed_login_attempts integer DEFAULT 0,
-    password_changed_at timestamp with time zone,
-    reset_password_token character varying(255),
-    reset_password_expires timestamp with time zone,
-    "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL
-);
-
-
-ALTER TABLE public."Users" OWNER TO oac_softwares;
-
---
--- Name: Users_id_seq; Type: SEQUENCE; Schema: public; Owner: oac_softwares
---
-
-CREATE SEQUENCE public."Users_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public."Users_id_seq" OWNER TO oac_softwares;
-
---
--- Name: Users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: oac_softwares
---
-
-ALTER SEQUENCE public."Users_id_seq" OWNED BY public."Users".id;
-
-
---
 -- Name: notification; Type: TABLE; Schema: public; Owner: oac_softwares
 --
 
@@ -368,6 +305,7 @@ ALTER SEQUENCE public.user_approvals_id_seq OWNED BY public.user_approvals.id;
 CREATE TABLE public.users (
     id integer NOT NULL,
     email character varying(255) NOT NULL,
+    "personalEmail" character varying(255),
     password character varying(255) NOT NULL,
     name character varying(255) NOT NULL,
     "empNo" character varying(255),
@@ -432,13 +370,6 @@ ALTER TABLE ONLY public."TeamMember" ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- Name: Users id; Type: DEFAULT; Schema: public; Owner: oac_softwares
---
-
-ALTER TABLE ONLY public."Users" ALTER COLUMN id SET DEFAULT nextval('public."Users_id_seq"'::regclass);
-
-
---
 -- Name: notification id; Type: DEFAULT; Schema: public; Owner: oac_softwares
 --
 
@@ -471,7 +402,6 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 --
 
 COPY public."Team" (id, "teamName", "createdAt", "updatedAt") FROM stdin;
-1	TeamA	2026-01-20 15:56:12.701+05:30	2026-01-20 16:02:59.432+05:30
 \.
 
 
@@ -480,7 +410,6 @@ COPY public."Team" (id, "teamName", "createdAt", "updatedAt") FROM stdin;
 --
 
 COPY public."TeamLeader" (id, "teamId", "userId", "createdAt", "updatedAt") FROM stdin;
-2	1	2	2026-01-20 16:02:59.441+05:30	2026-01-20 16:02:59.441+05:30
 \.
 
 
@@ -489,16 +418,6 @@ COPY public."TeamLeader" (id, "teamId", "userId", "createdAt", "updatedAt") FROM
 --
 
 COPY public."TeamMember" (id, "teamId", "userId", "createdAt", "updatedAt") FROM stdin;
-3	1	1	2026-01-20 16:02:59.447+05:30	2026-01-20 16:02:59.447+05:30
-4	1	3	2026-01-20 16:02:59.447+05:30	2026-01-20 16:02:59.447+05:30
-\.
-
-
---
--- Data for Name: Users; Type: TABLE DATA; Schema: public; Owner: oac_softwares
---
-
-COPY public."Users" (id, email, password, name, emp_no, role_id, is_active, status, approved_by, approved_at, last_login, failed_login_attempts, password_changed_at, reset_password_token, reset_password_expires, "createdAt", "updatedAt") FROM stdin;
 \.
 
 
@@ -515,9 +434,8 @@ COPY public.notification (id, "userId", message, "isRead", "createdAt", route) F
 --
 
 COPY public.roles (id, "roleName", abbreviation, power, description, permissions, "isActive", created_at, updated_at) FROM stdin;
-1	Super Administrator	SA	Admin	Has all permissions	["*"]	t	2026-01-20 13:38:08.131+05:30	2026-01-20 13:38:08.131+05:30
-5	Team Lead	TL	SalesExecutive	\N	[]	t	2026-01-20 14:43:51.876+05:30	2026-01-20 14:43:51.876+05:30
-7	Sales Associate	SE	SalesExecutive	\N	[]	t	2026-01-20 14:44:24.705+05:30	2026-01-20 14:44:24.705+05:30
+1	Super Administrator	SA	Admin	Has all permissions	["*"]	t	2026-03-09 12:28:07.873+05:30	2026-03-09 12:28:07.873+05:30
+2	Quality Super Administrator	QSA	Admin	Full access to quality and compliance modules	["QUALITY_ALL", "DOC_APPROVE", "AUDIT_ALL"]	t	2026-03-11 14:17:58.468+05:30	2026-03-11 14:17:58.468+05:30
 \.
 
 
@@ -533,13 +451,9 @@ COPY public.user_approvals (id, user_id, approval_token, token_expires, requeste
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: oac_softwares
 --
 
-COPY public.users (id, email, password, name, "empNo", "roleId", "isActive", status, "approvedBy", "approvedAt", "lastLogin", "failedLoginAttempts", "passwordChangedAt", "resetPasswordToken", "resetPasswordExpires", "createdAt", "updatedAt") FROM stdin;
-3	sa2@sa2.com	$2a$10$ok.coUZ.kbxEGIgAboajlumQhF6FJ3pANjZ/CHRk1GrqNgmx.5Uvu	SA	SA003	7	t	approved	\N	\N	2026-01-20 16:08:40.457+05:30	0	2026-01-20 14:45:39.438+05:30	\N	\N	2026-01-20 14:45:39.438+05:30	2026-01-20 16:08:40.459+05:30
-2	sales@sales.com	$2a$10$aAGV6Aocm0s4d/R/IrWRGuWCZtIssVdf8FQG2TLZLiZMaSiXELwcy	Sales	SA002	5	t	approved	\N	\N	2026-01-20 16:13:17.48+05:30	0	2026-01-20 14:45:06.282+05:30	\N	\N	2026-01-20 14:45:06.282+05:30	2026-01-20 16:13:17.48+05:30
-4	saurav2002skumar@gmail.com	$2a$10$kYcy07hleHhJZmJ0jrlfk.Ghutd9ZafgM.bKz4N5RR3WzR6fAXu6m	Saurav S Kumar	60	1	t	approved	\N	\N	\N	0	2026-01-23 10:24:19.782+05:30	\N	\N	2026-01-23 10:24:19.787+05:30	2026-01-23 10:24:19.787+05:30
-5	1222@gmail.com	$2a$10$NQuT6ap7xfan0F4FfjR2zONhSpqJrsgrTmSgDfCuYtyFOBDVaXUua	Saurav S Kumar	61	1	t	approved	\N	\N	\N	0	2026-01-23 10:25:35.439+05:30	\N	\N	2026-01-23 10:25:35.442+05:30	2026-01-23 10:25:35.442+05:30
-6	superadmin@123.com	SuperAdmin@123	SuperAdmin	SA000	1	f	pending_approval	\N	\N	\N	5	\N	\N	\N	2026-01-23 13:33:25.54+05:30	2026-01-23 17:12:41.791+05:30
-1	superadmin@leedsaerospace.com	$2a$10$2QoiFRDSheMgdKO38xc6IO3q5kC0nCUe6bX5PgkYHfpdLZw.Nll4y	System Super Administrator	SA001	1	t	approved	\N	\N	2026-02-03 11:35:48.767+05:30	0	\N	\N	\N	2026-01-20 13:38:08.22+05:30	2026-02-03 11:35:48.77+05:30
+COPY public.users (id, email, "personalEmail", password, name, "empNo", "roleId", "isActive", status, "approvedBy", "approvedAt", "lastLogin", "failedLoginAttempts", "passwordChangedAt", "resetPasswordToken", "resetPasswordExpires", "createdAt", "updatedAt") FROM stdin;
+3	superadmin@leedsaerospace.com	\N	$2b$10$1LFkT57NF4Q3zIpR.l6AmeWviej7pOd.YLd.SYp5dZZmdYudvQo0K	System Super Administrator	SA001	1	t	approved	\N	\N	\N	0	\N	\N	\N	2026-03-11 14:23:11.911+05:30	2026-03-11 14:23:11.911+05:30
+4	qualityadmin@leedsaerospace.com	\N	$2b$10$fzMLDlD.zQekR3hTyjP4seMnBZQve1uXypGm2PG/x4D3cPnvaOnA.	Quality Super Administrator	QSA001	2	t	approved	\N	\N	2026-04-13 14:42:53.172+05:30	0	\N	\N	\N	2026-03-11 14:23:11.925+05:30	2026-04-13 14:42:53.172+05:30
 \.
 
 
@@ -547,28 +461,21 @@ COPY public.users (id, email, password, name, "empNo", "roleId", "isActive", sta
 -- Name: TeamLeader_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public."TeamLeader_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."TeamLeader_id_seq"', 1, false);
 
 
 --
 -- Name: TeamMember_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public."TeamMember_id_seq"', 4, true);
+SELECT pg_catalog.setval('public."TeamMember_id_seq"', 1, false);
 
 
 --
 -- Name: Team_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public."Team_id_seq"', 1, true);
-
-
---
--- Name: Users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
---
-
-SELECT pg_catalog.setval('public."Users_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Team_id_seq"', 1, false);
 
 
 --
@@ -582,7 +489,7 @@ SELECT pg_catalog.setval('public.notification_id_seq', 1, false);
 -- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public.roles_id_seq', 7, true);
+SELECT pg_catalog.setval('public.roles_id_seq', 2, true);
 
 
 --
@@ -596,7 +503,7 @@ SELECT pg_catalog.setval('public.user_approvals_id_seq', 1, false);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 6, true);
+SELECT pg_catalog.setval('public.users_id_seq', 4, true);
 
 
 --
@@ -621,30 +528,6 @@ ALTER TABLE ONLY public."TeamMember"
 
 ALTER TABLE ONLY public."Team"
     ADD CONSTRAINT "Team_pkey" PRIMARY KEY (id);
-
-
---
--- Name: Users Users_email_key; Type: CONSTRAINT; Schema: public; Owner: oac_softwares
---
-
-ALTER TABLE ONLY public."Users"
-    ADD CONSTRAINT "Users_email_key" UNIQUE (email);
-
-
---
--- Name: Users Users_emp_no_key; Type: CONSTRAINT; Schema: public; Owner: oac_softwares
---
-
-ALTER TABLE ONLY public."Users"
-    ADD CONSTRAINT "Users_emp_no_key" UNIQUE (emp_no);
-
-
---
--- Name: Users Users_pkey; Type: CONSTRAINT; Schema: public; Owner: oac_softwares
---
-
-ALTER TABLE ONLY public."Users"
-    ADD CONSTRAINT "Users_pkey" PRIMARY KEY (id);
 
 
 --

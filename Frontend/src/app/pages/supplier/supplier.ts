@@ -81,9 +81,31 @@ additionalCerts: [
   });
 }
 
-  removeCert(index: number) {
+// 1. Clears the attachment but leaves the dropdown/row
+clearCertFile(index: number) {
+  this.form.additionalCerts[index].file = null;
+  this.form.additionalCerts[index].currentFileName = '';
+  this.form.additionalCerts[index].s3Key = undefined; // Important for backend sync
+  
+  // Reset HTML input so same file can be re-selected
+  const fileInput = document.getElementById('certFile' + index) as HTMLInputElement;
+  if (fileInput) fileInput.value = '';
+}
+
+// 2. Removes the entire row from the UI
+removeCert(index: number) {
+  if (this.form.additionalCerts.length > 1) {
     this.form.additionalCerts.splice(index, 1);
+  } else {
+    // If it's the last row, just reset it instead of deleting
+    this.clearCertFile(0);
+    this.form.additionalCerts[0].name = '';
   }
+}
+
+  // removeCert(index: number) {
+  //   this.form.additionalCerts.splice(index, 1);
+  // }
 
   uploadCert(event: any, index: number) {
     const file = event.target.files[0];

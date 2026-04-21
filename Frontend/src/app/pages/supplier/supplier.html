@@ -115,34 +115,33 @@
 
 
 
-         <div class="certification-area mt-4" *ngIf="form.hasCert">
+<div class="certification-area mt-4" *ngIf="form.hasCert">
   <h3 class="section-subtitle mb-3">Aviation & Quality Certifications</h3>
 
   <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-row animate-slide">
     
     <div class="cert-type-sector">
-      <select class="form-select form-select-sm border-0 fw-bold" [(ngModel)]="cert.name">
+      <select class="form-select-clean" [(ngModel)]="cert.name">
         <option value="" disabled selected>Select Type</option>
         <option *ngFor="let opt of CERT_OPTIONS" [value]="opt">{{opt}}</option>
       </select>
     </div>
 
-    <div class="cert-file-sector flex-grow-1 px-3">
-      <div *ngIf="cert.file || cert.currentFileName" class="d-flex align-items-center">
-        <i class="bi bi-file-earmark-text text-success me-2"></i>
-        <span class="file-name-text text-truncate">
+    <div class="cert-file-sector">
+      <div *ngIf="cert.file || cert.currentFileName" class="file-display">
+        <i class="bi bi-file-earmark-check-fill text-success"></i>
+        <span class="file-name-text" [title]="cert.file ? cert.file.name : cert.currentFileName">
           {{ cert.file ? cert.file.name : cert.currentFileName }}
         </span>
       </div>
-      <span *ngIf="!cert.file && !cert.currentFileName" class="text-muted small">No file attached</span>
+      <span *ngIf="!cert.file && !cert.currentFileName" class="text-pending">Pending upload...</span>
     </div>
 
     <div class="cert-action-sector">
-      <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
-      
-      <label [for]="'certFile' + i" class="btn-action upload" *ngIf="!cert.file && !cert.currentFileName">
-        UPLOAD
-      </label>
+      <ng-container *ngIf="!cert.file && !cert.currentFileName">
+        <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
+        <label [for]="'certFile' + i" class="btn-action upload">UPLOAD</label>
+      </ng-container>
 
       <button type="button" class="btn-action clear" (click)="clearCertFile(i)" *ngIf="cert.file || cert.currentFileName">
         CLEAR
@@ -155,10 +154,9 @@
   </div>
 
   <button type="button" class="btn-add-slot" (click)="addCertSlot()">
-    <i class="bi bi-plus-circle me-2"></i>Add Certification
+    <i class="bi bi-plus-circle"></i> Add Certification
   </button>
 </div>
-
 
 
 

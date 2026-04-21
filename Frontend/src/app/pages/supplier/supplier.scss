@@ -460,90 +460,98 @@ $warning: #F59E0B;
 
 
 //------------certificate section style starts 
-/* Container for each certification row */
 
-
-/* Individual Row Container */
+/* Each Row */
 .cert-row {
   display: flex;
   align-items: center;
-  background: #fff;
-  border: 1px solid #dee2e6;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  margin-bottom: 8px;
-  padding: 6px 12px;
-  transition: all 0.2s;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  gap: 12px; /* Space between sectors */
 }
 
-.cert-row:hover {
-  border-color: #0d6efd;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-/* Lane 1: The Dropdown Area */
+/* Lane 1: Dropdown */
 .cert-type-sector {
-  width: 220px;
-  border-right: 1px solid #eee;
+  flex: 0 0 200px; /* Fixed width */
 }
 
-/* Lane 2: The Filename Area */
+.form-select-clean {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px;
+}
+
+/* Lane 2: Filename (This is what usually breaks things) */
 .cert-file-sector {
-  min-width: 0; /* Critical for text-truncate to work in flex */
+  flex: 1; /* Takes all remaining space */
+  min-width: 0; /* REQUIRED for truncation to work */
 }
 
-.file-name-text {
-  font-size: 0.85rem;
-  color: #198754;
-  font-weight: 500;
-}
-
-/* Lane 3: Buttons Area */
-.cert-action-sector {
+.file-display {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-left: 10px;
+  color: #059669;
 }
 
-/* Action Buttons Styling */
+.file-name-text {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adds the ... if too long */
+}
+
+.text-pending {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Lane 3: Action Buttons */
+.cert-action-sector {
+  flex: 0 0 auto; /* Only takes the space it needs */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .btn-action {
   font-size: 11px;
   font-weight: 800;
   padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: 0.2s;
-}
-
-.btn-action.upload {
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-  color: #495057;
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  margin: 0;
 }
 
 .btn-action.clear {
-  color: #fd7e14;
-  background: transparent;
-  border: 1px solid #ffe8cc;
-}
-
-.btn-action.clear:hover {
-  background: #fff4e6;
+  color: #f59e0b;
+  border-color: #fef3c7;
+  background: #fffbeb;
 }
 
 .btn-remove {
   background: none;
   border: none;
-  color: #dc3545;
-  padding: 4px;
-  font-size: 1.1rem;
+  color: #cbd5e1;
+  font-size: 1.2rem;
+  padding: 0;
+  cursor: pointer;
   display: flex;
   align-items: center;
 }
 
 .btn-remove:hover {
-  color: #a71d2a;
+  color: #ef4444;
 }
 
 /* Add Slot Button */
@@ -555,12 +563,9 @@ $warning: #F59E0B;
   padding: 10px;
   border-radius: 6px;
   font-weight: 600;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
-.btn-add-slot:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-}
+
 
 //-----certificate section styke ends-----------------------

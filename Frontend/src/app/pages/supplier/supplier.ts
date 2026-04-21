@@ -72,7 +72,8 @@ additionalCerts: [
   }
 
   // --- Dynamic Cert Management ---
- addCertSlot() {
+
+addCertSlot() {
   this.form.additionalCerts.push({ 
     name: '', 
     file: null, 
@@ -81,39 +82,39 @@ additionalCerts: [
   });
 }
 
-// 1. Clears the attachment but leaves the dropdown/row
+/** * Clears ONLY the file attachment from the specific row
+ */
 clearCertFile(index: number) {
-  this.form.additionalCerts[index].file = null;
-  this.form.additionalCerts[index].currentFileName = '';
-  this.form.additionalCerts[index].s3Key = undefined; // Important for backend sync
+  const cert = this.form.additionalCerts[index];
+  cert.file = null;
+  cert.currentFileName = '';
+  cert.s3Key = undefined; 
   
-  // Reset HTML input so same file can be re-selected
+  // Reset the native file input so the user can re-upload the same file if they want
   const fileInput = document.getElementById('certFile' + index) as HTMLInputElement;
   if (fileInput) fileInput.value = '';
 }
 
-// 2. Removes the entire row from the UI
+/** * Removes the entire row. If it's the last one, it clears it instead.
+ */
 removeCert(index: number) {
   if (this.form.additionalCerts.length > 1) {
     this.form.additionalCerts.splice(index, 1);
   } else {
-    // If it's the last row, just reset it instead of deleting
+    // Reset the first row instead of deleting it to keep the UI consistent
     this.clearCertFile(0);
     this.form.additionalCerts[0].name = '';
   }
 }
 
-  // removeCert(index: number) {
-  //   this.form.additionalCerts.splice(index, 1);
-  // }
-
-  uploadCert(event: any, index: number) {
-    const file = event.target.files[0];
-    if (file) {
-      this.form.additionalCerts[index].file = file;
-    }
+uploadCert(event: any, index: number) {
+  const file = event.target.files[0];
+  if (file) {
+    // Optional: Add size/type validation here
+    this.form.additionalCerts[index].file = file;
+    this.form.additionalCerts[index].currentFileName = file.name;
   }
-
+}
 patchSupplierForm(supplier: any) {
     if (this.form && supplier) {
       this.form.id = supplier.id;

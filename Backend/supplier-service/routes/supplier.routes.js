@@ -13,6 +13,7 @@ const cpUpload = upload.fields([
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
 
 router.get('/', supplierCtrl.getAllSuppliers);
+router.get('/paginated', supplierCtrl.getPaginatedAllSuppliers);
 router.get('/expirycurrentmonth', supplierCtrl.getAllSuppliersExpiryinCurrentmonth);
 router.delete('/:id', supplierCtrl.deleteSupplier);
 router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);

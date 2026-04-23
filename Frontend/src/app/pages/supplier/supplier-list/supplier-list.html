@@ -5,6 +5,14 @@
       <div class="title-group">
         <h2>Supplier Document Tracking</h2>
         <p class="subtitle">Monitor compliance, PO-locks, and trade references</p>
+
+        <div class="search-box">
+    <i class="bi bi-search"></i>
+    <input type="text" 
+           placeholder="Search by Name, Email or ID..." 
+           (input)="onSearch($event)" 
+           class="form-control">
+  </div>
       </div>
 
       <div class="stats-bar">

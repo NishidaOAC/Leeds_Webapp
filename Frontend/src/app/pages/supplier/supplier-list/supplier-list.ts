@@ -22,6 +22,12 @@ export class SupplierList implements OnInit {
   isPdf: boolean = false;
   isPreviewLoading: boolean = false;
 
+  // Pagination/Search State
+  currentPage = 1;
+  pageSize = 10;
+  totalItems = 0;
+  searchTerm = '';
+
   constructor(
     private supplierService: SupplierService,
     private sanitizer: DomSanitizer,
@@ -32,8 +38,16 @@ export class SupplierList implements OnInit {
     this.loadSuppliers();
       // this.loadCurrentMonthExpiries();
   }
-
+onSearch(event: any) {
+    this.searchTerm = event.target.value;
+    this.currentPage = 1; // Reset to page 1 on search
+    this.loadSuppliers();
+  }
   
+  changePage(newPage: number) {
+    this.currentPage = newPage;
+    this.loadSuppliers();
+  }
 urgentCount: number = 0;
 
 
@@ -49,27 +63,6 @@ loadCurrentMonthExpiries(): void {
   });
 }
 
-  loadSuppliersOLD(): void {
-    this.loading = true;
-    this.supplierService.getSuppliers().subscribe({
-      next: (data: any[]) => {
-       // Sort: Non-compliant/Pending first, then by date
-        this.suppliers = data.sort((a, b) => {
-          const statusOrder: any = { 'PENDING': 1, 'NON-COMPLIANT': 2, 'COMPLIANT': 3 };
-          const aOrder = statusOrder[a.status] || 99;
-          const bOrder = statusOrder[b.status] || 99;
-          
-          if (aOrder !== bOrder) return aOrder - bOrder;
-          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        });
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error fetching suppliers:', err);
-        this.loading = false;
-      }
-    });
-  }
 
   /**
    * Opens the side preview panel and fetches the secure S3 URL
@@ -151,7 +144,7 @@ onDelete(id: string, name: string): void {
   }
 }
 // Inside SupplierList class
-loadSuppliers(): void {
+loadSuppliersOLD(): void {
   this.loading = true;
   this.supplierService.getSuppliers().subscribe({
     next: (data) => {
@@ -193,6 +186,18 @@ loadSuppliers(): void {
     }
   });
 }
+
+loadSuppliers(): void {
+    this.loading = true;
+    this.supplierService.getPaginatedSuppliers(this.currentPage, this.pageSize, this.searchTerm).subscribe({
+      next: (res) => {
+        this.suppliers = res.suppliers;
+        this.totalItems = res.totalItems;
+        this.loading = false;
+      },
+      error: () => this.loading = false
+    });
+  }
 
 
 getCertName(supplier: any, doc: any): string {

@@ -153,106 +153,101 @@ $warning: #F59E0B;
   color: $leeds-navy;
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
-  .onboarding-header {
-    max-width: 800px;
-    margin: 0 auto 1.5rem;
-    text-align: center;
+  .onboarding-header-erp {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.75rem 2rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-    .brand {
-      margin-bottom: 0.75rem;
-      
-      .badge { 
-        background: $leeds-navy; 
-        color: $white; 
-        font-weight: 700;
-        padding: 4px 12px;
-        font-size: 0.65rem;
-        border-radius: 20px;
-        letter-spacing: 1px;
-        display: inline-block;
-        margin-bottom: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
+  .brand-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-      h1 {
-        font-weight: 800;
-        font-size: 2rem;
-        color: $leeds-navy;
-        letter-spacing: -0.025em;
-      }
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: $leeds-navy;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .divider { color: #cbd5e1; }
+    
+    .portal-tag {
+      font-size: 0.8rem;
+      color: $leeds-gray;
+      font-weight: 500;
     }
   }
 
-  // Polished Stepper
-  .stepper {
+  .stepper-erp {
     display: flex;
-    justify-content: center;
     align-items: center;
-    max-width: 600px;
-    margin: 0 auto;
+    gap: 8px;
 
     .step {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      position: relative;
-      z-index: 2;
-      flex: 1;
+      gap: 8px;
 
       .node {
-        width: 48px;
-        height: 48px;
-        background: $white;
-        border: 2px solid #E5E7EB;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #9CA3AF;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 1.25rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
       }
 
-      span { 
-        font-size: 0.8rem; 
-        font-weight: 600; 
-        color: #9CA3AF; 
-        margin-top: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+      span {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #94a3b8;
       }
 
       &.active {
-        .node { 
-          border-color: $leeds-red; 
-          color: $leeds-red; 
-          transform: scale(1.1);
-          box-shadow: 0 0 0 5px rgba($leeds-red, 0.1); 
-        }
+        .node { background: $leeds-navy; color: white; border-color: $leeds-navy; }
         span { color: $leeds-navy; }
       }
 
       &.completed {
-        .node { 
-          background: $leeds-red; 
-          border-color: $leeds-red; 
-          color: $white; 
-        }
+        .node { background: $success; color: white; border-color: $success; }
         span { color: $leeds-navy; }
       }
     }
 
     .step-line {
-      flex: 1;
+      width: 40px;
       height: 2px;
-      background: #E5E7EB;
-      margin-top: -24px; // Align with center of 48px node
-      z-index: 1;
-      transition: background 0.4s ease;
-      &.active { background: $leeds-red; }
+      background: #e2e8f0;
+      &.active { background: $success; }
     }
   }
+}
+
+// Ensure the form container moves up and is clean
+.form-container {
+  margin-top: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  border: 1px solid #e2e8f0 !important;
+}
 
   .form-container {
     max-width: 1200px;
@@ -711,3 +706,57 @@ $warning: #F59E0B;
 
 
 //-----certificate section styke ends-----------------------
+
+
+
+// NEW: Horizontal Grid for the three fields
+.info-horizontal-grid {
+  display: grid;
+  // This creates 3 equal columns. If form.hasCert is true, it will gracefully handle the layout.
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: end; // Keeps inputs aligned if labels wrap
+}
+
+// Condensed Rare Case Box
+.form-switch.rare-case-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid $leeds-red;
+  padding: 0.75rem 1rem 0.75rem 3.5rem; // Reduced vertical padding
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+
+  .form-check-input {
+    width: 2.4rem;
+    height: 1.2rem;
+    margin-left: -2.8rem;
+    margin-top: 0; // Center vertically
+  }
+
+  .form-check-label {
+    line-height: 1.2;
+    strong {
+      font-size: 0.9rem;
+      color: $leeds-navy;
+    }
+    small {
+      display: block;
+      font-size: 0.75rem;
+      color: $leeds-gray;
+    }
+  }
+}
+
+// Ensure the main container is wide enough
+
+
+// Responsive fix: Stack them on very small screens
+@media (max-width: 768px) {
+  .info-horizontal-grid {
+    grid-template-columns: 1fr;
+  }
+}

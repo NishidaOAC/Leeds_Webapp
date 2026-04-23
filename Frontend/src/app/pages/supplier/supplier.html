@@ -291,13 +291,19 @@
         </div>
       </div>
     </div>
+<footer class="form-footer">
+  <button class="btn-back" (click)="prev()" *ngIf="step > 1">Back</button>
+  
+  <button class="btn-next ms-auto" (click)="next()" 
+          *ngIf="step === 1" [disabled]="!isStep1Valid">Continue</button>
+          
+  <button class="btn-next ms-auto" (click)="next()" 
+          *ngIf="step === 2" [disabled]="!isStep2Valid">Review</button>
 
-    <footer class="form-footer">
-      <button class="btn-back" (click)="prev()" *ngIf="step > 1">Back</button>
-      <button class="btn-next ms-auto" (click)="next()" *ngIf="step < 3">Continue</button>
-      <button class="btn-submit ms-auto" (click)="submit()" *ngIf="step === 3" [disabled]="loading">
-        {{ loading ? 'Processing...' : 'Submit' }}
-      </button>
-    </footer>
+  <button class="btn-submit ms-auto" (click)="submit()" 
+          *ngIf="step === 3" [disabled]="loading || !isStep2Valid">
+    {{ loading ? 'Processing...' : 'Submit Request' }}
+  </button>
+</footer>
   </main>
 </div>

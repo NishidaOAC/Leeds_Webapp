@@ -8,7 +8,7 @@ import { SupplierList } from './supplier-list/supplier-list';
 @Component({
   selector: 'app-supplier',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, SupplierList],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './supplier.html',
   styleUrl: './supplier.scss',
 })

@@ -19,18 +19,18 @@ export const navItems: NavItem[] = [
     route: '/dashboard/supplier/supplierlist',
     roles: ['Admin', 'Quality Super Administrator']
   },
-  {
-    displayName: 'New Customer Account',
-    iconName: 'layout-grid-add',
-    route: '/dashboard/customer',
-    roles: ['Admin', 'Quality Super Administrator']
-  },
-  {
-    displayName: 'Customer Directory',
-    iconName: 'layout-grid-add',
-    route: '/dashboard/customer/customerlist',
-    roles: ['Admin', 'Quality Super Administrator']
-  },
+  // {
+  //   displayName: 'New Customer Account',
+  //   iconName: 'layout-grid-add',
+  //   route: '/dashboard/customer',
+  //   roles: ['Admin', 'Quality Super Administrator']
+  // },
+  // {
+  //   displayName: 'Customer Directory',
+  //   iconName: 'layout-grid-add',
+  //   route: '/dashboard/customer/customerlist',
+  //   roles: ['Admin', 'Quality Super Administrator']
+  // },
   {
     displayName: 'Users',
     iconName: 'layout-grid-add',

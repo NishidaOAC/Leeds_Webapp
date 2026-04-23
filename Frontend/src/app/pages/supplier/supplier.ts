@@ -260,7 +260,7 @@ patchSupplierForm(supplier: any) {
     });
   }
 
-  submit() {
+  submitOLD() {
   this.loading = true;
   const formData = new FormData();
 
@@ -323,6 +323,117 @@ patchSupplierForm(supplier: any) {
   });
 }
 
+// This getter fixes the 'Property isFormValid does not exist' error
+get isFormValid(): boolean {
+  // Global mandatory fields
+  if (!this.form.name || !this.form.email || !this.form.expiryDate) return false;
+
+  // Case A: Certified Supplier (ONE_YEAR)
+  if (this.form.hasCert) {
+    const hasAudit = !!(this.form.evaluationFile || this.form.currentEvaluationName);
+    const certsComplete = this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));
+    return hasAudit && certsComplete;
+  }
+
+  // Case B: Non-Certified (Standard or Rare Case)
+  const hasPO = !!(this.form.poNumber && this.form.poDate);
+  
+  if (this.isRareCase) {
+    // CONDITIONAL: Only requires PO and Expiry (Audit/Trade Refs are optional)
+    return hasPO;
+  } else {
+    // ONE_TIME: Requires PO + Audit Form + First 3 Trade References
+    const hasAudit = !!(this.form.evaluationFile || this.form.currentEvaluationName);
+    const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
+    return hasPO && hasAudit && hasTradeRefs;
+  }
+}
+
+submit() {
+  // 1. Final Validation Guard
+  if (!this.isFormValid) {
+    this.showSnackbar("Please fill all required fields and upload mandatory documents.", "error");
+    return;
+  }
+
+  this.loading = true;
+  const formData = new FormData();
+
+  // 2. Map Basic Supplier Identity
+  // We use a local constant for the ID to satisfy TypeScript strict null checks
+  const supplierId = this.form.id; 
+  if (supplierId) {
+    formData.append('id', supplierId.toString());
+  }
+
+  formData.append('name', this.form.name);
+  formData.append('email', this.form.email);
+  formData.append('hasQualityCert', String(this.form.hasCert));
+  formData.append('expiryDate', this.form.expiryDate);
+  formData.append('onboardingStatusId', this.selectedStatusId?.toString() || '');
+
+  // 3. Handle Existing vs New Certifications (Patching Logic)
+  // Filters certs that were already on S3 and haven't been replaced by a new file
+  const keptCerts = this.form.additionalCerts
+    .filter(c => c.s3Key && !c.file)
+    .map(c => ({ 
+      type: c.name, 
+      fileName: c.currentFileName, 
+      s3Key: c.s3Key 
+    }));
+  formData.append('existingCerts', JSON.stringify(keptCerts));
+
+  // Append newly uploaded certification files
+  this.form.additionalCerts.forEach((cert, index) => {
+    if (cert.file) {
+      formData.append('qualityDocs', cert.file);
+      formData.append('qualityDocNames', cert.name || `Cert_${index}`);
+    }
+  });
+
+  // 4. Handle Non-Certified Logic (Standard vs Rare Case)
+  if (!this.form.hasCert) {
+    formData.append('poNumber', this.form.poNumber || '');
+    formData.append('poDate', this.form.poDate || '');
+    
+    // Trade references are sent as a JSON string
+    formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
+  }
+
+  // 5. Audit Form (Evaluation) Logic
+  if (this.form.evaluationFile) {
+    formData.append('evaluationDoc', this.form.evaluationFile);
+  }
+
+  // 6. Execute Service Call
+  // If supplierId exists, call update; otherwise, call register.
+  const request$ = supplierId 
+    ? this.supplierService.updateSupplier(supplierId, formData) 
+    : this.supplierService.registerSupplier(formData);
+
+  request$.subscribe({
+    next: (res: any) => {
+      this.loading = false;
+      const message = supplierId ? "Supplier updated successfully!" : "Supplier registered successfully!";
+      this.showSnackbar(message, "success");
+      
+      // Navigate back or reset
+      setTimeout(() => this.resetForm(), 1500);
+    },
+    error: (err) => {
+      this.loading = false;
+      const errMsg = err.error?.message || "An error occurred while saving.";
+      this.showSnackbar(errMsg, "error");
+      console.error("Submission Error:", err);
+    }
+  });
+}
+
+showSnackbar(msg: string, type: string) {
+  // Replace with real Snackbar/Toast logic if available
+  alert(`${type.toUpperCase()}: ${msg}`);
+}
+
  resetForm() {
     this.step = 1;
     this.form = {
@@ -342,4 +453,37 @@ patchSupplierForm(supplier: any) {
     this.setDefaultExpiry();
     this.syncStatusLogic();
   }
+
+
+
+  // Step 1 Validation: Basic Identity
+get isStep1Valid(): boolean {
+  return !!(this.form.name && this.form.email && this.form.email.includes('@'));
+}
+
+// Step 2 Validation: Compliance Logic
+get isStep2Valid(): boolean {
+  const hasExpiry = !!this.form.expiryDate;
+  
+  // Case 1: Certified Supplier (ONE_YEAR)
+  if (this.form.hasCert) {
+    const hasAuditFile = !!(this.form.evaluationFile || this.form.currentEvaluationName);
+    const hasValidAdditionalCerts = this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));
+    return hasExpiry && hasAuditFile && hasValidAdditionalCerts;
+  }
+
+  // Case 2: Non-Certified (ONE_TIME or CONDITIONAL)
+  const hasPO = !!(this.form.poNumber && this.form.poDate);
+  
+  if (this.isRareCase) {
+    // CONDITIONAL: Audit may/may not be there, but Trade Refs usually are
+    // We only require PO and Expiry for this rare path
+    return hasExpiry && hasPO;
+  } else {
+    // ONE_TIME: Audit + Trade References are mandatory
+    const hasAuditFile = !!(this.form.evaluationFile || this.form.currentEvaluationName);
+    const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
+    return hasExpiry && hasPO && hasAuditFile && hasTradeRefs;
+  }
+}
 }

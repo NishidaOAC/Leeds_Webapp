@@ -23,6 +23,11 @@ viewDocument(documentId: string): Observable<{ success: boolean; url: string }> 
   );
 }
 
+getPaginatedSuppliers(page: number, limit: number, search: string) {
+  const params = `?page=${page}&limit=${limit}&search=${search}`;
+  return this.http.get<any>(`${this.baseUrl}/paginated${params}`);
+}
+
 getSuppliers(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl);
   }

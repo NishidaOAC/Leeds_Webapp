@@ -345,6 +345,56 @@ exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
 };
 
 
+
+exports.getPaginatedAllSuppliers = async (req, res) => {
+    try {
+        // 1. Get query params with defaults
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const offset = (page - 1) * limit;
+
+        // 2. Define search filter
+        const searchCondition = search ? {
+            [Op.or]: [
+                { name: { [Op.iLike]: `%${search}%` } },
+                { email: { [Op.iLike]: `%${search}%` } },
+                { internalSupplierNumber: { [Op.iLike]: `%${search}%` } }
+            ]
+        } : {};
+
+        // 3. Use findAndCountAll for pagination data
+        const { count, rows } = await Supplier.findAndCountAll({
+            where: searchCondition,
+            include: [
+                {
+                    model: SupplierDocument,
+                    as: 'Documents',
+                    attributes: ['id', 'documentType', 'fileName']
+                },
+                {
+                    model: OnboardingStatus,
+                    as: 'OnboardingStatus',
+                    attributes: ['id', 'code', 'label']
+                }
+            ],
+            order: [['created_at', 'DESC']],
+            limit: limit,
+            offset: offset,
+            distinct: true // Required when using "include" with pagination
+        });
+
+        res.status(200).json({
+            totalItems: count,
+            suppliers: rows,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error", error: error.message });
+    }
+};
+
 exports.getAllSuppliers = async (req, res) => {
     try {
         const suppliers = await Supplier.findAll({

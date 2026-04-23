@@ -711,3 +711,57 @@ $warning: #F59E0B;
 
 
 //-----certificate section styke ends-----------------------
+
+
+
+// NEW: Horizontal Grid for the three fields
+.info-horizontal-grid {
+  display: grid;
+  // This creates 3 equal columns. If form.hasCert is true, it will gracefully handle the layout.
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: end; // Keeps inputs aligned if labels wrap
+}
+
+// Condensed Rare Case Box
+.form-switch.rare-case-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid $leeds-red;
+  padding: 0.75rem 1rem 0.75rem 3.5rem; // Reduced vertical padding
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+
+  .form-check-input {
+    width: 2.4rem;
+    height: 1.2rem;
+    margin-left: -2.8rem;
+    margin-top: 0; // Center vertically
+  }
+
+  .form-check-label {
+    line-height: 1.2;
+    strong {
+      font-size: 0.9rem;
+      color: $leeds-navy;
+    }
+    small {
+      display: block;
+      font-size: 0.75rem;
+      color: $leeds-gray;
+    }
+  }
+}
+
+// Ensure the main container is wide enough
+
+
+// Responsive fix: Stack them on very small screens
+@media (max-width: 768px) {
+  .info-horizontal-grid {
+    grid-template-columns: 1fr;
+  }
+}

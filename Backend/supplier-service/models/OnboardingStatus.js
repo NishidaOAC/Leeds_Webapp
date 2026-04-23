@@ -5,7 +5,7 @@ const { sequelize } = require('../config/database');
 class OnboardingStatus extends Model {
   static async seed() {
     const statuses = [
-      { id: 1, code: 'ONE_YEAR', label: 'One Year Approval', requiresPo: false },
+      { id: 1, code: 'LONG_TERM', label: 'Long Term Approval', requiresPo: false },
       { id: 2, code: 'ONE_TIME', label: 'One Time Approval', requiresPo: true },
       { id: 3, code: 'CONDITIONAL', label: 'Conditional Approval', requiresPo: true }
     ];

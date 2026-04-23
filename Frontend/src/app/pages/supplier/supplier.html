@@ -1,27 +1,30 @@
 <div class="onboarding-wrapper">
-  <header class="onboarding-header">
-    <div class="brand">
-
-      <h1>Supplier Onboarding Portal</h1>
+<header class="onboarding-header-erp">
+  <div class="header-content">
+    <div class="brand-section">
+      <h1>Supplier Onboarding</h1>
+      <span class="divider">|</span>
+      <span class="portal-tag">Compliance Module</span>
     </div>
 
-    <div class="stepper">
+    <div class="stepper-erp">
       <div class="step" [class.active]="step >= 1" [class.completed]="step > 1">
-        <div class="node"><i class="bi bi-info-circle"></i></div>
+        <div class="node">1</div>
         <span>Profile</span>
       </div>
       <div class="step-line" [class.active]="step >= 2"></div>
       <div class="step" [class.active]="step >= 2" [class.completed]="step > 2">
-        <div class="node"><i class="bi bi-shield-lock"></i></div>
+        <div class="node">2</div>
         <span>Compliance</span>
       </div>
       <div class="step-line" [class.active]="step >= 3"></div>
       <div class="step" [class.active]="step >= 3">
-        <div class="node"><i class="bi bi-check-all"></i></div>
+        <div class="node">3</div>
         <span>Review</span>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
   <main class="form-container shadow-xl">
     <div *ngIf="step === 1" class="step-fade-in">

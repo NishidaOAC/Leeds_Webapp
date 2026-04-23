@@ -1,70 +1,66 @@
-<div class="renewal-container animate-in" *ngIf="expiredSuppliers.length > 0; else noExpiries">
-  <div class="alert-header">
-    <div class="header-title">
-      <i class="bi bi-shield-exclamation"></i>
-      <h3>Compliance & Renewal Watchlist</h3>
-      <span class="count-badge">{{ expiredSuppliers.length }} Issues</span>
-    </div>
-    <p class="header-subtitle">The following suppliers require documentation updates to maintain active status.</p>
-  </div>
-
-  <div class="alert-list">
-<div *ngFor="let supplier of expiredSuppliers" 
-     class="standard-card"
-     [class.critical-border]="getDays(supplier.expiryDate) <= 2">
-  
-  <div class="card-left">
-    <div class="supplier-info">
-      <div class="name-row">
-        <h4>{{ supplier.name }}</h4>
-
-        <span class="type-badge" [ngClass]="{
-          'badge-one-year': supplier.OnboardingStatus?.code === 'ONE_YEAR',
-          'badge-one-time': supplier.OnboardingStatus?.code === 'ONE_TIME',
-          'badge-conditional': supplier.OnboardingStatus?.code === 'CONDITIONAL'
-        }">
-          {{ supplier.OnboardingStatus?.label }}
-        </span>
-
-        <span class="status-pill" 
-              [ngClass]="getDays(supplier.expiryDate) <= 2 ? 'urgent' : 'warning'">
-            {{ getDays(supplier.expiryDate) <= 2 ? 'URGENT RENEWAL' : 'EXPIRING SOON' }}
-        </span>
+<div class="corporate-container">
+  <div class="kpi-ribbon">
+    <div class="kpi-card border-red">
+      <div class="kpi-main">
+        <span class="kpi-num color-red">{{stats.critical}}</span>
+        <span class="kpi-text">CRITICAL RENEWALS ( < 2 DAYS )</span>
       </div>
-
-      <div class="date-details">
-        <i class="bi bi-calendar3"></i>
-        <span>Expires: {{ supplier.expiryDate | date:'mediumDate' }} </span>
-        <span [style.color]="getDays(supplier.expiryDate) <= 2 ? '#dc3545' : 'inherit'" style="font-weight: bold;">
-          ({{ getDays(supplier.expiryDate) }} days remaining)
-        </span>
+    </div>
+    <div class="kpi-card border-yellow">
+      <div class="kpi-main">
+        <span class="kpi-num color-yellow">{{stats.warning}}</span>
+        <span class="kpi-text">EXPIRING SOON ( < 7 DAYS )</span>
+      </div>
+    </div>
+    <div class="kpi-card border-blue">
+      <div class="kpi-main">
+        <span class="kpi-num color-blue">{{stats.active}}</span>
+        <span class="kpi-text">TOTAL PORTFOLIO ACTIONS</span>
       </div>
     </div>
   </div>
-</div>
+
+  <div class="table-wrapper">
+    <table class="corp-table">
+      <thead>
+        <tr>
+          <th>Supplier Profile</th>
+          <th>Approval Type</th>
+          <th>Expiry Timeline</th>
+          <th>Risk Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of expiredSuppliers" [ngClass]="s.urgencyClass">
+          <td>
+            <div class="font-bold">{{s.name}}</div>
+            <div class="text-xs text-gray-500">{{s.email}}</div>
+          </td>
+          <td>
+            <span class="corp-badge" [ngClass]="s.theme.class">
+              {{s.theme.label}}
+            </span>
+          </td>
+          <td>
+            <div class="font-medium">{{s.expiryDate | date:'dd-MM-yyyy'}}</div>
+            <div class="text-xs" [style.color]="getRiskColor(s.daysRemaining)">
+              {{ s.daysRemaining <= 0 ? 'EXPIRED' : s.daysRemaining + ' days left' }}
+            </div>
+          </td>
+          <td>
+            <div class="status-indicator">
+              <span class="dot" [style.background]="getRiskColor(s.daysRemaining)"></span>
+              <span class="text-xs">{{ s.daysRemaining <= 2 ? 'Action Required' : 'Healthy' }}</span>
+            </div>
+          </td>
+          <td class="text-end">
+            <button class="btn-corp-action" (click)="requestRenewal(s)">
+              Process Renewal
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
-
-<ng-template #noExpiries>
- <div class="dashboard-empty-container">
-  <div class="hero-status-card glass-effect animate-slide-up">
-    <div class="status-icon-wrapper">
-      <div class="success-ring"></div>
-      <i class="bi bi-shield-check"></i>
-    </div>
-
-    <div class="card-content">
-      <h2 class="status-title">All Clear for {{ currentMonth }}</h2>
-      <p class="status-description">
-        No supplier certifications or renewals are set to expire in the current period. 
-        Your compliance tracking is fully up to date.
-      </p>
-      
-      <button class="btn-aero-primary" [routerLink]="['/dashboard/supplier/supplierlist']">
-        <span>Go to Supplier Directory</span>
-        <i class="bi bi-arrow-right-short"></i>
-      </button>
-    </div>
-  </div>
-</div>
-</ng-template>

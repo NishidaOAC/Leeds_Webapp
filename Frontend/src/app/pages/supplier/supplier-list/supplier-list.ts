@@ -36,7 +36,7 @@ export class SupplierList implements OnInit {
 
   ngOnInit(): void {
     this.loadSuppliers();
-      // this.loadCurrentMonthExpiries();
+    this.loadCurrentMonthExpiries();
   }
 onSearch(event: any) {
     this.searchTerm = event.target.value;
@@ -56,6 +56,8 @@ loadCurrentMonthExpiries(): void {
   this.supplierService.getSuppliersinCurrentMonth().subscribe({
     next: (res) => {
       this.suppliers = res;
+      console.log("suppliersssssss",this.suppliers);
+      
       console.log('Current month expiries:', res);
       this.urgentCount = res.length; // The simplest way: just take the result count
     },
@@ -251,5 +253,13 @@ isNearExpiry(date: string): boolean {
     const diff = expiry.getTime() - today.getTime();
     const days = diff / (1000 * 60 * 60 * 24);
     return days < 30; // Mark urgent if less than 30 days
+}
+
+// Inside your SupplierList class
+
+viewDocuments(supplierId: string): void {
+  // Use a relative path or the full absolute path
+  // Absolute version based on your image_a31da2.jpg and image_a31dd8.jpg:
+  this.router.navigate(['/dashboard/supplier/managedocuments', supplierId]);
 }
 }

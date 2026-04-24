@@ -1,332 +1,146 @@
-// Layout & Global
+// ==========================================
+// ERP PROFESSIONAL COLOR PALETTE (FIXED)
+// ==========================================
+$slate-900: #0f172a;
+$slate-700: #334155;
+$slate-500: #64748b;
+$slate-400: #94a3b8; 
+$slate-200: #e2e8f0;
+$slate-100: #f1f5f9;
+$slate-50:  #f8fafc; // Added missing variable
+$cobalt:    #2563eb;
+$crimson:   #e11d48;
+$emerald:   #10b981;
+$amber:     #f59e0b;
+
 .main-layout {
-  display: flex;
-  height: 100vh;
-  background: #f8fafc;
-  font-size: 13px; // Standard ERP Base Font
-}
+  background: $slate-50;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 1.5rem;
 
-.customer-list-container {
-  flex: 1;
-  padding: 1.5rem; // Reduced padding
-  overflow-y: auto;
-  &.shrunk { margin-right: 500px; }
-}
-
-// Stats Cards - Smaller & Sleeker
-.stats-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 1.5rem;
-
-  .stat-card {
-    background: white;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    min-width: 120px;
-
-    .label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; }
-    .value { font-size: 1.25rem; color: #0f172a; font-weight: 800; margin-top: 2px; }
-
-    &.urgent { border-left: 3px solid #ef4444; .value { color: #ef4444; } }
-  }
-}
-
-// ERP Table Style
-.table-wrapper {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.modern-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  th {
-    background: #f1f5f9; // ERP Gray header
-    padding: 10px 12px;
-    color: #475569;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: left;
-  }
-
-  td {
-    padding: 8px 12px; // Tight ERP spacing
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-    font-size: 12.5px;
-  }
-}
-
-// Content Components
-.cust-info {
-  .cust-name { display: block; font-weight: 600; color: #1e293b; }
-  .cust-email { display: block; color: #64748b; font-size: 11px; }
-  .type-pill { font-size: 10px; color: #94a3b8; font-family: 'Consolas', monospace; }
-}
-
-.badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  &.pending { background: #fef3c7; color: #92400e; }
-  &.approved { background: #dcfce7; color: #15803d; }
-}
-
-// Action Buttons - The Fix
-.actions {
-  width: 1%;
-  white-space: nowrap;
-
-  .action-group {
+  // Header & Search Section
+  .erp-header {
     display: flex;
-    gap: 4px; // Tight gap
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+
+    .title-group {
+      h2 { color: $slate-900; font-weight: 800; font-size: 24px; margin: 0; letter-spacing: -0.02em; }
+      .subtitle { color: $slate-500; font-size: 13px; margin-top: 4px; }
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 400px;
+      i { position: absolute; left: 14px; top: 12px; color: $slate-400; font-size: 14px; }
+      input {
+        width: 100%;
+        padding: 10px 10px 10px 42px;
+        border: 1px solid $slate-200;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #fff;
+        transition: all 0.2s;
+        &:focus { outline: none; border-color: $cobalt; box-shadow: 0 0 0 3px rgba($cobalt, 0.1); }
+      }
+    }
+  }
+
+  // ERP Card and Table
+  .erp-card {
+    background: #fff;
+    border: 1px solid $slate-200;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+    .erp-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th {
+        background: $slate-100;
+        padding: 14px 20px;
+        font-size: 11px;
+        font-weight: 700;
+        color: $slate-700;
+        text-transform: uppercase;
+        border-bottom: 2px solid $slate-200;
+        text-align: left;
+      }
+
+      td {
+        padding: 16px 20px;
+        border-bottom: 1px solid $slate-50;
+        font-size: 13.5px;
+        vertical-align: middle;
+      }
+
+      tr:hover { background: #fcfdfe; }
+      .active-row { background: #eff6ff !important; border-left: 4px solid $cobalt; }
+    }
+  }
+
+  // Professional Pagination
+  .erp-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: $slate-100;
+    border-top: 1px solid $slate-200;
+
+    .info { font-size: 12.5px; color: $slate-500; b { color: $slate-900; } }
+    .controls {
+      display: flex; gap: 12px; align-items: center;
+      .page-btn {
+        padding: 8px 16px; border: 1px solid $slate-200; background: white; border-radius: 8px;
+        font-size: 13px; font-weight: 600; cursor: pointer;
+        &:disabled { opacity: 0.5; cursor: not-allowed; }
+        &:hover:not(:disabled) { border-color: $cobalt; color: $cobalt; }
+      }
+      .page-indicator { font-size: 13px; font-weight: 700; color: $slate-900; }
+    }
   }
 }
 
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px; // Smaller buttons
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s;
-
-  i { font-size: 12px; }
-
-  &.btn-audit {
-    background: #eff6ff; color: #2563eb; border-color: #dbeafe;
-    &:hover { background: #2563eb; color: white; }
-  }
-
-  &.btn-edit {
-    background: #f8fafc; color: #475569; border-color: #e2e8f0;
-    &:hover { background: #e2e8f0; color: #0f172a; }
-  }
-
-  &.btn-delete {
-    background: #fff1f2; color: #e11d48; border-color: #ffe4e6;
-    &:hover { background: #e11d48; color: white; }
+// Stats Group
+.stats-container {
+  display: flex; gap: 16px;
+  .stat-card {
+    background: #fff; padding: 14px 24px; border-radius: 12px; border: 1px solid $slate-200;
+    text-align: right; min-width: 150px;
+    .label { font-size: 10px; font-weight: 700; color: $slate-500; text-transform: uppercase; }
+    .value { display: block; font-size: 22px; font-weight: 800; color: $slate-900; }
+    &.urgent-active { border-color: rgba($crimson, 0.3); background: #fff1f2; .value { color: $crimson; } }
   }
 }
 
 // Document Pills
-.doc-links {
-  display: flex;
-  gap: 4px;
-  .doc-pill {
-    padding: 2px 6px;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 3px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    &:hover { background: #e2e8f0; }
-  }
-}
-
-/* Container to keep pills in one line */
-.doc-container {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  align-items: center;
-  max-width: 400px; /* Adjust based on your column width */
-  overflow-x: auto; /* Adds a scrollbar if there are too many certs */
-  padding-bottom: 4px;
-}
-
-/* The Pill Design */
-.doc-pill {
+.erp-pill {
   display: inline-flex;
   align-items: center;
-  white-space: nowrap;
-  padding: 4px 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background-color: #f8f9fa;
+  gap: 6px;
+  padding: 5px 10px;
+  background: #fff;
+  border: 1px solid $slate-200;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #333;
-  transition: all 0.2s;
-  height: 28px;
-}
-
-.doc-pill i {
-  margin-right: 5px;
-  font-size: 14px;
-}
-
-/* Handle long filenames like that "WAR LOCKDOWN..." one */
-.pill-text {
-  max-width: 100px; /* Caps the width of long names */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Adds "..." to long text */
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.doc-pill:hover {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-/* Styling for the Active/Selected doc */
-.doc-pill.viewing {
-  background-color: #007bff;
-  color: white;
-  border-color: #0056b3;
-}
-
-
-
-
-
-//pagination and search css starts
-$primary-blue: #0d6efd;
-$border-color: #eef0f2;
-$text-main: #212529;
-$text-muted: #6c757d;
-
-.main-layout {
-  padding: 2rem;
-  background-color: #f8f9fa;
-  min-height: 100vh;
-
-  // 1. Search Bar Styling
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-
-    .search-box {
-      position: relative;
-      width: 350px;
-
-      i {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: $text-muted;
-      }
-
-      input {
-        padding: 10px 15px 10px 45px;
-        border-radius: 8px;
-        border: 1px solid $border-color;
-        width: 100%;
-        transition: all 0.3s;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-
-        &:focus {
-          border-color: $primary-blue;
-          box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
-          outline: none;
-        }
-      }
-    }
-  }
-
-  
-
-  // 3. Pagination Footer
-  .pagination-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    background: white;
-    border-top: 1px solid $border-color;
-
-    .info {
-      font-size: 0.85rem;
-      color: $text-muted;
-    }
-
-    .btns {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-
-      span {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: $text-main;
-      }
-
-      button {
-        padding: 6px 16px;
-        border-radius: 6px;
-        border: 1px solid $border-color;
-        background: white;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover:not(:disabled) {
-          background-color: #f8f9fa;
-          border-color: #adb5bd;
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
-    }
-  }
-}
-
-// 4. Component Pills (Status, Docs, Expiry)
-.type-pill {
-  font-size: 0.7rem;
-  background: #f1f3f5;
-  padding: 2px 8px;
-  border-radius: 4px;
-  color: $text-muted;
-}
-
-.expiry-cell {
-  &.urgent {
-    color: #dc3545;
-    font-weight: 600;
-    .expiry-warning {
-      display: block;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-    }
-  }
-}
-
-.doc-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  background: #eef2ff;
-  color: #4338ca;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  border: 1px solid #c7d2fe;
   cursor: pointer;
-  margin-right: 5px;
-  margin-bottom: 5px;
-
-  &:hover { background: #e0e7ff; }
+  margin: 2px;
+  transition: all 0.2s;
+  
+  i { color: $crimson; font-size: 14px; }
+  &:hover { border-color: $slate-400; background: $slate-50; } // Variable fixed here
+  .text { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
-//pagination and search css ends
 
+// Badges
+.status-badge {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  &.pending { background: #fef3c7; color: #92400e; border: 1px solid rgba(#92400e, 0.1); }
+  &.approved { background: #dcfce7; color: #15803d; border: 1px solid rgba(#15803d, 0.1); }
+}

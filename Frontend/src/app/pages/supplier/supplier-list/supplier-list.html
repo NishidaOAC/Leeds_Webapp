@@ -10,19 +10,17 @@
         
         <div class="search-wrapper">
           <i class="bi bi-search"></i>
-          <input type="text" 
-                 placeholder="Search by Identity, Email or System ID..." 
-                 (input)="onSearch($event)">
+          <input type="text" placeholder="Search by Identity..." (input)="onSearch($event)">
         </div>
       </div>
 
       <div class="header-right">
         <div class="stats-container">
           <div class="stat-card">
-            <span class="label">Total Records</span>
+            <span class="label">Total Portfolio</span>
             <span class="value">{{ totalItems }}</span>
           </div>
-          <div class="stat-card urgent-active" [class.active]="urgentCount > 0">
+          <div class="stat-card urgent-active">
             <span class="label">Near Expiry</span>
             <span class="value">{{ urgentCount }}</span>
           </div>
@@ -37,15 +35,14 @@
             <tr>
               <th>Supplier Identity</th>
               <th>Approval Logic</th>
-              <th>System Status</th>
-              <th>Governance</th>
+              <th>Status</th>
               <th>Validity</th>
               <th>Certifications</th>
               <th class="text-right">Management</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let s of suppliers" [class.active-row]="selectedSupplierId === s.id">
+            <tr *ngFor="let s of suppliers">
               <td>
                 <div class="identity-stack">
                   <span class="name">{{ s.name }}</span>
@@ -53,88 +50,38 @@
                   <span class="id-tag">{{ s.internalSupplierNumber }}</span>
                 </div>
               </td>
-
               <td>
                 <div class="pathway-info">
-                  <span class="logic-label" [ngClass]="s.OnboardingStatus?.code?.toLowerCase()">
-                    {{ s.OnboardingStatus?.label || 'Not Assigned' }}
-                  </span>
-                  <div class="reviewer-meta" style="font-size: 11px; color: #64748b; margin-top: 4px;">
-                    <i class="bi bi-person-badge"></i> {{ s.currentReviewer }}
-                  </div>
+                  <span class="logic-label">{{ s.OnboardingStatus?.label || 'Not Assigned' }}</span>
                 </div>
               </td>
-
               <td>
-                <span class="status-badge" [ngClass]="s.status?.toLowerCase()">
-                  {{ s.status || 'PENDING' }}
-                </span>
+                <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
               </td>
-
-              <td>
-                <div class="governance-info">
-                  <ng-container *ngIf="!s.hasQualityCert; else certBlock">
-                    <div style="font-weight: 600; font-size: 12px;" *ngIf="s.poNumber">
-                      <i class="bi bi-lock-fill"></i> PO: {{ s.poNumber }}
-                    </div>
-                    <div style="font-size: 11px; color: #64748b;" *ngIf="s.tradeReferences">
-                      <i class="bi bi-people"></i> {{ getRefCount(s.tradeReferences) }} Refs
-                    </div>
-                  </ng-container>
-                  <ng-template #certBlock>
-                    <span style="color: #10b981; font-weight: 700;"><i class="bi bi-patch-check-fill"></i> Quality OK</span>
-                  </ng-template>
-                </div>
-              </td>
-
+   
               <td>
                 <div class="validity-alert" [class.urgent]="isNearExpiry(s.expiryDate)">
                   <span class="date">{{ s.expiryDate | date:'dd MMM yyyy' }}</span>
-                  <span class="tag" *ngIf="isNearExpiry(s.expiryDate)">ACTION REQ</span>
                 </div>
               </td>
-
               <td>
                 <div class="doc-pill-container">
-                  <button *ngFor="let doc of s.Documents" 
-                          (click)="previewDoc(doc.id, doc.fileName || '', s.id)"
-                          class="erp-pill">
-                    <i class="bi bi-file-earmark-pdf"></i>
-                    <span class="text">{{ doc.documentType === 'SAF' ? 'SAF' : doc.fileName }}</span>
+                  <button *ngFor="let doc of s.Documents" class="erp-pill">
+                    <i class="bi bi-file-earmark-pdf"></i> {{ doc.documentType }}
                   </button>
-                  <span *ngIf="!s.Documents?.length" style="color: #cbd5e1; font-size: 11px;">No Files</span>
                 </div>
               </td>
-
-              <td>
+              <td class="text-right">
                 <div class="action-stack">
-                  <button class="btn-erp edit" (click)="editSupplier(s)" title="Edit Record">
-                    <i class="bi bi-pencil-square"></i>
-                  </button>
-                  <button class="btn-erp delete" (click)="onDelete(s.id, s.name)" title="Archive Record">
-                    <i class="bi bi-trash3"></i>
-                  </button>
+                  <button class="btn-erp view" (click)="viewDocuments(s.id)"><i class="bi bi-eye"></i></button>
+                  <button class="btn-erp edit" (click)="editSupplier(s)"><i class="bi bi-pencil-square"></i></button>
+                  <button class="btn-erp delete" (click)="onDelete(s.id, s.name)"><i class="bi bi-trash3"></i></button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <footer class="erp-pagination">
-        <div class="info">
-          Showing <b>{{ (currentPage-1) * pageSize + 1 }} - {{ (currentPage * pageSize) > totalItems ? totalItems : (currentPage * pageSize) }}</b> of <b>{{ totalItems }}</b> Suppliers
-        </div>
-        <div class="controls">
-          <button class="page-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
-            <i class="bi bi-chevron-left"></i> Previous
-          </button>
-          <span class="page-indicator">Page {{ currentPage }}</span>
-          <button class="page-btn" [disabled]="suppliers.length < pageSize" (click)="changePage(currentPage + 1)">
-            Next <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-      </footer>
     </div>
   </div>
 </div>

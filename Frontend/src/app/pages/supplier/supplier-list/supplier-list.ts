@@ -193,6 +193,8 @@ loadSuppliers(): void {
     this.loading = true;
     this.supplierService.getPaginatedSuppliers(this.currentPage, this.pageSize, this.searchTerm).subscribe({
       next: (res) => {
+        console.log(res,"this is res");
+        
         this.suppliers = res.suppliers;
         this.totalItems = res.totalItems;
         this.loading = false;
@@ -211,11 +213,11 @@ getCertName(supplier: any, doc: any): string {
   return doc.documentType === 'EVAL_FORM' ? 'SAF' : doc.documentType;
 }
 
-// Add these to your component class
-getPathLabel(s: any): string {
-    if (s.hasQualityCert) return 'Standard (Certified)';
-    if (s.hasSefAndTradeRef) return 'One-Time Approval';
-    return 'Conditional (Rare Case)';
+
+getPathLabel(s: any): any {
+  if (s.OnboardingStatus?.label) {
+    return s.OnboardingStatus.label;
+  }
 }
 
 getPathClass(s: any): string {

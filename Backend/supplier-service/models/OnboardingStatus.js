@@ -32,7 +32,7 @@ OnboardingStatus.init({
   },
   code: { 
     // Remove 'unique: true' from here to stop the SQL syntax error
-    type: DataTypes.ENUM('ONE_YEAR', 'ONE_TIME', 'CONDITIONAL'), 
+    type: DataTypes.ENUM('LONG_TERM', 'ONE_TIME', 'CONDITIONAL'), 
     allowNull: false 
   },
   label: { type: DataTypes.STRING, allowNull: false },

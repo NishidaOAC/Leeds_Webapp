@@ -51,10 +51,13 @@
                 </div>
               </td>
               <td>
-                <div class="pathway-info">
-                  <span class="logic-label">{{ s.OnboardingStatus?.label || 'Not Assigned' }}</span>
-                </div>
-              </td>
+  <div class="pathway-info">
+    <span class="logic-label" [ngClass]="getPathClass(s)">
+      {{ getPathLabel(s) }}
+    </span>
+  </div>
+</td>
+ 
               <td>
                 <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
               </td>
@@ -64,13 +67,14 @@
                   <span class="date">{{ s.expiryDate | date:'dd MMM yyyy' }}</span>
                 </div>
               </td>
-              <td>
-                <div class="doc-pill-container">
-                  <button *ngFor="let doc of s.Documents" class="erp-pill">
-                    <i class="bi bi-file-earmark-pdf"></i> {{ doc.documentType }}
-                  </button>
-                </div>
-              </td>
+           <td>
+  <div class="doc-pill-container">
+    <button *ngFor="let doc of s.Documents" class="erp-pill">
+      <i class="bi bi-file-earmark-pdf"></i> 
+      {{ doc.documentType === 'QUALITY_CERT' ? doc.fileName : doc.documentType }}
+    </button>
+  </div>
+</td>
               <td class="text-right">
                 <div class="action-stack">
                   <button class="btn-erp view" (click)="viewDocuments(s.id)"><i class="bi bi-eye"></i></button>

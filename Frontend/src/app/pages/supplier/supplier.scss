@@ -337,7 +337,7 @@ $warning: #F59E0B;
     gap: 0.75rem;
     font-weight: 600;
     
-    &[data-type*="ONE_YEAR"], &[data-type="ONE_YEAR"] {
+    &[data-type*="LONG_TERM"], &[data-type="LONG_TERM"] {
         background: rgba($success, 0.1); color: darken($success, 15%); border: 1px solid rgba($success, 0.2);
     }
     &[data-type*="CONDITIONAL"], &[data-type*="ONE_TIME"] {

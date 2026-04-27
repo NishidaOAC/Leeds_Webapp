@@ -172,7 +172,7 @@ exports.onboardSupplierOLD = async (req, res) => {
         const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
 
         // 2. Logic for Status & ID Generation
-        let statusCode = isCertified ? 'ONE_YEAR' : (hasRefs ? 'ONE_TIME' : 'CONDITIONAL');
+        let statusCode = isCertified ? 'LONG_TERM' : (hasRefs ? 'ONE_TIME' : 'CONDITIONAL');
         let initialReviewer = isCertified ? 'QUALITY' : 'SALES';
 
         const statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });

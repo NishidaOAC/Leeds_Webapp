@@ -16,7 +16,7 @@ export class RenewalAlert implements OnInit {
 
   // Corporate Theme Mapping based on your Database Codes
   private readonly THEMES: any = {
-    'ONE_YEAR': { label: 'Long Term Approval', class: 'badge-longterm' },
+    'LONG_TERM': { label: 'Long Term Approval', class: 'badge-longterm' },
     'ONE_TIME': { label: 'One-Time Approval', class: 'badge-onetime' },
     'CONDITIONAL': { label: 'Conditional Approval', class: 'badge-conditional' }
   };
@@ -35,12 +35,12 @@ export class RenewalAlert implements OnInit {
       next: (data: any[]) => {
         this.expiredSuppliers = data.map(s => {
           const days = this.calculateDays(s.expiryDate);
-          const statusCode = s.OnboardingStatus?.code || 'ONE_YEAR'; 
+          const statusCode = s.OnboardingStatus?.code || 'LONG_TERM'; 
           
           return {
             ...s,
             daysRemaining: days,
-            theme: this.THEMES[statusCode] || this.THEMES['ONE_YEAR'],
+            theme: this.THEMES[statusCode] || this.THEMES['LONG_TERM'],
             urgencyClass: days <= 2 ? 'row-critical' : (days <= 7 ? 'row-warning' : '')
           };
         });

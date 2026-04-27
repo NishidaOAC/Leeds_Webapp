@@ -71,14 +71,19 @@
 
 
 
-      <div class="form-check form-switch rare-case-box mt-3">
+<div class="form-check form-switch rare-case-box mt-3" *ngIf="!form.hasCert">
   <input class="form-check-input" type="checkbox" id="condSwitch" 
          [(ngModel)]="isRareCase"
-         (change)="syncStatusLogic()"> <label class="form-check-label" for="condSwitch">
+         (change)="syncStatusLogic()"> 
+  <label class="form-check-label" for="condSwitch">
     <strong>Rare Case: No Supplier Audit Form</strong>
     <small>Bypass standard audit per internal policy</small>
   </label>
 </div>
+
+
+
+
 
       <div class="info-horizontal-grid">
         <div class="glass-input">

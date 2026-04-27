@@ -1,13 +1,13 @@
 <div class="main-layout">
   <div class="customer-list-container">
-    
+
     <header class="erp-header">
       <div class="header-left">
         <div class="title-group">
           <h2>Supplier Tracking System</h2>
           <p class="subtitle">Compliance & Document Governance Portal</p>
         </div>
-        
+
         <div class="search-wrapper">
           <i class="bi bi-search"></i>
           <input type="text" placeholder="Search by Identity..." (input)="onSearch($event)">
@@ -52,13 +52,16 @@
               </td>
               <td>
                 <div class="pathway-info">
-                  <span class="logic-label">{{ s.OnboardingStatus?.label || 'Not Assigned' }}</span>
+                  <span class="logic-label" [ngClass]="getPathClass(s)">
+                    {{ getPathLabel(s) }}
+                  </span>
                 </div>
               </td>
+
               <td>
                 <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
               </td>
-   
+
               <td>
                 <div class="validity-alert" [class.urgent]="isNearExpiry(s.expiryDate)">
                   <span class="date">{{ s.expiryDate | date:'dd MMM yyyy' }}</span>
@@ -67,7 +70,8 @@
               <td>
                 <div class="doc-pill-container">
                   <button *ngFor="let doc of s.Documents" class="erp-pill">
-                    <i class="bi bi-file-earmark-pdf"></i> {{ doc.documentType }}
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    {{ doc.documentType === 'QUALITY_CERT' ? doc.fileName : doc.documentType }}
                   </button>
                 </div>
               </td>

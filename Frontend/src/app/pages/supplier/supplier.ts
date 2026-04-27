@@ -167,7 +167,7 @@ patchSupplierForm(supplier: any) {
 syncStatusLogic() {
   /**
    * Scenarios:
-   * 1. hasCert = true                 -> Usually 'ONE_YEAR'
+   * 1. hasCert = true                 -> Usually 'LONG_TERM'
    * 2. hasCert = false & isRareCase   -> Usually 'CONDITIONAL'
    * 3. hasCert = false & !isRareCase  -> Usually 'ONE_TIME'
    */
@@ -257,7 +257,7 @@ get isFormValid(): boolean {
   // Global mandatory fields
   if (!this.form.name || !this.form.email || !this.form.expiryDate) return false;
 
-  // Case A: Certified Supplier (ONE_YEAR)
+  // Case A: Certified Supplier (LONG_TERM)
   if (this.form.hasCert) {
     const hasAudit = !!(this.form.evaluationFile || this.form.currentEvaluationName);
     const certsComplete = this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));
@@ -287,6 +287,16 @@ submit() {
 
   this.loading = true;
   const formData = new FormData();
+
+
+
+  // --- START DEBUG CONSOLE ---
+  console.log("🚀 SUBMITTING DATA...");
+  console.log("Current Approval Label:", this.getSelectedStatusLabel());
+  console.log("Selected Status ID:", this.selectedStatusId);
+  // --- END DEBUG CONSOLE ---
+
+  
 
   // 2. Map Basic Supplier Identity
   // We use a local constant for the ID to satisfy TypeScript strict null checks
@@ -394,7 +404,7 @@ get isStep1Valid(): boolean {
 get isStep2Valid(): boolean {
   const hasExpiry = !!this.form.expiryDate;
   
-  // Case 1: Certified Supplier (ONE_YEAR)
+  // Case 1: Certified Supplier (LONG_TERM)
   if (this.form.hasCert) {
     const hasAuditFile = !!(this.form.evaluationFile || this.form.currentEvaluationName);
     const hasValidAdditionalCerts = this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));

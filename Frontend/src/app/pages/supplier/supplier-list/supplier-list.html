@@ -1,13 +1,13 @@
 <div class="main-layout">
   <div class="customer-list-container">
-    
+
     <header class="erp-header">
       <div class="header-left">
         <div class="title-group">
           <h2>Supplier Tracking System</h2>
           <p class="subtitle">Compliance & Document Governance Portal</p>
         </div>
-        
+
         <div class="search-wrapper">
           <i class="bi bi-search"></i>
           <input type="text" placeholder="Search by Identity..." (input)="onSearch($event)">
@@ -51,30 +51,30 @@
                 </div>
               </td>
               <td>
-  <div class="pathway-info">
-    <span class="logic-label" [ngClass]="getPathClass(s)">
-      {{ getPathLabel(s) }}
-    </span>
-  </div>
-</td>
- 
+                <div class="pathway-info">
+                  <span class="logic-label" [ngClass]="getPathClass(s)">
+                    {{ getPathLabel(s) }}
+                  </span>
+                </div>
+              </td>
+
               <td>
                 <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
               </td>
-   
+
               <td>
                 <div class="validity-alert" [class.urgent]="isNearExpiry(s.expiryDate)">
                   <span class="date">{{ s.expiryDate | date:'dd MMM yyyy' }}</span>
                 </div>
               </td>
-           <td>
-  <div class="doc-pill-container">
-    <button *ngFor="let doc of s.Documents" class="erp-pill">
-      <i class="bi bi-file-earmark-pdf"></i> 
-      {{ doc.documentType === 'QUALITY_CERT' ? doc.fileName : doc.documentType }}
-    </button>
-  </div>
-</td>
+              <td>
+                <div class="doc-pill-container">
+                  <button *ngFor="let doc of s.Documents" class="erp-pill">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    {{ doc.documentType === 'QUALITY_CERT' ? doc.fileName : doc.documentType }}
+                  </button>
+                </div>
+              </td>
               <td class="text-right">
                 <div class="action-stack">
                   <button class="btn-erp view" (click)="viewDocuments(s.id)"><i class="bi bi-eye"></i></button>

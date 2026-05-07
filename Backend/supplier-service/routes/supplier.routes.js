@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supplierCtrl = require('../controllers/supplier.controller');
 const upload = require('../middlewares/multerConfig'); 
+const emailController = require('../controllers/email.controller');
 
 // UPDATED: Changed qualityDoc to qualityDocs and increased maxCount
 const cpUpload = upload.fields([
@@ -10,6 +11,7 @@ const cpUpload = upload.fields([
 ]);
 
 // Registration and List
+router.post('/send-reminder', emailController.sendRenewalEmail);
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
 
 router.get('/', supplierCtrl.getAllSuppliers);

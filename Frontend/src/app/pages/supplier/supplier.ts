@@ -62,23 +62,22 @@ additionalCerts: [
 
   constructor(private http: HttpClient, private supplierService: SupplierService) { }
 
-  ngOnInit() {
-  this.setDefaultExpiry();
-  this.loadStatuses();
+ngOnInit() {
+  this.loadStatuses(); // Load these first so IDs are ready for sync
 
-  // If we are on the 'Onboard Supplier' route, clear old data immediately
-  // This prevents the 'patch' from happening when clicking the sidebar
-  this.supplierService.clearSelectedSupplier(); 
-
+  // Subscribe FIRST
   this.supplierService.selectedSupplier$.subscribe(supplier => {
+    console.log("Receiving supplier for patch:", supplier);
     if (supplier) {
       this.patchSupplierForm(supplier);
-      this.step = 2; 
+      this.step = 2; // Jump to compliance step
     } else {
       this.resetForm();
-      this.step = 1;
     }
   });
+
+  // ONLY clear if we are NOT in an edit flow
+  // If the service has a supplier, don't clear it!
 }
 
   ngOnInitOld() {

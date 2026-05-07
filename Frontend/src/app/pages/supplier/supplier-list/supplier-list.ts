@@ -36,7 +36,7 @@ export class SupplierList implements OnInit {
 
   ngOnInit(): void {
     this.loadSuppliers();
-    this.loadCurrentMonthExpiries();
+    // this.loadCurrentMonthExpiries();
   }
 onSearch(event: any) {
     this.searchTerm = event.target.value;

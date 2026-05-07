@@ -22,9 +22,16 @@ export class Supplier implements OnInit {
   onboardingStatuses: any[] = [];
   selectedStatusId: number | null = null;
 readonly CERT_OPTIONS = [
-  'FAA AC 00-56', 'EASA Part 145', 'AFRA ACCREDITED', 'ISO 9001', 
-  'AS9100/EN9100', 'OEM AUTHORIZED', 'REPAIR STATION', 
+  'FAA AC 00-56 B ACCREDITED',
+  'AFRA ACCREDITED',
+  'AIRLINE',
+  'REPAIR STATION/AMO',
+  'OEM OR THEIR AUTHORIZED DISTRIBUTOR',
+  'ISO/AS/EN',
+ 
 ];
+
+
 // --- UPDATE THIS SECTION AT THE TOP OF YOUR CLASS ---
 form = {
   id: null as number | null,
@@ -33,11 +40,8 @@ form = {
   hasCert: true,
   poNumber: '',
   poDate: '',
-  tradeReferences: [
-    { companyName: '', email: '', phone: '', response: '' },
-    { companyName: '', email: '', phone: '', response: '' },
-    { companyName: '', email: '', phone: '', response: '' },
-    { companyName: '', email: '', phone: '', response: '' }
+tradeReferences: [
+    { companyName: '', email: '', phone: '', response: '' } // Start with only one
   ],
   evaluationFile: null as File | null,
   
@@ -59,6 +63,25 @@ additionalCerts: [
   constructor(private http: HttpClient, private supplierService: SupplierService) { }
 
   ngOnInit() {
+  this.setDefaultExpiry();
+  this.loadStatuses();
+
+  // If we are on the 'Onboard Supplier' route, clear old data immediately
+  // This prevents the 'patch' from happening when clicking the sidebar
+  this.supplierService.clearSelectedSupplier(); 
+
+  this.supplierService.selectedSupplier$.subscribe(supplier => {
+    if (supplier) {
+      this.patchSupplierForm(supplier);
+      this.step = 2; 
+    } else {
+      this.resetForm();
+      this.step = 1;
+    }
+  });
+}
+
+  ngOnInitOld() {
     this.setDefaultExpiry();
     this.loadStatuses();
     
@@ -72,6 +95,25 @@ additionalCerts: [
   }
 
   // --- Dynamic Cert Management ---
+
+  addTradeReference() {
+  if (this.form.tradeReferences.length < 4) {
+    this.form.tradeReferences.push({ 
+      companyName: '', 
+      email: '', 
+      phone: '', 
+      response: '' 
+    });
+  }
+}
+
+// 3. Optional: Add a remove method if they change their mind
+removeTradeReference(index: number) {
+  if (this.form.tradeReferences.length > 1) {
+    this.form.tradeReferences.splice(index, 1);
+  }
+}
+
 
 addCertSlot() {
   this.form.additionalCerts.push({ 
@@ -254,28 +296,20 @@ toggleConditional() {
 
 // This getter fixes the 'Property isFormValid does not exist' error
 get isFormValid(): boolean {
-  // Global mandatory fields
   if (!this.form.name || !this.form.email || !this.form.expiryDate) return false;
 
-  // Case A: Certified Supplier (LONG_TERM)
   if (this.form.hasCert) {
-    const hasAudit = !!(this.form.evaluationFile || this.form.currentEvaluationName);
-    const certsComplete = this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));
-    return hasAudit && certsComplete;
+    // Requires at least one cert to be present to bypass SAF requirement
+    return this.form.additionalCerts.some(c => c.name && (c.file || c.currentFileName)) &&
+           this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));
   }
 
-  // Case B: Non-Certified (Standard or Rare Case)
   const hasPO = !!(this.form.poNumber && this.form.poDate);
+  if (this.isRareCase) return hasPO;
   
-  if (this.isRareCase) {
-    // CONDITIONAL: Only requires PO and Expiry (Audit/Trade Refs are optional)
-    return hasPO;
-  } else {
-    // ONE_TIME: Requires PO + Audit Form + First 3 Trade References
-    const hasAudit = !!(this.form.evaluationFile || this.form.currentEvaluationName);
-    const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
-    return hasPO && hasAudit && hasTradeRefs;
-  }
+  const hasAudit = !!(this.form.evaluationFile || this.form.currentEvaluationName);
+  const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
+  return hasPO && hasAudit && hasTradeRefs;
 }
 
 submit() {
@@ -377,12 +411,9 @@ showSnackbar(msg: string, type: string) {
     this.step = 1;
     this.form = {
       id: null, name: '', email: '', hasCert: true, poNumber: '', poDate: '',
-      tradeReferences: [
-        { companyName: '', email: '', phone: '', response: '' },
-        { companyName: '', email: '', phone: '', response: '' }, 
-        { companyName: '', email: '', phone: '', response: '' }, 
-        { companyName: '', email: '', phone: '', response: '' }
-      ],
+   tradeReferences: [
+    { companyName: '', email: '', phone: '', response: '' } // Start with only one
+  ],
       evaluationFile: null,
       // FIX: Added s3Key: undefined here
       additionalCerts: [{ name: '', file: null, currentFileName: '', s3Key: undefined }],
@@ -404,22 +435,26 @@ get isStep1Valid(): boolean {
 get isStep2Valid(): boolean {
   const hasExpiry = !!this.form.expiryDate;
   
-  // Case 1: Certified Supplier (LONG_TERM)
   if (this.form.hasCert) {
-    const hasAuditFile = !!(this.form.evaluationFile || this.form.currentEvaluationName);
-    const hasValidAdditionalCerts = this.form.additionalCerts.every(c => c.name && (c.file || c.currentFileName));
-    return hasExpiry && hasAuditFile && hasValidAdditionalCerts;
+    // 1. Check if at least one certification is fully filled/uploaded
+    const hasAtLeastOneCert = this.form.additionalCerts.some(
+      c => c.name && (c.file || c.currentFileName)
+    );
+
+    // 2. Ensure ALL added certification rows are complete
+    const allAddedCertsValid = this.form.additionalCerts.every(
+      c => c.name && (c.file || c.currentFileName)
+    );
+
+    // SAF is now ignored here; we only care about Expiry and the Certs
+    return hasExpiry && hasAtLeastOneCert && allAddedCertsValid; 
   }
 
-  // Case 2: Non-Certified (ONE_TIME or CONDITIONAL)
+  // Non-Certified logic remains the same
   const hasPO = !!(this.form.poNumber && this.form.poDate);
-  
   if (this.isRareCase) {
-    // CONDITIONAL: Audit may/may not be there, but Trade Refs usually are
-    // We only require PO and Expiry for this rare path
     return hasExpiry && hasPO;
   } else {
-    // ONE_TIME: Audit + Trade References are mandatory
     const hasAuditFile = !!(this.form.evaluationFile || this.form.currentEvaluationName);
     const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
     return hasExpiry && hasPO && hasAuditFile && hasTradeRefs;

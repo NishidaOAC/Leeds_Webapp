@@ -55,6 +55,12 @@ getOnboardingStatuses(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl + '/onboardingStatuses');
   }
 
+
+ 
+clearSelectedSupplier() {
+  this.editSupplierSource.next(null);
+}
+
   private editSupplierSource = new BehaviorSubject<any>(null);
   selectedSupplier$ = this.editSupplierSource.asObservable();
 

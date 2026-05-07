@@ -35,7 +35,7 @@
             <tr>
               <th>Supplier Identity</th>
               <th>Approval Logic</th>
-              <th>Status</th>
+              <!-- <th>Status</th> -->
               <th>Validity</th>
               <th>Certifications</th>
               <th class="text-right">Management</th>
@@ -58,9 +58,9 @@
                 </div>
               </td>
 
-              <td>
+              <!-- <td>
                 <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
-              </td>
+              </td> -->
 
               <td>
                 <div class="validity-alert" [class.urgent]="isNearExpiry(s.expiryDate)">

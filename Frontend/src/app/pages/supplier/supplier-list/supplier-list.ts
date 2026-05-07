@@ -36,8 +36,30 @@ export class SupplierList implements OnInit {
 
   ngOnInit(): void {
     this.loadSuppliers();
-    this.loadCurrentMonthExpiries();
+    // this.loadCurrentMonthExpiries();
   }
+
+  sendReminder(supplier: any) {
+  // Predefined body logic
+  const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
+
+  const payload = {
+    to: supplier.email,
+    supplierName: supplier.name,
+    expiryDate: formattedDate,
+    customMessage: `Please share your renewed certificate soon as possible for our records.`
+  };
+
+  if (confirm(`Send renewal reminder to ${supplier.name}?`)) {
+    this.supplierService.sendEmailReminder(payload).subscribe({
+      next: () => alert('Reminder sent successfully to ' + supplier.email),
+      error: () => alert('Error sending email. Check backend logs.')
+    });
+  }
+}
+
 onSearch(event: any) {
     this.searchTerm = event.target.value;
     this.currentPage = 1; // Reset to page 1 on search

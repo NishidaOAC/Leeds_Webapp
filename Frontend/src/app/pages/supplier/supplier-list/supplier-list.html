@@ -35,7 +35,7 @@
             <tr>
               <th>Supplier Identity</th>
               <th>Approval Logic</th>
-              <th>Status</th>
+              <!-- <th>Status</th> -->
               <th>Validity</th>
               <th>Certifications</th>
               <th class="text-right">Management</th>
@@ -58,9 +58,9 @@
                 </div>
               </td>
 
-              <td>
+              <!-- <td>
                 <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
-              </td>
+              </td> -->
 
               <td>
                 <div class="validity-alert" [class.urgent]="isNearExpiry(s.expiryDate)">
@@ -77,6 +77,9 @@
               </td>
               <td class="text-right">
                 <div class="action-stack">
+                  <button class="btn-erp email" (click)="sendReminder(s)" title="Send Renewal Email">
+  <i class="bi bi-envelope-check"></i>
+</button>
                   <button class="btn-erp view" (click)="viewDocuments(s.id)"><i class="bi bi-eye"></i></button>
                   <button class="btn-erp edit" (click)="editSupplier(s)"><i class="bi bi-pencil-square"></i></button>
                   <button class="btn-erp delete" (click)="onDelete(s.id, s.name)"><i class="bi bi-trash3"></i></button>

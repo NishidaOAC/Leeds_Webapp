@@ -55,6 +55,12 @@ getOnboardingStatuses(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl + '/onboardingStatuses');
   }
 
+
+ 
+clearSelectedSupplier() {
+  this.editSupplierSource.next(null);
+}
+
   private editSupplierSource = new BehaviorSubject<any>(null);
   selectedSupplier$ = this.editSupplierSource.asObservable();
 
@@ -67,5 +73,11 @@ getOnboardingStatuses(): Observable<any[]> {
 updateSupplier(id: number, formData: FormData): Observable<any> {
   // Ensure the URL matches your backend route (e.g., /api/suppliers/123)
   return this.http.put(`${this.baseUrl}/${id}`, formData);
+}
+
+// Inside your SupplierService class
+sendEmailReminder(payload: any) {
+  // Replace this.apiUrl with your microservice URL (e.g., http://localhost:3005/api/supplier)
+  return this.http.post(`${this.baseUrl}/send-reminder`, payload);
 }
 }

@@ -138,15 +138,14 @@ loadCurrentMonthExpiries(): void {
   // Inside your SupplierList class
 
 editSupplier(supplier: any): void {
-  console.log('Navigating to edit:', supplier.id);
+  console.log('Navigating to edit ID:', supplier.id);
   
-  // Use the setter method instead of .next()
-  // this.supplierService.setSelectedSupplier(supplier);
-  
-  // Navigate to the form component
-  // this.router.navigate(['/dashboard/supplier']);
-    this.supplierService.setSupplierForUpdate(supplier);
-  this.router.navigate(['/dashboard/supplier']); // Navigates to the loadComponent: Supplier
+  // 1. Remove the service setter (no more stuck data!)
+  // this.supplierService.setSupplierForUpdate(supplier); 
+
+  // 2. Navigate with the ID in the route
+  // This changes URL from /dashboard/supplier to /dashboard/supplier/123
+  this.router.navigate(['/dashboard/supplier', supplier.id]);
 }
 
 onDelete(id: string, name: string): void {

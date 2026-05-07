@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { SupplierService } from './services/supplier.service';
 import { SupplierList } from './supplier-list/supplier-list';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-supplier',
@@ -60,24 +61,24 @@ additionalCerts: [
   expiryDate: ''
 };
 
-  constructor(private http: HttpClient, private supplierService: SupplierService) { }
+  constructor(private http: HttpClient,private route: ActivatedRoute, private supplierService: SupplierService) { }
 
 ngOnInit() {
-  this.loadStatuses(); // Load these first so IDs are ready for sync
+  this.loadStatuses();
 
-  // Subscribe FIRST
-  this.supplierService.selectedSupplier$.subscribe(supplier => {
-    console.log("Receiving supplier for patch:", supplier);
-    if (supplier) {
-      this.patchSupplierForm(supplier);
-      this.step = 2; // Jump to compliance step
-    } else {
-      this.resetForm();
-    }
-  });
+  // Read the ID from the URL parameter
+  const supplierId = this.route.snapshot.paramMap.get('id');
 
-  // ONLY clear if we are NOT in an edit flow
-  // If the service has a supplier, don't clear it!
+  if (supplierId) {
+    // We are in EDIT mode
+    this.supplierService.getSupplierById(supplierId).subscribe({
+      next: (data) => this.patchSupplierForm(data),
+      error: (err) => console.error("Could not fetch supplier", err)
+    });
+  } else {
+    // We are in ADD mode
+    this.resetForm();
+  }
 }
 
   ngOnInitOld() {

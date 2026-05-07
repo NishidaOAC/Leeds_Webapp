@@ -80,4 +80,6 @@ sendEmailReminder(payload: any) {
   // Replace this.apiUrl with your microservice URL (e.g., http://localhost:3005/api/supplier)
   return this.http.post(`${this.baseUrl}/send-reminder`, payload);
 }
+
+
 }

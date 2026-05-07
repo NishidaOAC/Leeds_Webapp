@@ -1,9 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { BrandingComponent } from './branding.component';
 import { NavItem } from './nav-item/nav-item';
 import { navItems } from './sidebar-data';
+import { filter } from 'rxjs';
+import { SupplierService } from '../../pages/supplier/services/supplier.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -19,11 +21,24 @@ export class SidebarComponent implements OnInit {
   // This variable is required to fix your TS2339 error
   public filteredNavItems: NavItem[] = [];
 
-  constructor() {}
+constructor(private router: Router, private supplierService: SupplierService) {
+  // Listen for navigation changes
+  this.router.events.pipe(
+    filter(event => event instanceof NavigationEnd)
+  ).subscribe((event: any) => {
+    // If the user navigates TO the supplier form directly from the menu 
+    // (and not from an edit button), we clear the data.
+    if (event.url === '/dashboard/supplier' && !this.router.navigated) {
+       // Logic to clear only if intended as a NEW entry
+    }
+  });
+}
 
   ngOnInit(): void {
     this.filterNavByRole();
   }
+
+  
 
   filterNavByRole(): void {
     // 1. Get the 'user' object from localStorage as seen in your screenshot

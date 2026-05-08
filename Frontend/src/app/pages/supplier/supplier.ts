@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { SupplierService } from './services/supplier.service';
 import { SupplierList } from './supplier-list/supplier-list';
 import { ActivatedRoute } from '@angular/router';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-supplier',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, MatSnackBarModule],
   templateUrl: './supplier.html',
   styleUrl: './supplier.scss',
 })
@@ -61,7 +62,10 @@ additionalCerts: [
   expiryDate: ''
 };
 
-  constructor(private http: HttpClient,private route: ActivatedRoute, private supplierService: SupplierService) { }
+  private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private supplierService = inject(SupplierService);
+  private snackBar = inject(MatSnackBar);
 
 ngOnInit() {
   this.loadStatuses();
@@ -204,16 +208,8 @@ patchSupplierForm(supplier: any) {
       }
     });
   }
-// ... inside class Supplier ...
 
 syncStatusLogic() {
-  /**
-   * Scenarios:
-   * 1. hasCert = true                 -> Usually 'LONG_TERM'
-   * 2. hasCert = false & isRareCase   -> Usually 'CONDITIONAL'
-   * 3. hasCert = false & !isRareCase  -> Usually 'ONE_TIME'
-   */
-  
   if (!this.onboardingStatuses || this.onboardingStatuses.length === 0) return;
 
   let targetCode = '';
@@ -324,13 +320,6 @@ submit() {
 
 
 
-  // --- START DEBUG CONSOLE ---
-  console.log("🚀 SUBMITTING DATA...");
-  console.log("Current Approval Label:", this.getSelectedStatusLabel());
-  console.log("Selected Status ID:", this.selectedStatusId);
-  // --- END DEBUG CONSOLE ---
-
-  
 
   // 2. Map Basic Supplier Identity
   // We use a local constant for the ID to satisfy TypeScript strict null checks
@@ -402,9 +391,13 @@ submit() {
   });
 }
 
-showSnackbar(msg: string, type: string) {
-  // Replace with real Snackbar/Toast logic if available
-  alert(`${type.toUpperCase()}: ${msg}`);
+showSnackbar(message: string, type: 'success' | 'error') {
+  this.snackBar.open(message, 'Close', {
+    duration: 3000,
+    horizontalPosition: 'center',
+    verticalPosition: 'bottom',
+    panelClass: type === 'success' ? ['success-snackbar'] : ['error-snackbar']
+  });
 }
 
  resetForm() {

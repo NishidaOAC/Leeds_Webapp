@@ -1,13 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router'; 
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; 
 import { SupplierService } from '../services/supplier.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Confirmdeletedialog } from '../../common/confirmdeletedialog/confirmdeletedialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { EmailPreviewDialog } from '../email-preview-dialog/email-preview-dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-supplier-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule,
+     RouterModule,
+    MatSnackBarModule, 
+    MatDialogModule,
+    MatProgressSpinnerModule
+
+  ],
   templateUrl: './supplier-list.html',
   styleUrl: './supplier-list.scss',
 })
@@ -28,18 +39,18 @@ export class SupplierList implements OnInit {
   totalItems = 0;
   searchTerm = '';
 
-  constructor(
-    private supplierService: SupplierService,
-    private sanitizer: DomSanitizer,
-    private router :Router
-  ) {}
+  private supplierService = inject(SupplierService);
+  private sanitizer = inject(DomSanitizer);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
 
   ngOnInit(): void {
     this.loadSuppliers();
     // this.loadCurrentMonthExpiries();
   }
 
-  sendReminder(supplier: any) {
+  sendReminderold(supplier: any) {
   // Predefined body logic
   const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric'
@@ -60,6 +71,46 @@ export class SupplierList implements OnInit {
   }
 }
 
+
+sendReminder(supplier: any) {
+  const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
+
+  const payload = {
+    to: supplier.email,
+    supplierName: supplier.name,
+    expiryDate: formattedDate,
+    customMessage: `Please share your renewed certificate as soon as possible for our records.`
+  };
+
+  // 1. Open the Preview Dialog
+  const dialogRef = this.dialog.open(EmailPreviewDialog, {
+    width: '650px',
+    data: payload
+  });
+
+  // 2. Handle Action after Dialog Closes
+  dialogRef.afterClosed().subscribe(confirmed => {
+    if (confirmed) {
+      // START LOADING: Give visual feedback for the SMTP delay
+      this.loading = true; 
+      
+      this.supplierService.sendEmailReminder(payload).subscribe({
+        next: () => {
+          this.loading = false; // STOP LOADING
+          this.showSnackbar(`Reminder successfully dispatched to ${supplier.email}`, 'success');
+        },
+        error: (err) => {
+          this.loading = false; // STOP LOADING
+          const errorMsg = err.error?.message || 'SMTP Connection Error';
+          this.showSnackbar(`Failed to send: ${errorMsg}`, 'error');
+          console.error("Email Error:", err);
+        }
+      });
+    }
+  });
+}
 onSearch(event: any) {
     this.searchTerm = event.target.value;
     this.currentPage = 1; // Reset to page 1 on search
@@ -131,85 +182,49 @@ loadCurrentMonthExpiries(): void {
     this.isPreviewLoading = false;
   }
 
-  /**
-   * Logic for UI highlighting of expiring certs
-   */
-  
-  // Inside your SupplierList class
 
 editSupplier(supplier: any): void {
-  console.log('Navigating to edit:', supplier.id);
-  
-  // Use the setter method instead of .next()
-  // this.supplierService.setSelectedSupplier(supplier);
-  
-  // Navigate to the form component
-  // this.router.navigate(['/dashboard/supplier']);
-    this.supplierService.setSupplierForUpdate(supplier);
-  this.router.navigate(['/dashboard/supplier']); // Navigates to the loadComponent: Supplier
+this.router.navigate(['/dashboard/supplier', supplier.id]);
 }
 
-onDelete(id: string, name: string): void {
-  const confirmDelete = confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`);
-  
-  if (confirmDelete) {
-    this.loading = true; // Show loader while deleting
-    this.supplierService.deleteSupplier(id).subscribe({
-      next: (res: any) => {
-        alert('Supplier deleted successfully');
-        this.loadSuppliers(); // Refresh the list
-      },
-      error: (err) => {
-        console.error('Delete Error:', err);
-        alert('Failed to delete supplier: ' + (err.error?.message || 'Server Error'));
-        this.loading = false;
+
+
+  onDelete(id: string, name: string): void {
+    // 1. Open the Dialog
+    const dialogRef = this.dialog.open(Confirmdeletedialog, {
+      width: '400px',
+      data: { message: `Are you sure you want to delete ${name}?` }
+    });
+
+    // 2. Listen for the result
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.executeDelete(id, name);
       }
     });
   }
-}
-// Inside SupplierList class
-loadSuppliersOLD(): void {
-  this.loading = true;
-  this.supplierService.getSuppliers().subscribe({
-    next: (data) => {
-      this.suppliers = data.map(s => {
-        let parsedRefs = [];
-        
-        // Robust JSON parsing for Trade References
-        if (s.tradeReferences) {
-          try {
-            parsedRefs = typeof s.tradeReferences === 'string' 
-              ? JSON.parse(s.tradeReferences) 
-              : s.tradeReferences;
-          } catch (e) {
-            console.error(`Failed to parse references for supplier ${s.id}`, e);
-            parsedRefs = [];
-          }
-        }
 
-        return {
-          ...s,
-          tradeReferences: Array.isArray(parsedRefs) ? parsedRefs : []
-        };
-      });
+  private executeDelete(id: string, name: string) {
+    this.supplierService.deleteSupplier(id).subscribe({
+      next: () => {
+        this.loadSuppliers();
+        // Show the snackbar instead of an alert
+        this.showSnackbar(`Supplier ${name} deleted successfully`, 'success');
+      },
+      error: (err) => {
+        this.showSnackbar('Delete failed: ' + err.message, 'error');
+      }
+    });
+  }
 
-      // Sort: Put Pending and Urgent (near expiry) at the top
-      this.suppliers.sort((a, b) => {
-        if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
-        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
-      });
+  showSnackbar(message: string, type: 'success' | 'error') {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      panelClass: type === 'success' ? ['success-snackbar'] : ['error-snackbar']
+    });
+  }
 
-      console.log('Suppliers Loaded Successfully:');
-      console.table(this.suppliers);
 
-      this.loading = false;
-    },
-    error: (err) => {
-      console.error('Fetch Error:', err);
-      this.loading = false;
-    }
-  });
-}
 
 loadSuppliers(): void {
     this.loading = true;

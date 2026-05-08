@@ -792,3 +792,15 @@ $warning: #F59E0B;
     border: 1px solid #ef4444;
   }
 }
+
+/* Success Styling */
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+/* Error Styling */
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}

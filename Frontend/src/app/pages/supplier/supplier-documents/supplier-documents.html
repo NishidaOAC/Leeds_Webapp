@@ -14,9 +14,9 @@
       </div>
     </div>
     
-    <button class="btn-upload" (click)="openUploadModal()">
+    <!-- <button class="btn-upload" (click)="openUploadModal()">
       <span class="plus">+</span> Upload New Document
-    </button>
+    </button> -->
   </header>
 
   <div class="content-card">
@@ -90,7 +90,7 @@
             <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)">
               Preview
             </button>
-            <button class="btn-icon-delete" title="Delete Document">🗑️</button>
+            <button class="btn-icon-delete" title="Delete Document" (click)="deleteDocument(doc.id)">🗑️</button>
           </div>
         </div>
       </div>

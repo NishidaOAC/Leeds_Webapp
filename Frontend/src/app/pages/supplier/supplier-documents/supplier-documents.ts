@@ -109,6 +109,32 @@ previewDoc(documentId: string, fileName: string) {
     }
   });
 }
+
+
+deleteDocument(docId: number | string): void {
+    // 1. Ask the user for confirmation
+    const confirmDelete = confirm('Are you sure you want to delete this document? This action cannot be undone.');
+    
+    if (confirmDelete) {
+      this.loading = true; // Show loading spinner while deleting
+
+      this.supplierService.deleteSupplierDocument(docId).subscribe({
+        next: (response) => {
+          // 2. Remove the deleted document from the local array UI display list instantly
+          this.documents = this.documents.filter(doc => doc.id !== docId);
+          this.loading = false;
+          alert('Document deleted successfully.');
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error deleting document:', error);
+          alert('Failed to delete document. Please try again.');
+        }
+      });
+    }
+  }
+
+  
   previewDocy(docId: string, fileName: string): void {
     this.supplierService.viewDocument(docId).subscribe({
       next: (res: any) => {

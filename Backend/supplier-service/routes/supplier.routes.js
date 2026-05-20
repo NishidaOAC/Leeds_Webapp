@@ -10,6 +10,10 @@ const cpUpload = upload.fields([
   { name: 'qualityDocs', maxCount: 10 } // Allow up to 10 certifications
 ]);
 
+
+// Individual compliance document removal endpoint
+router.delete('/documents/:documentId', supplierCtrl.deleteSupplierDocument);
+
 // Registration and List
 router.post('/send-reminder', emailController.sendRenewalEmail);
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);

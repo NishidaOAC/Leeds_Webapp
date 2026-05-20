@@ -81,5 +81,9 @@ sendEmailReminder(payload: any) {
   return this.http.post(`${this.baseUrl}/send-reminder`, payload);
 }
 
+deleteSupplierDocument(docId: number | string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/documents/${docId}`);
+  }
+
 
 }

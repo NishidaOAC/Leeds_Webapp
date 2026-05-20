@@ -24,4 +24,8 @@ export const routes: Routes = [
     path: ':id',
     loadComponent: () => import('./supplier').then(c => c.Supplier)
   },
+    {
+    path: 'renewal/:id',
+    loadComponent: () => import('./supplier').then(c => c.Supplier)
+  },
 ];

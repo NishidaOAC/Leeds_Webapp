@@ -57,7 +57,8 @@ exports.onboardSupplier = async (req, res) => {
             const parts = lastSupplier.internalSupplierNumber.split('-');
             if (parts.length === 3) nextSequence = parseInt(parts[2], 10) + 1;
         }
-        const internalNo = `SUP-${currentYear}-${nextSequence.toString().padStart(4, '0')}`;
+        //const internalNo = `SUP-${currentYear}-${nextSequence.toString().padStart(4, '0')}`;
+         const internalNo = `LAD/AS/${nextSequence.toString().padStart(2, '0')}`;
 
         // 3. Handle Files and Metadata Prep
         const documentRecords = [];
@@ -317,25 +318,59 @@ exports.getUpcomingExpiries = async (req, res) => {
     }
 };
 
+// exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
+//     try {
+//         const today = new Date();
+//         // Option A: Look ahead 6 months (Recommended)
+//         const lookAheadDate = new Date();
+//         lookAheadDate.setMonth(today.getMonth() + 6);
+
+//         const suppliers = await Supplier.findAll({
+//             where: {
+//                 expiryDate: {
+//                     // This will find everything from Today until 6 months from now
+//                     [Op.between]: [today, lookAheadDate]
+//                 }
+//             },
+//             include: [
+//                 { model: SupplierDocument, as: 'Documents' },
+//                 { model: OnboardingStatus, as: 'OnboardingStatus' }
+//             ],
+//             order: [['expiryDate', 'ASC']]
+//         });
+
+//         res.status(200).json(suppliers);
+//     } catch (error) {
+//         res.status(500).json({ message: "Error", error: error.message });
+//     }
+// };
+
+
+
+
 exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
     try {
-        const today = new Date();
-        // Option A: Look ahead 6 months (Recommended)
+        // Calculate our forward look-ahead threshold (6 months from now)
         const lookAheadDate = new Date();
-        lookAheadDate.setMonth(today.getMonth() + 6);
+        lookAheadDate.setMonth(lookAheadDate.getMonth() + 6);
+        lookAheadDate.setHours(23, 59, 59, 999); 
 
         const suppliers = await Supplier.findAll({
             where: {
                 expiryDate: {
-                    // This will find everything from Today until 6 months from now
-                    [Op.between]: [today, lookAheadDate]
+                    // 💡 THE ULTIMATE FIX:
+                    // By using [Op.lte] instead of [Op.between], we do not lock the start date to 'today'.
+                    // This now includes everything from the infinite past (yesterday, last month, last year) 
+                    // up to 6 months into the future.
+                    [Op.lte]: lookAheadDate
                 }
             },
             include: [
                 { model: SupplierDocument, as: 'Documents' },
                 { model: OnboardingStatus, as: 'OnboardingStatus' }
             ],
-            order: [['expiryDate', 'ASC']]
+            // This ensures forgotten past-due items are sorted at the absolute top of the list!
+            order: [['expiryDate', 'ASC']] 
         });
 
         res.status(200).json(suppliers);
@@ -343,7 +378,6 @@ exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
         res.status(500).json({ message: "Error", error: error.message });
     }
 };
-
 
 
 exports.getPaginatedAllSuppliers = async (req, res) => {
@@ -502,100 +536,7 @@ exports.deleteSupplier = async (req, res) => {
 
 
 
-exports.updateSupplierOld = async (req, res) => {
-    const { id } = req.params;
-    const transaction = await sequelize.transaction();
 
-    try {
-        const {
-            name, email, hasQualityCert, hasSefAndTradeRef,
-            expiryDate, poNumber, poDate, tradeReferences
-        } = req.body;
-
-        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
-
-        // 1. Update the main Supplier record
-        await Supplier.update({
-            name,
-            email,
-            hasQualityCert: isCertified,
-            hasSefAndTradeRef: hasSefAndTradeRef === 'true',
-            expiryDate: expiryDate,
-            poNumber: !isCertified ? poNumber : null,
-            poDate: !isCertified ? poDate : null,
-            tradeReferences: tradeReferences ? JSON.parse(tradeReferences) : null,
-            status: 'PENDING'
-        }, { where: { id: id }, transaction });
-
-        // 2. Handle File Updates (Delete Old -> Upload New)
-        const documentRecords = [];
-
-        if (req.files) {
-            const processFileUpdate = async (fileArray, docType) => {
-                if (fileArray && fileArray.length > 0) {
-                    const file = fileArray[0];
-
-                    // --- NEW: CLEANUP LOGIC ---
-                    // 1. Find the old document record
-                    const oldDoc = await SupplierDocument.findOne({
-                        where: { supplierId: id, documentType: docType }
-                    });
-
-                    if (oldDoc) {
-                        // 2. Delete file from S3
-                        if (oldDoc.s3Key) {
-                            await s3Service.deleteFile(oldDoc.s3Key).catch(err =>
-                                console.error(`S3 Delete Failed for ${oldDoc.s3Key}:`, err)
-                            );
-                        }
-                        // 3. Remove old record from DB
-                        await oldDoc.destroy({ transaction });
-                    }
-                    // --- END CLEANUP ---
-
-                    // 4. Upload New File
-                    const uploadResult = await s3Service.uploadToS3(file, id);
-
-                    documentRecords.push({
-                        supplierId: id,
-                        documentType: docType,
-                        fileName: file.originalname,
-                        fileUrl: uploadResult.s3Key,
-                        s3Key: uploadResult.s3Key,
-                        status: 'ACTIVE'
-                    });
-                }
-            };
-
-            // Process Evaluation Document replacement
-            if (req.files.evaluationDoc) {
-                await processFileUpdate(req.files.evaluationDoc, 'EVALUATION');
-            }
-
-            // Process Quality Certificate replacement
-            if (isCertified && req.files.qualityDoc) {
-                await processFileUpdate(req.files.qualityDoc, 'QUALITY_CERT');
-            }
-        }
-
-        // 3. Save new document records to DB
-        if (documentRecords.length > 0) {
-            await SupplierDocument.bulkCreate(documentRecords, { transaction });
-        }
-
-        await transaction.commit();
-        res.json({
-            success: true,
-            message: "Supplier updated. Old documents replaced successfully.",
-            replacedCount: documentRecords.length
-        });
-
-    } catch (error) {
-        if (transaction) await transaction.rollback();
-        console.error("Update Error:", error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
 
 exports.updateSupplier = async (req, res) => {
     const { id } = req.params;
@@ -733,6 +674,66 @@ exports.approveSupplier = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+exports.deleteSupplierDocument = async (req, res) => {
+    const { documentId } = req.params;
+    const transaction = await sequelize.transaction();
+
+    try {
+        // 1. Fetch the document record to verify it exists and get its S3 metadata
+        const document = await SupplierDocument.findByPk(documentId);
+        
+        if (!document) {
+            return res.status(404).json({ success: false, message: "Document not found" });
+        }
+
+        const supplierId = document.supplierId;
+        const s3KeyToDelete = document.s3Key;
+
+        // 2. Delete the physical object asset from S3 storage bucket bucket if it exists
+        if (s3KeyToDelete && s3KeyToDelete !== 'N/A' && s3KeyToDelete !== 'TEXT_ONLY') {
+            await s3Service.deleteFile(s3KeyToDelete).catch(err => 
+                console.error(`S3 asset deletion failed for key ${s3KeyToDelete}:`, err)
+            );
+        }
+
+        // 3. Remove the document database row entry
+        await SupplierDocument.destroy({ where: { id: documentId }, transaction });
+
+        // 4. Clean up structural tracking if it's a quality certificate nested inside the Supplier object JSON array
+        if (document.documentType === 'QUALITY_CERT') {
+            const supplier = await Supplier.findByPk(supplierId);
+            
+            if (supplier && supplier.certifications) {
+                let currentCerts = Array.isArray(supplier.certifications) 
+                    ? supplier.certifications 
+                    : JSON.parse(supplier.certifications || '[]');
+
+                // Filter out the reference using the matching s3Key
+                const updatedCerts = currentCerts.filter(cert => cert.s3Key !== s3KeyToDelete);
+
+                await Supplier.update(
+                    { certifications: updatedCerts },
+                    { where: { id: supplierId }, transaction }
+                );
+            }
+        }
+
+        await transaction.commit();
+        
+        res.status(200).json({ 
+            success: true, 
+            message: "Document deleted successfully from both storage engine and database tracker." 
+        });
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error("Document Deletion Error Pipeline:", error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

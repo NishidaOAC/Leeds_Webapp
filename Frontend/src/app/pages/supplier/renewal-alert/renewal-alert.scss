@@ -1,191 +1,276 @@
+/* Import Google Fonts - Plus Jakarta Sans for UI, JetBrains Mono for clean data/dates */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 .corporate-container {
-  padding: 2rem;
-  background-color: #f8f9fa;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, sans-serif;
+  padding: 1rem 1.75rem; 
+  background-color: #f8fafc;
+  /* CHANGE: Allow the container to scale with its content instead of fixing it to the viewport */
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+}
 
-  // 1. KPI Ribbon Styling
-  .kpi-ribbon {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+/* ==========================================
+   1. Internal Admin Header Module
+   ========================================== */
+.corporate-container .dashboard-header-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.6rem;
+}
 
-    .kpi-card {
-      background: #ffffff;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
-      border-left: 6px solid #dee2e6;
-      transition: transform 0.2s ease;
+.corporate-container .dashboard-header-block .header-main-title h1 {
+  font-size: 1.65rem; 
+  font-weight: 800; /* Replaced non-standard 850 */
+  color: #0f172a;
+  margin: 0 0 0.2rem 0;
+  letter-spacing: -0.03em;
+}
 
-      &:hover {
-        transform: translateY(-3px);
-      }
+.corporate-container .dashboard-header-block .header-main-title h1 .gradient-text {
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-      &.border-red { border-left-color: #dc3545; }
-      &.border-yellow { border-left-color: #ffc107; }
-      &.border-blue { border-left-color: #0d6efd; }
+.corporate-container .dashboard-header-block .header-main-title .header-subtitle {
+  font-size: 0.92rem; 
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
 
-      .kpi-main {
-        display: flex;
-        flex-direction: column;
+.corporate-container .dashboard-header-block .header-meta-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f1f5f9; 
+  padding: 0.4rem 0.8rem; 
+  border-radius: 20px;
+  border: 1px solid #cbd5e1;
+}
 
-        .kpi-num {
-          font-size: 2.5rem;
-          font-weight: 800;
-          line-height: 1;
-          margin-bottom: 0.5rem;
-        }
+.corporate-container .dashboard-header-block .header-meta-badge .meta-label {
+  font-size: 0.75rem; 
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.06em; /* Increased spacing for small caps readability */
+}
 
-        .kpi-text {
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #6c757d;
-          letter-spacing: 0.05em;
-        }
+.corporate-container .dashboard-header-block .header-meta-badge .meta-dot {
+  width: 8px; 
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
 
-        .color-red { color: #dc3545; }
-        .color-yellow { color: #ba8b00; }
-        .color-blue { color: #0d6efd; }
-      }
-    }
-  }
+.corporate-container .dashboard-header-block .header-meta-badge .meta-dot.pulse-green { 
+  animation: metaPulse 2s infinite; 
+}
 
-  // 2. Table Wrapper & Layout Stability
-  .table-wrapper {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    border: 1px solid #e9ecef;
+/* ==========================================
+   2. KPI Ribbon Styling
+   ========================================== */
+.corporate-container .kpi-ribbon {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 1.25rem;
+  margin-bottom: 0.9rem;
+}
 
-    .corp-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
+.corporate-container .kpi-ribbon .kpi-card {
+  background: #ffffff;
+  padding: 0.95rem 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  border-left: 6px solid #cbd5e1; 
+}
 
-      thead {
-        background-color: #f1f3f5;
-        tr th {
-          padding: 1rem 1.5rem;
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: #495057;
-          text-transform: uppercase;
-          letter-spacing: 0.025em;
-        }
-      }
+.corporate-container .kpi-ribbon .kpi-card.border-red { border-left-color: #ef4444; }
+.corporate-container .kpi-ribbon .kpi-card.border-yellow { border-left-color: #f59e0b; }
+.corporate-container .kpi-ribbon .kpi-card.border-blue { border-left-color: #3b82f6; }
 
-      tbody tr {
-        border-bottom: 1px solid #f1f3f5;
-        transition: background-color 0.2s;
+.corporate-container .kpi-ribbon .kpi-card .kpi-main {
+  display: flex;
+  flex-direction: column;
+}
 
-        &:last-child { border-bottom: none; }
-        &:hover { background-color: #f8fafc; }
+.corporate-container .kpi-ribbon .kpi-card .kpi-main .kpi-num {
+  font-size: 2.1rem; 
+  font-weight: 800; /* Replaced 850 */
+  line-height: 1;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.04em;
+}
 
-        td {
-          padding: 1rem 1.5rem;
-          vertical-align: middle;
-        }
+.corporate-container .kpi-ribbon .kpi-card .kpi-main .kpi-text {
+  font-size: 0.75rem; 
+  font-weight: 700; /* Replaced 750 */
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
-        &.row-critical {
-          background-color: #fff5f5;
-          &:hover { background-color: #ffe3e3; }
-        }
+.corporate-container .kpi-ribbon .kpi-card .kpi-main .color-red { color: #ef4444; }
+.corporate-container .kpi-ribbon .kpi-card .kpi-main .color-yellow { color: #d97706; }
+.corporate-container .kpi-ribbon .kpi-card .kpi-main .color-blue { color: #2563eb; }
 
-        &.row-warning {
-          background-color: #fffdf5;
-          &:hover { background-color: #fef9e7; }
-        }
-      }
-    }
+/* ==========================================
+   3. Data Grid Wrapper
+   ========================================== */
 
-    // 💡 FIXED: Deep Overrides to tame Material Paginator styles within Corporate Theme
-    .paginator-footer-container {
-      background: #ffffff;
-      border-top: 1px solid #f1f3f5;
-      padding: 0.5rem 1rem;
-      display: block;
+.corporate-container .table-wrapper {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  /* CHANGE: Remove flex: 1; to prevent it from stretching artificially */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-      ::ng-deep .mat-mdc-paginator {
-        background-color: transparent !important;
-        font-family: 'Inter', -apple-system, sans-serif !important;
-        font-size: 0.82rem;
-        color: #495057;
+.corporate-container .table-wrapper .corp-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
 
-        .mat-mdc-paginator-container {
-          justify-content: flex-end;
-          min-height: 48px;
-          padding: 0;
-        }
+.corporate-container .table-wrapper .corp-table thead {
+  background-color: #f8fafc;
+  border-bottom: 2px solid #e2e8f0; 
+}
 
-        .mat-mdc-text-field-wrapper {
-          background-color: #f8f9fa !important;
-          border-radius: 4px;
-        }
+.corporate-container .table-wrapper .corp-table thead tr th {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8rem; 
+  font-weight: 700; /* Replaced 800 for cleaner small headers */
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-        .mat-mdc-paginator-navigation-button {
-          color: #495057 !important;
-        }
-      }
-    }
-  }
+.corporate-container .table-wrapper .corp-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+}
 
-  // 3. Components inside Table
-  .corp-badge {
-    display: inline-block;
-    padding: 0.35rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    white-space: nowrap;
+.corporate-container .table-wrapper .corp-table tbody tr:last-child { 
+  border-bottom: none; 
+}
 
-    &.badge-longterm { background: #e7f5ff; color: #1971c2; border: 1px solid #a5d8ff; }
-    &.badge-onetime { background: #f3f0ff; color: #6741d9; border: 1px solid #d0bfff; }
-    &.badge-conditional { background: #fff4e6; color: #d9480f; border: 1px solid #ffd8a8; }
-  }
+.corporate-container .table-wrapper .corp-table tbody tr td {
+  padding: 0.65rem 1.25rem; 
+  vertical-align: middle;
+}
 
-  .status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+/* Tabular layout handles alphanumeric data and dates much cleaner */
+.corporate-container .table-wrapper .corp-table tbody tr td:nth-child(3) {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
 
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .status-text {
-      font-size: 0.8rem;
-    }
-  }
+.corporate-container .table-wrapper .corp-table tbody tr.row-critical { background-color: #fef2f2; }
+.corporate-container .table-wrapper .corp-table tbody tr.row-warning { background-color: #fffbeb; }
 
-  .btn-corp-action {
-    background-color: #ffffff;
-    border: 1px solid #ced4da;
-    color: #495057;
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
+/* ==========================================
+   4. Material Paginator Overrides
+   ========================================== */
+.corporate-container .table-wrapper .paginator-footer-container {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 0.1rem 1rem;
+  margin-top: auto;
+}
 
-    &:hover {
-      background-color: #0d6efd;
-      color: #ffffff;
-      border-color: #0d6efd;
-      box-shadow: 0 4px 6px rgba(13, 110, 253, 0.15);
-    }
-  }
+.corporate-container .table-wrapper ::ng-deep .mat-mdc-paginator {
+  background-color: transparent !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.82rem; 
+  color: #475569;
+}
 
-  // Typography helpers
-  .font-bold { font-weight: 700; color: #212529; }
-  .font-medium { font-weight: 500; }
-  .fw-semibold { font-weight: 600; }
-  .text-xs { font-size: 0.75rem; }
-  .text-gray-500 { color: #6c757d; }
-  .text-end { text-align: right; }
+.corporate-container .table-wrapper ::ng-deep .mat-mdc-paginator .mat-mdc-paginator-container {
+  justify-content: flex-end;
+  min-height: 40px; 
+  padding: 0;
+}
+
+.corporate-container .table-wrapper ::ng-deep .mat-mdc-paginator .mat-mdc-text-field-wrapper {
+  background-color: #f8fafc !important;
+  border-radius: 4px;
+}
+
+/* ==========================================
+   5. Contextual Badges & Helpers
+   ========================================== */
+.corporate-container .corp-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem; 
+  border-radius: 6px;
+  font-size: 0.75rem; 
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.corporate-container .corp-badge.badge-longterm { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.corporate-container .corp-badge.badge-onetime { background: #faf5ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+.corporate-container .corp-badge.badge-conditional { background: #fff7ed; color: #9a3412; border: 1px solid #ffedd5; }
+
+.corporate-container .status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.corporate-container .status-indicator .dot {
+  width: 8px; 
+  height: 8px;
+  border-radius: 50%;
+}
+
+.corporate-container .status-indicator .status-text { 
+  font-size: 0.82rem; 
+  font-weight: 600;
+}
+
+.corporate-container .btn-corp-action {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 0.4rem 0.85rem; 
+  font-size: 0.82rem; 
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.corporate-container .btn-corp-action:hover {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+/* Typography Overrides */
+.corporate-container .font-bold { font-weight: 700; color: #0f172a; font-size: 0.94rem; } 
+.corporate-container .font-medium { font-weight: 500; font-size: 0.94rem; } 
+.corporate-container .fw-semibold { font-weight: 600; }
+.corporate-container .text-xs { font-size: 0.8rem; } 
+.corporate-container .text-gray-500 { color: #64748b; }
+.corporate-container .text-end { text-align: right; }
+
+@keyframes metaPulse {
+  0% { transform: scale(0.93); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.93); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }

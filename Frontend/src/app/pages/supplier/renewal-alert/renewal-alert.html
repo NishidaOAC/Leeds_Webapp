@@ -1,5 +1,16 @@
 <div class="corporate-container">
   
+  <div class="dashboard-header-block">
+    <div class="header-main-title">
+      <h1>Internal <span class="gradient-text">Supplier Compliance Console</span></h1>
+      <p class="header-subtitle">Administrative audit dashboard for monitoring vendor data tracking, risk assessment, and global credentialing actions.</p>
+    </div>
+    <div class="header-meta-badge">
+      <span class="meta-dot pulse-green"></span>
+      <span class="meta-label">Console Secure</span>
+    </div>
+  </div>
+
   <div class="kpi-ribbon">
     <div class="kpi-card border-red">
       <div class="kpi-main">
@@ -64,16 +75,18 @@
           </td>
         </tr>
       </tbody>
+      
     </table>
-
-    <div class="paginator-footer-container">
+        <div class="paginator-footer-container">
       <mat-paginator 
         [length]="expiredSuppliers.length"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[5, 10, 25, 50]"
+        [pageSize]="5" 
+        [disabled]="false"
         aria-label="Select page of suppliers"
         (page)="onPageChange($event)">
       </mat-paginator>
     </div>
+
+
   </div>
 </div>

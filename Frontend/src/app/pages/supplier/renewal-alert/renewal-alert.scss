@@ -7,7 +7,7 @@
   // 1. KPI Ribbon Styling
   .kpi-ribbon {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 
@@ -15,12 +15,12 @@
       background: #ffffff;
       padding: 1.5rem;
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
       border-left: 6px solid #dee2e6;
       transition: transform 0.2s ease;
 
       &:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
       }
 
       &.border-red { border-left-color: #dc3545; }
@@ -40,24 +40,25 @@
 
         .kpi-text {
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 700;
           color: #6c757d;
           letter-spacing: 0.05em;
         }
 
         .color-red { color: #dc3545; }
-        .color-yellow { color: #856404; }
+        .color-yellow { color: #ba8b00; }
         .color-blue { color: #0d6efd; }
       }
     }
   }
 
-  // 2. Table Wrapper & Design
+  // 2. Table Wrapper & Layout Stability
   .table-wrapper {
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     overflow: hidden;
+    border: 1px solid #e9ecef;
 
     .corp-table {
       width: 100%;
@@ -69,7 +70,7 @@
         tr th {
           padding: 1rem 1.5rem;
           font-size: 0.85rem;
-          font-weight: 600;
+          font-weight: 700;
           color: #495057;
           text-transform: uppercase;
           letter-spacing: 0.025em;
@@ -81,14 +82,13 @@
         transition: background-color 0.2s;
 
         &:last-child { border-bottom: none; }
-        &:hover { background-color: #f8f9fa; }
+        &:hover { background-color: #f8fafc; }
 
         td {
           padding: 1rem 1.5rem;
           vertical-align: middle;
         }
 
-        // Special Urgency Rows
         &.row-critical {
           background-color: #fff5f5;
           &:hover { background-color: #ffe3e3; }
@@ -96,6 +96,37 @@
 
         &.row-warning {
           background-color: #fffdf5;
+          &:hover { background-color: #fef9e7; }
+        }
+      }
+    }
+
+    // 💡 FIXED: Deep Overrides to tame Material Paginator styles within Corporate Theme
+    .paginator-footer-container {
+      background: #ffffff;
+      border-top: 1px solid #f1f3f5;
+      padding: 0.5rem 1rem;
+      display: block;
+
+      ::ng-deep .mat-mdc-paginator {
+        background-color: transparent !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.82rem;
+        color: #495057;
+
+        .mat-mdc-paginator-container {
+          justify-content: flex-end;
+          min-height: 48px;
+          padding: 0;
+        }
+
+        .mat-mdc-text-field-wrapper {
+          background-color: #f8f9fa !important;
+          border-radius: 4px;
+        }
+
+        .mat-mdc-paginator-navigation-button {
+          color: #495057 !important;
         }
       }
     }
@@ -104,9 +135,9 @@
   // 3. Components inside Table
   .corp-badge {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 6px;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     white-space: nowrap;
 
@@ -121,10 +152,13 @@
     gap: 0.5rem;
 
     .dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       display: inline-block;
+    }
+    .status-text {
+      font-size: 0.8rem;
     }
   }
 
@@ -143,14 +177,15 @@
       background-color: #0d6efd;
       color: #ffffff;
       border-color: #0d6efd;
-      box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+      box-shadow: 0 4px 6px rgba(13, 110, 253, 0.15);
     }
   }
 
-  // Utility Classes
+  // Typography helpers
   .font-bold { font-weight: 700; color: #212529; }
   .font-medium { font-weight: 500; }
+  .fw-semibold { font-weight: 600; }
   .text-xs { font-size: 0.75rem; }
-  .text-gray-500 { color: #adb5bd; }
+  .text-gray-500 { color: #6c757d; }
   .text-end { text-align: right; }
 }

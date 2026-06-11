@@ -1,15 +1,27 @@
 <div class="corporate-container">
+  
+  <div class="dashboard-header-block">
+    <div class="header-main-title">
+      <h1>Internal <span class="gradient-text">Supplier Compliance Console</span></h1>
+      <p class="header-subtitle">Administrative audit dashboard for monitoring vendor data tracking, risk assessment, and global credentialing actions.</p>
+    </div>
+    <div class="header-meta-badge">
+      <span class="meta-dot pulse-green"></span>
+      <span class="meta-label">Console Secure</span>
+    </div>
+  </div>
+
   <div class="kpi-ribbon">
     <div class="kpi-card border-red">
       <div class="kpi-main">
-        <span class="kpi-num color-red">{{stats.critical}}</span>
-        <span class="kpi-text">CRITICAL RENEWALS ( < 2 DAYS )</span>
+        <span class="kpi-num color-red">{{stats.expired}}</span>
+        <span class="kpi-text">EXPIRED CERTIFICATIONS</span>
       </div>
     </div>
     <div class="kpi-card border-yellow">
       <div class="kpi-main">
         <span class="kpi-num color-yellow">{{stats.warning}}</span>
-        <span class="kpi-text">EXPIRING SOON ( < 7 DAYS )</span>
+        <span class="kpi-text">EXPIRING SOON ( &lt; 7 DAYS )</span>
       </div>
     </div>
     <div class="kpi-card border-blue">
@@ -32,7 +44,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of expiredSuppliers" [ngClass]="s.urgencyClass">
+        <tr *ngFor="let s of pagedSuppliers" [ngClass]="s.urgencyClass">
           <td>
             <div class="font-bold">{{s.name}}</div>
             <div class="text-xs text-gray-500">{{s.email}}</div>
@@ -44,14 +56,16 @@
           </td>
           <td>
             <div class="font-medium">{{s.expiryDate | date:'dd-MM-yyyy'}}</div>
-            <div class="text-xs" [style.color]="getRiskColor(s.daysRemaining)">
+            <div class="text-xs fw-semibold" [style.color]="getRiskColor(s.daysRemaining)">
               {{ s.daysRemaining <= 0 ? 'EXPIRED' : s.daysRemaining + ' days left' }}
             </div>
           </td>
           <td>
             <div class="status-indicator">
               <span class="dot" [style.background]="getRiskColor(s.daysRemaining)"></span>
-              <span class="text-xs">{{ s.daysRemaining <= 2 ? 'Action Required' : 'Healthy' }}</span>
+              <span class="status-text fw-semibold" [style.color]="getRiskColor(s.daysRemaining)">
+                {{ s.computedStatus }}
+              </span>
             </div>
           </td>
           <td class="text-end">
@@ -61,6 +75,18 @@
           </td>
         </tr>
       </tbody>
+      
     </table>
+        <div class="paginator-footer-container">
+      <mat-paginator 
+        [length]="expiredSuppliers.length"
+        [pageSize]="5" 
+        [disabled]="false"
+        aria-label="Select page of suppliers"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
+
+
   </div>
 </div>

@@ -14,6 +14,8 @@ const cpUpload = upload.fields([
 // Individual compliance document removal endpoint
 router.delete('/documents/:documentId', supplierCtrl.deleteSupplierDocument);
 
+router.post('/email-preview', emailController.getEmailPreview);
+
 // Registration and List
 router.post('/send-reminder', emailController.sendRenewalEmail);
 router.post('/register', cpUpload, supplierCtrl.onboardSupplier);

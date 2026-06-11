@@ -81,6 +81,12 @@ sendEmailReminder(payload: any) {
   return this.http.post(`${this.baseUrl}/send-reminder`, payload);
 }
 
+
+
+getEmailPreview(payload: { to: string; supplierName: string; expiryDate: string; customMessage: string }): Observable<{ html: string }> {
+    return this.http.post<{ html: string }>(`${this.baseUrl}/email-preview`, payload);
+  }
+
 deleteSupplierDocument(docId: number | string): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}/documents/${docId}`);
   }

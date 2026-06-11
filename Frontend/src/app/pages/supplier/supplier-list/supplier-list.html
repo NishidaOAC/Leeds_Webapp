@@ -20,7 +20,7 @@
         </div>
       </div>
 
-      <div class="header-right">
+      <!-- <div class="header-right">
         <div class="stats-container">
           <div class="stat-card">
             <span class="label">Total Portfolio</span>
@@ -31,7 +31,7 @@
             <span class="value">{{ urgentCount }}</span>
           </div>
         </div>
-      </div>
+      </div> -->
     </header>
 
     <div class="erp-card shadow-sm">
@@ -40,6 +40,7 @@
           <thead>
             <tr>
               <th>Supplier Identity</th>
+              <th>Registry ID</th>
               <th>Approval Logic</th>
               <!-- <th>Status</th> -->
               <th>Validity</th>
@@ -53,8 +54,11 @@
                 <div class="identity-stack">
                   <span class="name">{{ s.name }}</span>
                   <span class="email">{{ s.email }}</span>
-                  <span class="id-tag">{{ s.internalSupplierNumber }}</span>
+                  <!-- <span class="id-tag">{{ s.internalSupplierNumber }}</span> -->
                 </div>
+              </td>
+              <td>
+                <span class="id-tag">{{ s.internalSupplierNumber }}</span>
               </td>
               <td>
                 <div class="pathway-info">

@@ -50,29 +50,10 @@ export class SupplierList implements OnInit {
     // this.loadCurrentMonthExpiries();
   }
 
-  sendReminderold(supplier: any) {
-  // Predefined body logic
-  const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  });
-
-  const payload = {
-    to: supplier.email,
-    supplierName: supplier.name,
-    expiryDate: formattedDate,
-    customMessage: `Please share your renewed certificate soon as possible for our records.`
-  };
-
-  if (confirm(`Send renewal reminder to ${supplier.name}?`)) {
-    this.supplierService.sendEmailReminder(payload).subscribe({
-      next: () => alert('Reminder sent successfully to ' + supplier.email),
-      error: () => alert('Error sending email. Check backend logs.')
-    });
-  }
-}
 
 
-sendReminder(supplier: any) {
+
+sendReminderOld(supplier: any) {
   const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric'
   });
@@ -108,6 +89,61 @@ sendReminder(supplier: any) {
           console.error("Email Error:", err);
         }
       });
+    }
+  });
+}
+
+sendReminder(supplier: any) {
+  const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
+
+  const payload = {
+    to: supplier.email,
+    supplierName: supplier.name,
+    expiryDate: formattedDate,
+    customMessage: `To prevent any logistical operational holds or disruptions to your active supplier profile status, please upload or forward your updated compliance blueprints and certificates immediately.`
+  };
+
+  // 1. Show main loading spinner before opening the dialog
+  this.loading = true; 
+
+  // 2. Fetch the HTML template string from your Express backend preview API
+  this.supplierService.getEmailPreview(payload).subscribe({
+    next: (res: any) => {
+      this.loading = false; // Turn off main loading block
+
+      // 3. Open the preview window using the HTML string returned by the server
+      const dialogRef = this.dialog.open(EmailPreviewDialog, {
+        width: '680px',
+        data: {
+          ...payload,
+          serverCompiledHtml: res.html // Dynamic HTML from step 1
+        }
+      });
+
+      // 4. Handle dialog confirmation behavior
+      dialogRef.afterClosed().subscribe(isConfirmed => {
+        if (isConfirmed) {
+          this.loading = true; // Show loading spinner while the backend routes through SMTP
+
+          this.supplierService.sendEmailReminder(payload).subscribe({
+            next: () => {
+              this.loading = false;
+              this.showSnackbar(`Official business notice successfully sent to ${supplier.email}`, 'success');
+            },
+            error: (err) => {
+              this.loading = false;
+              this.showSnackbar(err.error?.message || 'SMTP Server Interruption occurred.', 'error');
+            }
+          });
+        }
+      });
+    },
+    error: (err) => {
+      this.loading = false;
+      this.showSnackbar('Failed to fetch corporate layout from the API server system.', 'error');
+      console.error('Template Engine Fault:', err);
     }
   });
 }

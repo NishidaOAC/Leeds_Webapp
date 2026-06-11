@@ -390,9 +390,6 @@ exports.deleteSupplier = async (req, res) => {
 };
 
 
-
-
-
 exports.updateSupplierOLD = async (req, res) => {
     const { id } = req.params;
     const transaction = await sequelize.transaction();

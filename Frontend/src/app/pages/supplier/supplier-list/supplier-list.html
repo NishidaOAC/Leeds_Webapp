@@ -11,7 +11,8 @@
       <div class="header-left">
         <div class="title-group">
           <h2>Supplier Tracking System</h2>
-          <p class="subtitle">Compliance & Document Governance Portal</p>
+          <!-- <p class="subtitle">Compliance & Document Governance Portal</p> -->
+          <p class="subtitle"></p>
         </div>
 
         <div class="search-wrapper">
@@ -112,3 +113,14 @@
     <p style="margin-top: 15px; font-weight: 600;">Synchronizing Master Data...</p>
   </div>
 </ng-template>
+
+
+<div> <mat-paginator 
+      [length]="totalItems" 
+      [pageSize]="pageSize" 
+      [pageIndex]="currentPage - 1"
+      [pageSizeOptions]="[10, 20, 30, 50, 100]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+
+  </div>

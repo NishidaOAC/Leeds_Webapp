@@ -8,6 +8,7 @@ import { Confirmdeletedialog } from '../../common/confirmdeletedialog/confirmdel
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { EmailPreviewDialog } from '../email-preview-dialog/email-preview-dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-supplier-list',
@@ -16,7 +17,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
      RouterModule,
     MatSnackBarModule, 
     MatDialogModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatPaginatorModule
 
   ],
   templateUrl: './supplier-list.html',
@@ -35,9 +37,17 @@ export class SupplierList implements OnInit {
 
   // Pagination/Search State
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 7;
   totalItems = 0;
   searchTerm = '';
+
+  // ADD THIS LINE HERE:
+  protected Math = Math;
+
+
+
+  // Pagination/Search State
+
 
   private supplierService = inject(SupplierService);
   private sanitizer = inject(DomSanitizer);
@@ -50,47 +60,10 @@ export class SupplierList implements OnInit {
     // this.loadCurrentMonthExpiries();
   }
 
-
-
-
-sendReminderOld(supplier: any) {
-  const formattedDate = new Date(supplier.expiryDate).toLocaleDateString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  });
-
-  const payload = {
-    to: supplier.email,
-    supplierName: supplier.name,
-    expiryDate: formattedDate,
-    customMessage: `Please share your renewed certificate as soon as possible for our records.`
-  };
-
-  // 1. Open the Preview Dialog
-  const dialogRef = this.dialog.open(EmailPreviewDialog, {
-    width: '650px',
-    data: payload
-  });
-
-  // 2. Handle Action after Dialog Closes
-  dialogRef.afterClosed().subscribe(confirmed => {
-    if (confirmed) {
-      // START LOADING: Give visual feedback for the SMTP delay
-      this.loading = true; 
-      
-      this.supplierService.sendEmailReminder(payload).subscribe({
-        next: () => {
-          this.loading = false; // STOP LOADING
-          this.showSnackbar(`Reminder successfully dispatched to ${supplier.email}`, 'success');
-        },
-        error: (err) => {
-          this.loading = false; // STOP LOADING
-          const errorMsg = err.error?.message || 'SMTP Connection Error';
-          this.showSnackbar(`Failed to send: ${errorMsg}`, 'error');
-          console.error("Email Error:", err);
-        }
-      });
-    }
-  });
+onPageChange(event: PageEvent): void {
+  this.currentPage = event.pageIndex + 1; // MatPaginator is 0-indexed, your backend is 1-indexed
+  this.pageSize = event.pageSize;         // Updates the current limit count
+  this.loadSuppliers();
 }
 
 sendReminder(supplier: any) {

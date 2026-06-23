@@ -15,7 +15,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     <mat-dialog-content>
       <div style="background: #f8fafc; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 16px; font-size: 13px; color: #475569;">
         <div style="margin-bottom: 4px;"><strong>Recipient:</strong> <span style="font-family: monospace;">{{ data.to }}</span></div>
-        <div><strong>Subject Line:</strong> OFFICIAL NOTICE: Quality Certification Renewal Required - {{ data.supplierName }}</div>
+        <div><strong>Subject Line:</strong> {{ data.subject }}</div>
       </div>
 
       <div [innerHTML]="sanitizedContent" style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;"></div>

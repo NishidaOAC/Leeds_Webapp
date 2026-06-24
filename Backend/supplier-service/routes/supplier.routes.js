@@ -7,8 +7,10 @@ const emailController = require('../controllers/email.controller');
 // UPDATED: Changed qualityDoc to qualityDocs and increased maxCount
 const cpUpload = upload.fields([
   { name: 'evaluationDoc', maxCount: 1 },
-  { name: 'qualityDocs', maxCount: 10 } // Allow up to 10 certifications
+  { name: 'qualityDocs', maxCount: 10 },
+  { name: 'supportDocs', maxCount: 10 } // Allow up to 10 certifications
 ]);
+
 
 
 // Individual compliance document removal endpoint
@@ -27,9 +29,13 @@ router.delete('/:id', supplierCtrl.deleteSupplier);
 router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);
 
 // UPDATED: Update route also needs to support the plural 'qualityDocs'
+
+
+//  Updated routes configuration:
 router.put('/:id', upload.fields([
-  { name: 'evaluationDoc', maxCount: 1 }, 
-  { name: 'qualityDocs', maxCount: 10 }
+  { name: 'evaluationDoc', maxCount: 1 },
+  { name: 'qualityDocs', maxCount: 10 },
+  { name: 'supportDocs', maxCount: 10 } // 👈 Add this field explicitly here!
 ]), supplierCtrl.updateSupplier);
 
 // Approval and Document Preview

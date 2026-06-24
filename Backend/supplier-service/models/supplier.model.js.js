@@ -57,6 +57,12 @@ const Supplier = sequelize.define('Supplier', {
     allowNull: false,
     defaultValue: 'SALES'
   },
+  // Add this field right underneath your certifications field
+  additionalDocuments: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    comment: "Stores array for conditional cases: [{description: 'One time approval sign-off', s3Key: 'path/to/doc.pdf'}]"
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true

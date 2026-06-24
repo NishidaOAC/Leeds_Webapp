@@ -154,6 +154,47 @@
         </button>
       </div>
 
+      <div class="support-docs-section mt-4 animate-slide" *ngIf="!form.hasCert">
+  <h3 class="section-subtitle mb-3">Additional Support Documents</h3>
+
+  <div *ngFor="let doc of form.supportDocs; let i = index" class="cert-row mb-2">
+    <div class="cert-type-sector">
+      <input type="text" class="form-control-clean" [(ngModel)]="doc.description" placeholder="e.g., One-time approval letter">
+    </div>
+
+    <div class="cert-file-sector">
+      <div *ngIf="doc.file || doc.currentFileName" class="file-display">
+        <i class="bi bi-file-earmark-check-fill text-info"></i>
+        <span class="file-name-text" [title]="doc.file ? doc.file.name : doc.currentFileName">
+          {{ doc.file ? doc.file.name : doc.currentFileName }}
+        </span>
+      </div>
+      <span *ngIf="!doc.file && !doc.currentFileName" class="text-pending">Pending upload...</span>
+    </div>
+
+    <div class="cert-action-sector">
+      <ng-container *ngIf="!doc.file && !doc.currentFileName">
+        <input type="file" (change)="uploadSupportDoc($event, i)" [id]="'supportDocFile' + i" hidden>
+        <label [for]="'supportDocFile' + i" class="btn-action upload">UPLOAD</label>
+      </ng-container>
+
+      <button type="button" class="btn-action clear" (click)="clearSupportDocFile(i)"
+        *ngIf="doc.file || doc.currentFileName">
+        CLEAR
+      </button>
+
+      <button type="button" class="btn-action remove" (click)="removeSupportDoc(i)">
+        DELETE
+      </button>
+    </div>
+  </div>
+
+  <button type="button" class="btn-add-slot" (click)="addSupportDocSlot()">
+    <i class="bi bi-plus-circle"></i> Add Support Document
+  </button>
+</div>
+
+
       <div class="trade-references-section mt-4 animate-slide" *ngIf="!form.hasCert">
         <h3 class="section-subtitle">Trade References <span class="text-danger">*</span></h3>
         
@@ -289,6 +330,29 @@
       </div>
     </div>
   </ng-container>
+
+
+
+  <ng-container *ngFor="let doc of form.supportDocs">
+  <div class="doc-row" *ngIf="doc.description && doc.description.trim() !== ''">
+    <div class="doc-info">
+      <i class="bi bi-paperclip"></i>
+      <span>
+        Supporting Document - {{ doc.description }}:
+        {{ doc.file ? doc.file.name : (doc.currentFileName || 'No file chosen') }}
+      </span>
+      <!-- <span> Supporting Document{{ doc.description }}</span> -->
+    </div>
+    <div class="doc-status">
+      <span *ngIf="doc.file || doc.currentFileName" class="badge-success">
+        <i class="bi bi-check-circle-fill"></i> Uploaded
+      </span>
+      <span *ngIf="!doc.file && !doc.currentFileName" class="badge-warning">
+        <i class="bi bi-dash-circle"></i> No File
+      </span>
+    </div>
+  </div>
+</ng-container>
 
             </div>
           </div>

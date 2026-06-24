@@ -57,6 +57,15 @@ additionalCerts: [
     s3Key: undefined as string | undefined // Use undefined here
   }
 ],
+supportDocs: [
+    {
+      description: '',
+      file: null as File | null,
+      currentFileName: '',
+      s3Key: undefined as string | undefined
+    }
+  ],
+
   
   currentEvaluationName: '',
   expiryDate: ''
@@ -162,43 +171,81 @@ uploadCert(event: any, index: number) {
   }
 }
 patchSupplierForm(supplier: any) {
-    if (this.form && supplier) {
-      this.form.id = supplier.id;
-      this.form.name = supplier.name;
-      this.form.email = supplier.email || '';
-      this.form.hasCert = !!supplier.hasQualityCert; 
-      this.form.poNumber = supplier.poNumber || '';
-      this.form.poDate = supplier.poDate || '';
+  if (this.form && supplier) {
+    this.form.id = supplier.id;
+    this.form.name = supplier.name;
+    this.form.email = supplier.email || '';
+    this.form.hasCert = !!supplier.hasQualityCert; 
+    this.form.poNumber = supplier.poNumber || '';
+    this.form.poDate = supplier.poDate || '';
 
-      if (supplier.tradeReferences) {
-        this.form.tradeReferences = typeof supplier.tradeReferences === 'string' 
-          ? JSON.parse(supplier.tradeReferences) 
-          : supplier.tradeReferences;
-      }
+    // Automatically sync rare case mode view if audit form (SAF) is bypassable
+    this.isRareCase = !this.form.hasCert && !supplier.Documents?.some((d: any) => d.documentType === 'SAF');
 
-      if (supplier.certifications && Array.isArray(supplier.certifications)) {
-        this.form.additionalCerts = supplier.certifications.map((c: any) => ({
-          name: c.type,
-          file: null,
-          currentFileName: c.fileName,
-          s3Key: c.s3Key // Correctly mapped
-        }));
-      } else {
-        // FIX: Added s3Key: undefined here
-        this.form.additionalCerts = [{ name: '', file: null, currentFileName: '', s3Key: undefined }];
-      }
-
-      if (supplier.Documents) {
-        const evalDoc = supplier.Documents.find((d: any) => d.documentType === 'SAF');
-        this.form.currentEvaluationName = evalDoc ? evalDoc.fileName : '';
-      }
-
-      if (supplier.expiryDate) {
-        this.form.expiryDate = supplier.expiryDate.split('T')[0];
-      }
-      this.syncStatusLogic();
+    if (supplier.tradeReferences) {
+      this.form.tradeReferences = typeof supplier.tradeReferences === 'string' 
+        ? JSON.parse(supplier.tradeReferences) 
+        : supplier.tradeReferences;
     }
+
+    // --- PATCH QUALITY CERTIFICATES ---
+    if (supplier.certifications && Array.isArray(supplier.certifications)) {
+      this.form.additionalCerts = supplier.certifications.map((c: any) => ({
+        name: c.type,
+        file: null,
+        currentFileName: c.fileName,
+        s3Key: c.s3Key
+      }));
+    } else {
+      this.form.additionalCerts = [{ name: '', file: null, currentFileName: '', s3Key: undefined }];
+    }
+
+    // --- PATCH SUPPORT DOCS LOGIC (FIXED) ---
+    // 1. Check primary DB column name payload string allocation
+    if (supplier.additionalDocuments && Array.isArray(supplier.additionalDocuments)) {
+      this.form.supportDocs = supplier.additionalDocuments.map((d: any) => ({
+        description: d.description || '',
+        file: null,
+        currentFileName: d.fileName || '', // Match key exactly
+        s3Key: d.s3Key
+      }));
+    } 
+    // 2. Relational association array string allocation fallback
+    else if (supplier.supportDocuments && Array.isArray(supplier.supportDocuments)) {
+      this.form.supportDocs = supplier.supportDocuments.map((d: any) => ({
+        description: d.description || '',
+        file: null,
+        currentFileName: d.fileName || '',
+        s3Key: d.s3Key
+      }));
+    } 
+    // 3. PascalCase join query string allocation fallback
+    else if (supplier.SupportDocs && Array.isArray(supplier.SupportDocs)) { 
+      this.form.supportDocs = supplier.SupportDocs.map((d: any) => ({
+        description: d.description || '',
+        file: null,
+        currentFileName: d.fileName || '',
+        s3Key: d.s3Key
+      }));
+    } 
+    // 4. Instantiate basic structure if completely new/empty array
+    else {
+      this.form.supportDocs = [{ description: '', file: null, currentFileName: '', s3Key: undefined }];
+    }
+
+    // --- PATCH MANDATORY SAF FORM ---
+    if (supplier.Documents) {
+      const evalDoc = supplier.Documents.find((d: any) => d.documentType === 'SAF');
+      this.form.currentEvaluationName = evalDoc ? evalDoc.fileName : '';
+    }
+
+    if (supplier.expiryDate) {
+      this.form.expiryDate = supplier.expiryDate.split('T')[0];
+    }
+    
+    this.syncStatusLogic();
   }
+}
   loadStatuses() {
     this.supplierService.getOnboardingStatuses().subscribe({
       next: (data: any[]) => {
@@ -308,7 +355,7 @@ get isFormValid(): boolean {
   return hasPO && hasAudit && hasTradeRefs;
 }
 
-submit() {
+submitold() {
   // 1. Final Validation Guard
   if (!this.isFormValid) {
     this.showSnackbar("Please fill all required fields and upload mandatory documents.", "error");
@@ -390,6 +437,93 @@ submit() {
     }
   });
 }
+submit() {
+    if (!this.isFormValid) {
+      this.showSnackbar("Please fill all required fields and upload mandatory documents.", "error");
+      return;
+    }
+
+    this.loading = true;
+    const formData = new FormData();
+
+    const supplierId = this.form.id; 
+    if (supplierId) {
+      formData.append('id', supplierId.toString());
+    }
+
+    formData.append('name', this.form.name);
+    formData.append('email', this.form.email);
+    formData.append('hasQualityCert', String(this.form.hasCert));
+    formData.append('expiryDate', this.form.expiryDate);
+    formData.append('onboardingStatusId', this.selectedStatusId ? this.selectedStatusId.toString() : '');
+
+    // Handle Certifications
+    const keptCerts = this.form.additionalCerts
+      .filter(c => c.s3Key && !c.file)
+      .map(c => ({ 
+        type: c.name, 
+        fileName: c.currentFileName, 
+        s3Key: c.s3Key 
+      }));
+    formData.append('existingCerts', JSON.stringify(keptCerts));
+
+    this.form.additionalCerts.forEach((cert, index) => {
+      if (cert.file) {
+        formData.append('qualityDocs', cert.file);
+        formData.append('qualityDocNames', cert.name || `Cert_${index}`);
+      }
+    });
+
+    // --- NEW: Handle Support Documents Payload ---
+    if (!this.form.hasCert && this.form.supportDocs) {
+      // Filter out files that were already saved on S3 and haven't been replaced
+      const keptSupportDocs = this.form.supportDocs
+        .filter(d => d.s3Key && !d.file)
+        .map(d => ({
+          description: d.description,
+          fileName: d.currentFileName,
+          s3Key: d.s3Key
+        }));
+      formData.append('existingSupportDocs', JSON.stringify(keptSupportDocs));
+
+      // Append newly uploaded support document files
+      this.form.supportDocs.forEach((doc, index) => {
+        if (doc.file) {
+          formData.append('supportDocs', doc.file);
+          formData.append('supportDocDescriptions', doc.description || `Doc_${index}`);
+        }
+      });
+    }
+
+    if (!this.form.hasCert) {
+      formData.append('poNumber', this.form.poNumber || '');
+      formData.append('poDate', this.form.poDate || '');
+      formData.append('tradeReferences', JSON.stringify(this.form.tradeReferences));
+    }
+
+    if (this.form.evaluationFile) {
+      formData.append('evaluationDoc', this.form.evaluationFile);
+    }
+
+    const request$ = supplierId 
+      ? this.supplierService.updateSupplier(supplierId, formData) 
+      : this.supplierService.registerSupplier(formData);
+
+    request$.subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        const message = supplierId ? "Supplier updated successfully!" : "Supplier registered successfully!";
+        this.showSnackbar(message, "success");
+        setTimeout(() => this.resetForm(), 1500);
+      },
+      error: (err) => {
+        this.loading = false;
+        const errMsg = err.error?.message || "An error occurred while saving.";
+        this.showSnackbar(errMsg, "error");
+        console.error("Submission Error:", err);
+      }
+    });
+  }
 
 showSnackbar(message: string, type: 'success' | 'error') {
   this.snackBar.open(message, 'Close', {
@@ -401,21 +535,31 @@ showSnackbar(message: string, type: 'success' | 'error') {
 }
 
  resetForm() {
-    this.step = 1;
-    this.form = {
-      id: null, name: '', email: '', hasCert: true, poNumber: '', poDate: '',
-   tradeReferences: [
-    { companyName: '', email: '', phone: '', response: '' } // Start with only one
-  ],
-      evaluationFile: null,
-      // FIX: Added s3Key: undefined here
-      additionalCerts: [{ name: '', file: null, currentFileName: '', s3Key: undefined }],
-      currentEvaluationName: '', 
-      expiryDate: ''
-    };
-    this.setDefaultExpiry();
-    this.syncStatusLogic();
-  }
+  this.step = 1;
+  this.form = {
+    id: null, 
+    name: '', 
+    email: '', 
+    hasCert: true, 
+    poNumber: '', 
+    poDate: '',
+    tradeReferences: [
+      { companyName: '', email: '', phone: '', response: '' } // Start with only one
+    ],
+    evaluationFile: null,
+    additionalCerts: [
+      { name: '', file: null, currentFileName: '', s3Key: undefined }
+    ],
+    // 👇 ADD THIS LINE TO FIX THE COMPILER ERROR
+    supportDocs: [
+      { description: '', file: null, currentFileName: '', s3Key: undefined }
+    ],
+    currentEvaluationName: '', 
+    expiryDate: ''
+  };
+  this.setDefaultExpiry();
+  this.syncStatusLogic();
+}
 
 
 
@@ -453,4 +597,40 @@ get isStep2Valid(): boolean {
     return hasExpiry && hasPO && hasAuditFile && hasTradeRefs;
   }
 }
+// Initialize array structure within form initialization logic
+// form.supportDocs = [];
+
+addSupportDocSlot() {
+  if (!this.form.supportDocs) {
+    this.form.supportDocs = [];
+  }
+  // Change currentFileName from null to ''
+  this.form.supportDocs.push({ 
+    description: '', 
+    file: null, 
+    currentFileName: '', 
+    s3Key: undefined 
+  });
+}
+
+clearSupportDocFile(index: number) {
+  this.form.supportDocs[index].file = null;
+  // Change from null to ''
+  this.form.supportDocs[index].currentFileName = ''; 
+  this.form.supportDocs[index].s3Key = undefined;
+}
+
+removeSupportDoc(index: number) {
+  this.form.supportDocs.splice(index, 1);
+}
+
+uploadSupportDoc(event: any, index: number) {
+  const file = event.target.files[0];
+  if (file) {
+    this.form.supportDocs[index].file = file;
+    this.form.supportDocs[index].currentFileName = file.name;
+  }
+}
+
+
 }

@@ -1,78 +1,307 @@
-/* Global ERP Styling */
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css");
 
-$slate-900: #0f172a; $slate-700: #334155; $slate-500: #64748b;
-$slate-400: #94a3b8; $slate-200: #e2e8f0; $slate-100: #f1f5f9;
-$slate-50: #f8fafc; $cobalt: #2563eb; $crimson: #e11d48;
+/* Theme Colors */
+$slate-900: #0f172a;
+$slate-700: #334155;
+$slate-500: #64748b;
+$slate-400: #94a3b8;
+$slate-200: #e2e8f0;
+$slate-100: #f1f5f9;
+$slate-50: #f8fafc;
+
+$cobalt: #2563eb;
+$crimson: #e11d48;
+$amber: #d97706;
+$emerald: #16a34a;
 
 .main-layout {
   background: $slate-50;
-  padding: 1rem;
+  padding: 1.5rem;
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-sizing: border-box;
 
+  .customer-list-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header Section */
   .erp-header {
-    display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;
-    .title-group h2 { color: $slate-900; font-weight: 800; margin: 0; }
-    .search-wrapper {
-      position: relative; width: 350px;
-      i { position: absolute; left: 12px; top: 10px; color: $slate-400; }
-      input { width: 100%; padding: 8px 8px 8px 35px; border: 1px solid $slate-200; border-radius: 6px; }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+
+      @media (min-width: 768px) {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
     }
+
+    .identity-stack {
+      .name {
+        font-weight: 700;
+        color: $slate-900;
+        text-transform: uppercase;
+        /* Keeps text in ALL CAPS */
+        text-decoration: none !important;
+        /* Removes underline */
+
+        &.supplier-link {
+          color: $cobalt;
+          cursor: pointer;
+
+          &:hover {
+            color: darken($cobalt, 15%);
+            text-decoration: none !important;
+            /* Prevents underline on hover */
+          }
+        }
+      }
+    }
+
+    .title-group h2 {
+      color: $slate-900;
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: $slate-400;
+        font-size: 0.9rem;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 8px 12px 8px 36px;
+        border: 1px solid $slate-200;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        background-color: #ffffff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &:focus {
+          outline: none;
+          border-color: $cobalt;
+          box-shadow: 0 0 0 3px rgba($cobalt, 0.1);
+        }
+
+        &::placeholder {
+          color: $slate-400;
+        }
+      }
+    }
+  }
+
+  /* Card Layout */
+  .erp-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid $slate-200;
+    overflow: hidden;
+  }
+
+  /* Table Styles */
+  .table-responsive {
+    overflow-x: auto;
   }
 
   .erp-table {
-    width: 100%; border-collapse: collapse; table-layout: auto;
-    th { background: $slate-100; padding: 10px; font-size: 11px; text-transform: uppercase; color: $slate-700; text-align: left; }
-    td { padding: 10px; border-bottom: 1px solid $slate-50; font-size: 13px; white-space: nowrap; }
-  }
-}
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
 
-/* Management Icons Fix */
-.action-stack {
-  display: flex; gap: 6px; justify-content: flex-end;
-  .btn-erp {
-    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-    border: 1px solid $slate-200; background: white; border-radius: 4px; cursor: pointer;
-    i { font-size: 14px; color: $slate-500; }
-    &:hover {
-      background: $slate-50;
-      &.edit i { color: $cobalt; }
-      &.delete i { color: $crimson; }
+    th {
+      background: $slate-100;
+      padding: 12px 16px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: $slate-700;
+      border-bottom: 1px solid $slate-200;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid $slate-100;
+      font-size: 0.875rem;
+      color: $slate-700;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: lighten($slate-50, 1%);
+      }
+
+      &:last-child td {
+        border-bottom: none;
+      }
     }
   }
 }
 
+/* Content Elements */
 .identity-stack {
-  .name { font-weight: 700; display: block; }
-  .email { font-size: 11px; color: $slate-500; }
-  .id-tag { font-size: 10px; background: $slate-100; padding: 2px 4px; border-radius: 3px; }
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .name {
+    font-weight: 600;
+    color: $slate-900;
+  }
+
+  .email {
+    font-size: 0.75rem;
+    color: $slate-500;
+  }
 }
 
-.status-badge {
-  padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;
-  &.pending { background: #fef3c7; color: #92400e; }
+.id-tag {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background-color: $slate-100;
+  color: $slate-700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid $slate-200;
 }
 
+.logic-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.validity-alert {
+  .date {
+    font-weight: 500;
+  }
+
+  &.urgent {
+    color: $crimson;
+    font-weight: 600;
+  }
+}
+
+/* Documents / Badges */
 .doc-pill-container {
-  display: flex; gap: 4px;
-  .erp-pill { padding: 2px 6px; border: 1px solid $slate-200; background: white; border-radius: 4px; font-size: 11px; }
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .erp-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid $slate-200;
+    background: $slate-50;
+    color: $slate-700;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    i {
+      color: $crimson;
+      font-size: 0.85rem;
+    }
+  }
 }
 
-.text-right { text-align: right; }
+/* Action Buttons */
+.action-stack {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
 
-/* Full screen overlay */
+  .btn-erp {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $slate-200;
+    background: #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    i {
+      font-size: 0.875rem;
+      color: $slate-500;
+      transition: color 0.2s ease;
+    }
+
+    &:hover {
+      background: $slate-100;
+
+      &.email i {
+        color: $cobalt;
+      }
+
+      &.view i {
+        color: $emerald;
+      }
+
+      &.edit i {
+        color: $amber;
+      }
+
+      &.delete i {
+        color: $crimson;
+      }
+    }
+  }
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Pagination Wrapper */
+.paginator-container {
+  background: #ffffff;
+  border: 1px solid $slate-200;
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Loaders */
 .global-loader-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(255, 255, 255, 0.7); /* Light dim effect */
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(2px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Higher than sidebar and header */
+  z-index: 9999;
 }
 
 .loader-content {
@@ -80,18 +309,22 @@ $slate-50: #f8fafc; $cobalt: #2563eb; $crimson: #e11d48;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  
+  gap: 12px;
+
   p {
-    color: #1a237e;
+    color: $slate-900;
     font-weight: 600;
     margin: 0;
   }
 }
 
-/* Ensure your table buttons don't jump when loading is active */
-.action-stack {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+.erp-loader-overlay {
+  padding: 60px;
+  text-align: center;
+  color: $slate-500;
+
+  p {
+    margin-top: 12px;
+    font-weight: 600;
+  }
 }

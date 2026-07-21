@@ -1,66 +1,58 @@
 <div class="main-layout">
+  <!-- Full-Screen Global Loading Overlay -->
   <div *ngIf="loading" class="global-loader-overlay">
-  <div class="loader-content">
-    <mat-spinner diameter="60"></mat-spinner>
-    <p>Dispatching Email Notice...</p>
+    <div class="loader-content">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Dispatching Email Notice...</p>
+    </div>
   </div>
-</div>
-  <div class="customer-list-container">
 
+  <div class="customer-list-container">
+    <!-- Header Section -->
     <header class="erp-header">
       <div class="header-left">
         <div class="title-group">
           <h2>Supplier Tracking System</h2>
-          <!-- <p class="subtitle">Compliance & Document Governance Portal</p> -->
-          <p class="subtitle"></p>
         </div>
-
         <div class="search-wrapper">
-          <i class="bi bi-search"></i>
-          <input type="text" placeholder="Search by Identity..." (input)="onSearch($event)">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" placeholder="Search by Identity..." (input)="onSearch($event)" class="search-input" />
         </div>
       </div>
-
-      <!-- <div class="header-right">
-        <div class="stats-container">
-          <div class="stat-card">
-            <span class="label">Total Portfolio</span>
-            <span class="value">{{ totalItems }}</span>
-          </div>
-          <div class="stat-card urgent-active">
-            <span class="label">Near Expiry</span>
-            <span class="value">{{ urgentCount }}</span>
-          </div>
-        </div>
-      </div> -->
     </header>
 
+    <!-- Table Container Card -->
     <div class="erp-card shadow-sm">
       <div class="table-responsive" *ngIf="!loading; else loader">
         <table class="erp-table">
           <thead>
             <tr>
-              <th>Supplier Identity</th>
-              <th>Registry ID</th>
-              <th>Approval Logic</th>
-              <!-- <th>Status</th> -->
-              <th>Validity</th>
-              <th>Certifications</th>
-              <th class="text-right">Management</th>
+              <th scope="col">Supplier Identity</th>
+              <th scope="col">Registry ID</th>
+              <th scope="col">Approval Logic</th>
+              <th scope="col">Validity</th>
+              <th scope="col">Certifications</th>
+              <th scope="col" class="text-right">Management</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let s of suppliers">
               <td>
                 <div class="identity-stack">
-                  <span class="name">{{ s.name }}</span>
+                  <a href="javascript:void(0)" class="name supplier-link" style="text-decoration: none;"
+                    (click)="viewDocuments(s.id)">
+                    {{ s.name | uppercase }}
+                  </a>
                   <span class="email">{{ s.email }}</span>
-                  <!-- <span class="id-tag">{{ s.internalSupplierNumber }}</span> -->
                 </div>
               </td>
+
+              <!-- Registry ID -->
               <td>
                 <span class="id-tag">{{ s.internalSupplierNumber }}</span>
               </td>
+
+              <!-- Approval Logic -->
               <td>
                 <div class="pathway-info">
                   <span class="logic-label" [ngClass]="getPathClass(s)">
@@ -69,34 +61,38 @@
                 </div>
               </td>
 
-              <!-- <td>
-                <span class="status-badge" [ngClass]="s.status?.toLowerCase()">{{ s.status || 'PENDING' }}</span>
-              </td> -->
-
+              <!-- Validity Date -->
               <td>
                 <div class="validity-alert" [class.urgent]="isNearExpiry(s.expiryDate)">
                   <span class="date">{{ s.expiryDate | date:'dd MMM yyyy' }}</span>
                 </div>
               </td>
+
+              <!-- Certifications Badges -->
               <td>
                 <div class="doc-pill-container">
-                  <button *ngFor="let doc of s.Documents" class="erp-pill">
+                  <span *ngFor="let doc of s.Documents" class="erp-pill">
                     <i class="bi bi-file-earmark-pdf"></i>
                     {{ doc.documentType === 'QUALITY_CERT' ? doc.fileName : doc.documentType }}
-                  </button>
+                  </span>
                 </div>
               </td>
+
+              <!-- Management Actions -->
               <td class="text-right">
                 <div class="action-stack">
                   <button class="btn-erp email" (click)="sendReminder(s)" title="Send Renewal Email">
-  <i class="bi bi-envelope-check"></i>
-</button>
-                  <button class="btn-erp view" (click)="viewDocuments(s.id)"><i class="bi bi-eye"></i></button>
-                  <button class="btn-erp edit" (click)="editSupplier(s)"><i class="bi bi-pencil-square"></i></button>
-                  <button class="btn-erp delete" (click)="onDelete(s.id, s.name)"><i class="bi bi-trash3"></i></button>
-                  <div *ngIf="loading" class="loading-shade">
-  <mat-spinner diameter="50"></mat-spinner>
-</div>
+                    <i class="bi bi-envelope-check"></i>
+                  </button>
+                  <button class="btn-erp view" (click)="viewDocuments(s.id)" title="View Documents">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn-erp edit" (click)="editSupplier(s)" title="Edit Supplier">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn-erp delete" (click)="onDelete(s.id, s.name)" title="Delete Supplier">
+                    <i class="bi bi-trash3"></i>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -104,23 +100,20 @@
         </table>
       </div>
     </div>
+
+    <!-- Paginator Footer -->
+    <div class="paginator-container">
+      <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageIndex]="currentPage - 1"
+        [pageSizeOptions]="[10, 20, 30, 50, 100]" (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
   </div>
 </div>
 
+<!-- Inline Synchronizing Loader Template -->
 <ng-template #loader>
-  <div class="erp-loader-overlay" style="padding: 100px; text-align: center; color: #64748b;">
-    <div class="spinner-border spinner-border-sm"></div>
-    <p style="margin-top: 15px; font-weight: 600;">Synchronizing Master Data...</p>
+  <div class="erp-loader-overlay">
+    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+    <p>Synchronizing Master Data...</p>
   </div>
 </ng-template>
-
-
-<div> <mat-paginator 
-      [length]="totalItems" 
-      [pageSize]="pageSize" 
-      [pageIndex]="currentPage - 1"
-      [pageSizeOptions]="[10, 20, 30, 50, 100]"
-      (page)="onPageChange($event)">
-    </mat-paginator>
-
-  </div>

@@ -63,11 +63,13 @@
         <div class="doc-card" *ngFor="let doc of documents">
           <div class="card-header">
             <div class="icon-wrapper">
-              {{ doc.fileName?.endsWith('.pdf') ? '📕' : '🖼️' }}
+              <!-- {{ doc.fileName?.endsWith('.pdf') ? '📕' : '🖼️' }} -->
+                {{ doc.fileName.endsWith('.pdf') ? '📕' : '🖼️' }}
             </div>
-            <div class="status-badge" [ngClass]="doc.status?.toLowerCase()">
+            <!-- <div class="status-badge" [ngClass]="doc.status?.toLowerCase()">
               {{ doc.status }}
-            </div>
+            </div> -->
+            <div class="status-badge" [ngClass]="doc.status.toLowerCase()"></div>
           </div>
 
           <div class="card-body">
@@ -77,7 +79,7 @@
             <div class="file-meta">
               <span>{{ formatFileSize(doc.fileSize) }}</span>
               <span class="separator">•</span>
-              <span>{{ doc.fileName?.endsWith('.pdf') ? 'PDF' : 'Image' }}</span>
+              <span>{{ doc.fileName.endsWith('.pdf') ? 'PDF' : 'Image' }}</span>
             </div>
 
             <div class="expiry-box" *ngIf="doc.validTo" [class.urgent]="isNearExpiry(doc.validTo)">

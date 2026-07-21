@@ -1,11 +1,11 @@
 <div class="dashboard-container">
 
-  <!-- Quality Admin -->
+
   @if (auth.getRole().includes('Quality Super Administrator')) {
     <app-quality-dashbaord></app-quality-dashbaord>
   } 
 
-  <!-- Super Admin -->
+
   @else if (auth.getRole().includes('Super Administrator')) {
     <app-matrix-table></app-matrix-table>
   }

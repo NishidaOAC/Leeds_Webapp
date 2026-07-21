@@ -8,7 +8,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 @Component({
   selector: 'app-renewal-alert',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatPaginatorModule], // 💡 Added MatPaginatorModule
+  imports: [CommonModule, MatPaginatorModule], // 💡 Added MatPaginatorModule
   templateUrl: './renewal-alert.html',
   styleUrl: './renewal-alert.scss',
 })

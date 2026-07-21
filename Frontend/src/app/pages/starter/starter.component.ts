@@ -1,6 +1,7 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, inject, ViewEncapsulation } from '@angular/core';
 import { MatrixTableComponent } from "./matrix-table/matrix-table.component";
 import { QualityDashbaord } from '../dashboard/quality-dashbaord/quality-dashbaord';
+import { AuthService } from '../authentication/auth.service';
 
 
 interface DashboardStats {
@@ -35,5 +36,7 @@ interface MonthlyData {
   encapsulation: ViewEncapsulation.None,
   styleUrl: './starter.component.scss'
 })
+
 export class StarterComponent { 
+ auth = inject(AuthService);
 }

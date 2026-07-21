@@ -7,7 +7,7 @@ class AuthController {
   // Request password reset (sends email to manager)
   static async requestPasswordReset(req, res) {
     try {
-      const {  empNo } = req.body;
+      const { empNo } = req.body;
 
       if (!empNo) {
         return res.status(400).json({
@@ -40,17 +40,17 @@ class AuthController {
       // });
 
       // if (superAdmins.length > 0) {
-        // Send email to all admins (or just one, but usually all for redundancy)
-        // for (const admin of superAdmins) {
-          await sendForgotPasswordRequestToManager({
-            to: process.env.MANAGER_EMAIL,
-            userName: user.name,
-            userEmail: user.email,
-            empNo: user.empNo,
-            requestedAt: new Date().toLocaleString(),
-            dashboardLink: `${process.env.FRONTEND_URL}/dashboard/users` // Direct to users list
-          });
-        // }
+      // Send email to all admins (or just one, but usually all for redundancy)
+      // for (const admin of superAdmins) {
+      await sendForgotPasswordRequestToManager({
+        to: process.env.MANAGER_EMAIL,
+        userName: user.name,
+        userEmail: user.email,
+        empNo: user.empNo,
+        requestedAt: new Date().toLocaleString(),
+        dashboardLink: `${process.env.FRONTEND_URL}/dashboard/users` // Direct to users list
+      });
+      // }
       // }
 
       return res.status(200).json({
@@ -72,31 +72,31 @@ class AuthController {
     try {
       // Validate input
       const { isValid, errors, data } = authValidation.validate(
-        authValidation.registerValidation, 
+        authValidation.registerValidation,
         req.body
       );
-      
+
       if (!isValid) {
-        return res.status(400).json({ 
-          success: false, 
-          errors 
+        return res.status(400).json({
+          success: false,
+          errors
         });
       }
-      console.log(data,"1111111111");
-      
-        const hashedPassword = await bcrypt.hash(data.password, 10);
+      console.log(data, "1111111111");
+
+      const hashedPassword = await bcrypt.hash(data.password, 10);
       // Skip duplicate email check to allow same email
 
       // Check if empNo already exists
       if (data.empNo) {
-        const existingEmpNo = await User.findOne({ 
-          where: { empNo: data.empNo } 
+        const existingEmpNo = await User.findOne({
+          where: { empNo: data.empNo }
         });
-        
+
         if (existingEmpNo) {
-          return res.status(409).json({ 
-            success: false, 
-            message: 'Employee number already exists' 
+          return res.status(409).json({
+            success: false,
+            message: 'Employee number already exists'
           });
         }
       }
@@ -131,9 +131,9 @@ class AuthController {
 
       // Find super admin users (or users with approval rights)
       const superAdmins = await User.findAll({
-        where: { 
+        where: {
           roleId: 1, // Assuming roleId 1 is super admin
-          isActive: true 
+          isActive: true
         },
         attributes: ['id', 'email', 'name']
       });
@@ -187,8 +187,8 @@ class AuthController {
       });
 
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: 'Registration failed',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
@@ -199,38 +199,39 @@ class AuthController {
   static async login(req, res) {
     try {
       const { isValid, errors, data } = authValidation.validate(
-        authValidation.loginValidation, 
+        authValidation.loginValidation,
         req.body
       );
       if (!isValid) {
-        return res.status(400).json({ 
-          success: false, 
-          errors 
+        return res.status(400).json({
+          success: false,
+          errors
         });
       }
-      console.log(data,"1111111111111");
-      
+      console.log(data, "1111111111111");
+
       // Find user
-      const user = await User.findOne({ 
-        where: { empNo: data.empNo } 
+      const user = await User.findOne({
+        where: { empNo: data.empNo },
+        include: [{ model: Role, as: 'Role' }] // Ensure 'Role' matches your association alias
       });
       if (!user) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid username' 
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid username'
         });
       }
       console.log(user);
-      
+
       // Check if account is locked
       if (user.failedLoginAttempts >= (process.env.PASSWORD_MAX_ATTEMPTS || 5)) {
         const lockoutTime = parseInt(process.env.PASSWORD_LOCKOUT_TIME) || 900000;
         const timeSinceLastAttempt = new Date() - user.updatedAt;
-        
+
         if (timeSinceLastAttempt < lockoutTime) {
-          return res.status(423).json({ 
-            success: false, 
-            message: 'Account is locked. Try again later.' 
+          return res.status(423).json({
+            success: false,
+            message: 'Account is locked. Try again later.'
           });
         } else {
           // Reset failed attempts after lockout period
@@ -240,26 +241,26 @@ class AuthController {
 
       // Check password
       const isPasswordValid = await user.comparePassword(data.password);
-      
+
       if (!isPasswordValid) {
         // Increment failed attempts
         await user.increment('failedLoginAttempts');
-        
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid password' 
+
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid password'
         });
       }
 
       // Reset failed attempts on successful login
-      await user.update({ 
+      await user.update({
         failedLoginAttempts: 0,
         lastLogin: new Date()
       });
 
       // Generate tokens
       const token = user.generateToken();
-      
+
       const refreshToken = user.generateRefreshToken();
 
       // Create session
@@ -294,8 +295,8 @@ class AuthController {
       });
 
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: 'Login failed',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
@@ -306,7 +307,7 @@ class AuthController {
   static async logout(req, res) {
     try {
       const token = req.headers['authorization']?.split(' ')[1];
-      
+
       if (token) {
         // Invalidate session
         await Session.update(
@@ -321,9 +322,9 @@ class AuthController {
       });
 
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Logout failed' 
+      res.status(500).json({
+        success: false,
+        message: 'Logout failed'
       });
     }
   }
@@ -334,9 +335,9 @@ class AuthController {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Refresh token required' 
+        return res.status(400).json({
+          success: false,
+          message: 'Refresh token required'
         });
       }
 
@@ -347,16 +348,16 @@ class AuthController {
       // Find user
       const user = await User.findByPk(decoded.id);
       if (!user) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'User not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
         });
       }
 
       // Find and validate session
       const session = await Session.findOne({
-        where: { 
-          userId: user.id, 
+        where: {
+          userId: user.id,
           refreshToken,
           isActive: true,
           expiresAt: { $gt: new Date() }
@@ -364,9 +365,9 @@ class AuthController {
       });
 
       if (!session) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid refresh token' 
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid refresh token'
         });
       }
 
@@ -391,22 +392,22 @@ class AuthController {
 
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Refresh token expired' 
-        });
-      }
-      
-      if (error.name === 'JsonWebTokenError') {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Invalid refresh token' 
+        return res.status(401).json({
+          success: false,
+          message: 'Refresh token expired'
         });
       }
 
-      res.status(500).json({ 
-        success: false, 
-        message: 'Token refresh failed' 
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(403).json({
+          success: false,
+          message: 'Invalid refresh token'
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'Token refresh failed'
       });
     }
   }
@@ -419,9 +420,9 @@ class AuthController {
       });
 
       if (!user) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'User not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
         });
       }
 
@@ -437,9 +438,9 @@ class AuthController {
       });
 
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to get user information' 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get user information'
       });
     }
   }
@@ -448,33 +449,33 @@ class AuthController {
   static async changePassword(req, res) {
     try {
       const { isValid, errors, data } = authValidation.validate(
-        authValidation.changePasswordValidation, 
+        authValidation.changePasswordValidation,
         req.body
       );
-      
+
       if (!isValid) {
-        return res.status(400).json({ 
-          success: false, 
-          errors 
+        return res.status(400).json({
+          success: false,
+          errors
         });
       }
 
       const user = await User.findByPk(req.user.id);
-      
+
       if (!user) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'User not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
         });
       }
 
       // Verify current password
       const isPasswordValid = await user.comparePassword(data.currentPassword);
-      
+
       if (!isPasswordValid) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Current password is incorrect' 
+        return res.status(401).json({
+          success: false,
+          message: 'Current password is incorrect'
         });
       }
 
@@ -485,8 +486,8 @@ class AuthController {
       const token = req.headers['authorization']?.split(' ')[1];
       await Session.update(
         { isActive: false },
-        { 
-          where: { 
+        {
+          where: {
             userId: user.id,
             token: { $ne: token }
           }
@@ -499,9 +500,9 @@ class AuthController {
       });
 
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to change password' 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to change password'
       });
     }
   }

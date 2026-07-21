@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { jwtDecode } from 'jwt-decode'; // <--- Add this line at the top
 
 @Injectable({
   providedIn: 'root',
@@ -92,4 +93,33 @@ export class AuthService {
     const user = this.getCurrentUser();
     return user && user.power ? user.power : null;
   }
+
+
+  getUser(): any {
+    const token = localStorage.getItem('token');
+    try {
+      return token ? jwtDecode(token) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Gets user object saved during login
+  getStoredUser(): any {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  getRole(): string {
+    // 1. Try getting roleName from JWT Token
+    const tokenUser = this.getUser();
+    if (tokenUser?.roleName) {
+      return tokenUser.roleName;
+    }
+
+    // 2. Fallback: Read role from saved user object in LocalStorage
+    const storedUser = this.getStoredUser();
+    return storedUser?.role || storedUser?.roleName || '';
+  }
+
 }

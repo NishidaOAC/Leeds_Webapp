@@ -2,64 +2,75 @@ import { NavItem } from './nav-item/nav-item';
 
 export const navItems: NavItem[] = [
   {
+    navCap: 'Home',
+  },
+  {
     displayName: 'Dashboard',
     iconName: 'layout-grid-add',
     route: '/dashboard',
-    roles: ['Admin', 'Quality Super Administrator']
+    bgcolor: 'primary',
+    roles: ['Admin', 'Manager', 'user'] 
   },
-  {
+    {
     displayName: 'Onboard Supplier',
     iconName: 'layout-grid-add',
     route: '/dashboard/supplier',
-    roles: ['Admin', 'Quality Super Administrator']
+    roles: ['QualityAdmin']
   },
   {
     displayName: 'Supplier Directory',
     iconName: 'layout-grid-add',
     route: '/dashboard/supplier/supplierlist',
-    roles: ['Admin', 'Quality Super Administrator']
+    roles: ['QualityAdmin']
   },
-  // {
-  //   displayName: 'New Customer Account',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/customer',
-  //   roles: ['Admin', 'Quality Super Administrator']
-  // },
-  // {
-  //   displayName: 'Customer Directory',
-  //   iconName: 'layout-grid-add',
-  //   route: '/dashboard/customer/customerlist',
-  //   roles: ['Admin', 'Quality Super Administrator']
-  // },
   {
-    displayName: 'Users',
+    displayName: 'NewPayment',
     iconName: 'layout-grid-add',
-    route: '/dashboard/users',
-    roles: ['Admin', 'Quality Super Administrator']
+    route: '/dashboard/payments/addpayments',
+    bgcolor: 'primary',
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM'] // Only admin and manager can add payments
   },
-  // Quality Admin is NOT in the roles below, so they will be filtered out
+  {
+    displayName: 'Payments',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/payments',
+    bgcolor: 'primary',
+    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
+  },
   {
     displayName: 'Company',
     iconName: 'layout-grid-add',
     route: '/dashboard/company',
-    roles: ['Admin']
+    bgcolor: 'primary',
+    roles: ['Admin'] // Only admin can manage company
+  },
+  {
+    displayName: 'Users',
+    iconName: 'layout-grid-add',
+    route: '/dashboard/users',
+    bgcolor: 'primary',
+    roles: ['Admin', 'Manager'] // Only admin can manage users
   },
   {
     displayName: 'Role',
     iconName: 'layout-grid-add',
     route: '/dashboard/users/roles',
-    roles: ['Admin']
+    bgcolor: 'primary',
+    roles: ['Admin'] // Only admin can manage roles
   },
   {
     displayName: 'Team',
     iconName: 'layout-grid-add',
     route: '/dashboard/users/teams',
-    roles: ['Admin']
+    bgcolor: 'primary',
+    roles: ['Admin', 'Manager'] // Admin and managers can manage teams
   },
   {
     displayName: 'Report',
     iconName: 'layout-grid-add',
     route: '/dashboard/payments/report',
-    roles: ['Admin']
-  }
+    bgcolor: 'primary',
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM', 'Accountant'] // Admin and managers can view reports
+  },
+  // Add other items with role restrictions...
 ];

@@ -13,7 +13,7 @@ const Role = sequelize.define('Role', {
     allowNull: false
   },
   power: {
-    type: DataTypes.ENUM('Admin','SalesExecutive','KAM','Manager','Accountant'),
+    type: DataTypes.ENUM('Admin','QualityAdmin','SalesExecutive','KAM','Manager','Accountant'),
     allowNull: false,
     defaultValue: 'Admin'
   },

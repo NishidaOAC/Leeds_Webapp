@@ -603,28 +603,30 @@ exports.getUpcomingExpiries = async (req, res) => {
 
 
 
+
+
+
 exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
     try {
-        // Calculate our forward look-ahead threshold (6 months from now)
-        const lookAheadDate = new Date();
-        lookAheadDate.setMonth(lookAheadDate.getMonth() + 6);
-        lookAheadDate.setHours(23, 59, 59, 999);
+        const now = new Date();
+        
+        // 💡 Get the last millisecond of the current month explicitly
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed (e.g., July = 6)
+        
+        // Setting day to 0 of the NEXT month (month + 1) gives the last day of the CURRENT month
+        const endOfCurrentMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
         const suppliers = await Supplier.findAll({
             where: {
                 expiryDate: {
-                    // 💡 THE ULTIMATE FIX:
-                    // By using [Op.lte] instead of [Op.between], we do not lock the start date to 'today'.
-                    // This now includes everything from the infinite past (yesterday, last month, last year) 
-                    // up to 6 months into the future.
-                    [Op.lte]: lookAheadDate
+                    [Op.lte]: endOfCurrentMonth
                 }
             },
             include: [
                 { model: SupplierDocument, as: 'Documents' },
                 { model: OnboardingStatus, as: 'OnboardingStatus' }
             ],
-            // This ensures forgotten past-due items are sorted at the absolute top of the list!
             order: [['expiryDate', 'ASC']]
         });
 

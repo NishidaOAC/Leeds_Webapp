@@ -30,7 +30,7 @@ export class RoleForm {
   @Input() role: any = null;
   @Output() formSaved = new EventEmitter<void>();
   accessOptions = ['read', 'write', 'delete', 'manage_users', 'manage_roles', 'view_reports'];
-  powers = ['Admin', 'SalesExecutive', 'KAM', 'Manager', 'Accountant'];
+  powers = ['Admin','QualityAdmin', 'SalesExecutive', 'KAM', 'Manager', 'Accountant'];
   
   get selectedAccessCount(): number {
     return this.roleForm.get('access')?.value?.length || 0;

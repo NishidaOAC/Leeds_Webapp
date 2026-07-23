@@ -14,6 +14,8 @@ import { navItems } from './sidebar/sidebar-data';
 import { AppTopstripComponent } from './top-strip/topstrip.component';
 import { MatListModule } from "@angular/material/list";
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -32,13 +34,16 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     MatSidenavContent,
     MatSidenavContainer,
     MatSidenav,
-    MatListModule
+    MatListModule,
+    MatIconModule,
+    MatToolbarModule
 ],
   templateUrl: './full.component.html',
   styleUrls: ['./full.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class FullComponent implements OnInit {
+  notificationCount :number = 10;
   navItems = navItems;
 
   @ViewChild('leftsidenav')

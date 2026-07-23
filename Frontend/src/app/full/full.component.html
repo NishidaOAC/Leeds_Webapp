@@ -1,64 +1,81 @@
-<!-- <app-topstrip></app-topstrip> -->
 <mat-sidenav-container class="blue_theme light-theme" autosize autoFocus dir="ltr">
-  <!-- ============================================================== -->
-  <!-- Vertical Sidebar -->
-  <!-- ============================================================== -->
+  <!-- Sidebar -->
   <mat-sidenav #leftsidenav [mode]="isOver ? 'over' : 'side'" [opened]="!isOver"
     (openedChange)="onSidenavOpenedChange($event)" (closedStart)="onSidenavClosedStart()" class="sidebarNav">
     <div class="flex-layout">
-      <app-sidebar (toggleMobileNav)="sidenav.toggle()" [showToggle]="isOver"></app-sidebar>
-      <ng-scrollbar class="position-relative" style="height: 100%">
+      <!-- Sidebar Header / Logo -->
+      <div class="sidebar-header">
+        <a href="/" class="logodark">
+          <img src="./assets/images/logos/fintech_logo.jpeg" width="180" alt="logo" />
+        </a>
+      </div>
+
+      <ng-scrollbar class="position-relative" style="height: calc(100% - 70px)">
         <mat-nav-list class="sidebar-list">
-          <div class="user-profile">
-                <a href="/" class="logodark">
-      <img
-        src="./assets/images/logos/fintech_logo.jpeg" width="230"
-        alt="logo"
-      />
-    </a>
-              <div class="user-info">
-                  <div class="username">{{username}}</div>
-                  @if (role) { <div class="user-role">{{role}}</div> }
-              </div>
-              <button class="logout-btn" (click)="logout()">
-                  <i class="material-icons">logout</i>
-                  <span class="logout-text">Logout</span>
-              </button>
-          </div>
           @for(item of navItems; track item) {
-          <app-nav-item [item]="item" (notify)="sidenav.toggle()">
-          </app-nav-item>
+            <app-nav-item [item]="item" (notify)="leftsidenav.toggle()"></app-nav-item>
           }
         </mat-nav-list>
       </ng-scrollbar>
     </div>
   </mat-sidenav>
 
-  <!-- ============================================================== -->
-  <!-- Main Content -->
-  <!-- ============================================================== -->
+  <!-- Main Content Wrapper -->
   <mat-sidenav-content class="contentWrapper" #content>
+    
+    <!-- Top Navigation Bar -->
+    <header class="top-nav-header">
+  <div class="header-left">
+    <button mat-icon-button (click)="leftsidenav.toggle()" class="toggle-btn">
+      <mat-icon>menu</mat-icon>
+    </button>
+  </div>
 
+  <!-- Search Box -->
+  <!-- <div class="header-center">
+    <div class="search-box">
+      <input type="text" placeholder="Search parts by name or code..." class="search-input" />
+      <button type="button" class="search-btn">
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+  </div> -->
+
+  <!-- Right Side Nav -->
+  <div class="header-right">
+    <!-- Notification Bell -->
+    <div class="notification-box">
+      <button mat-icon-button class="icon-btn">
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <span class="badge">1</span>
+    </div>
+
+    <!-- User Profile with Fallback Avatar -->
+    <div class="user-profile-nav">
+      <!-- Generates Initials 'SA' if image isn't loaded -->
+      <div class="user-avatar-circle">
+        <span>SA</span>
+      </div>
+      
+      <div class="user-info-text">
+        <span class="nav-username">{{ username || 'System Super Administrator' }}</span>
+        <span class="nav-user-role">{{ role || 'superadmin' }}</span>
+      </div>
+
+      <button mat-icon-button class="logout-icon" (click)="logout()" title="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </div>
+</header>
+
+    <!-- Page Content -->
     <main class="pageWrapper maxWidth">
-
-      <!-- ============================================================== -->
-      <!-- VerticalHeader -->
-      <!-- ============================================================== -->
-      <!-- <app-header [showToggle]="!isOver" (toggleMobileNav)="sidenav.toggle()"></app-header> -->
-
-      <div class="m-t-30">
-        <!-- ============================================================== -->
-        <!-- Outlet -->
-        <!-- ============================================================== -->
+      <div class="m-t-20">
         <router-outlet></router-outlet>
       </div>
     </main>
 
-    <!-- <div class="p-16 p-t-8 p-b-30 text-center">
-      Design & Developed by <a class="text-decoration-none" href="https://www.anjalyayurvedics.com/"
-        target="_blank">Onboard Aero Consultant</a>
-    </div> -->
-
   </mat-sidenav-content>
-
 </mat-sidenav-container>

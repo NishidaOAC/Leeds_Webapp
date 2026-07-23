@@ -2,14 +2,14 @@ import { NavItem } from './nav-item/nav-item';
 
 export const navItems: NavItem[] = [
   {
-    navCap: 'Home',
+    // navCap: 'Home',
   },
   {
     displayName: 'Dashboard',
     iconName: 'layout-grid-add',
     route: '/dashboard',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'user'] 
+    roles: ['Admin', 'QualityAdmin', 'Manager', 'user'] 
   },
     {
     displayName: 'Onboard Supplier',

@@ -2,15 +2,17 @@
 
 html,
 body {
-    height: 100%;
-    margin: 0;
+  height: 100%;
+  margin: 0;
 }
 
-// .snackbar-error {
-//   color: #fff !important;
-//   font-weight: 500;
-//   text-align: center;
-// }
+/* 
+.snackbar-error {
+  color: #fff !important;
+  font-weight: 500;
+  text-align: center;
+}
+*/
 
 /* ✅ Center the snackbar in the middle of the screen */
 .snackbar-center {
@@ -38,11 +40,133 @@ body {
   }
 }
 
-
 /* Center Snackbar on screen */
-::ng-deep .cdk-overlay-container .mat-mdc-snack-bar-container {
+.cdk-overlay-container .mat-mdc-snack-bar-container {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
   position: fixed !important;
+}
+
+/* ==========================================================================
+   GLOBAL SIDENAV OVERRIDES
+   ========================================================================== */
+/* ==========================================================================
+   GLOBAL SIDENAV OVERRIDES (Leeds Aerospace Design Match)
+   ========================================================================== */
+
+/* 1. Sidenav Container & Drawer Dimensions */
+mat-sidenav.sidebarNav,
+.mat-drawer.sidebarNav {
+  width: 200px !important;
+  min-width: 200px !important;
+  max-width: 200px !important;
+  background-color: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+.mat-drawer-inner-container {
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* 2. Nav List Container Padding */
+.sidebar-list,
+mat-nav-list,
+.mat-mdc-nav-list {
+  padding: 12px 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important; /* Space between menu cards */
+}
+
+app-sidebar,
+app-nav-item {
+  display: block;
+  width: 100% !important;
+}
+
+/* 3. Navigation Item Styles (Matches Leeds Aerospace Dark Active Card) */
+::ng-deep .menu-list-item,
+.menu-list-item {
+  display: flex !important;
+  align-items: center !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important; /* Smooth rounded pill corners */
+  text-decoration: none !important;
+  color: #475569 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  background-color: transparent;
+  transition: all 0.2s ease-in-out !important;
+
+  /* Reset Material default overlays */
+  &::before,
+  &::after {
+    display: none !important;
+  }
+
+  .mdc-list-item__content {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Left Menu Icon */
+  .routeIcon,
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 10px !important;
+    color: #475569 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Label Text */
+  .hide-menu,
+  span {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: inherit !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex-grow: 1 !important;
+  }
+
+  /* Hover State */
+  &:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+
+    .routeIcon,
+    mat-icon {
+      color: #0f172a !important;
+    }
+  }
+
+  /* 🎯 ACTIVE CARD STATE (Matches Leeds Aerospace Dark Slate/Charcoal Card) */
+  &.active,
+  &.activeMenu {
+    background-color: #686767 !important; /* Leeds Charcoal Gray */
+    color: #ffffff !important;
+    font-weight: 600 !important;
+
+    .hide-menu,
+    .routeIcon,
+    mat-icon,
+    span {
+      color: #ffffff !important;
+    }
+  }
 }

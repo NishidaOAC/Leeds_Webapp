@@ -6,11 +6,20 @@ import { NavItem } from './nav-item/nav-item';
 import { navItems } from './sidebar-data';
 import { filter } from 'rxjs';
 import { SupplierService } from '../../pages/supplier/services/supplier.service';
+import { AppNavItemComponent } from './nav-item/nav-item.component';
+import { MatNavList } from '@angular/material/list';
+import { NgScrollbar } from 'ngx-scrollbar';
+import { MatIconModule } from '@angular/material/icon';
+
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [BrandingComponent, CommonModule, RouterModule],
+  imports: [BrandingComponent, CommonModule, RouterModule,AppNavItemComponent,
+    MatNavList,
+    NgScrollbar,
+    MatIconModule
+  ],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {

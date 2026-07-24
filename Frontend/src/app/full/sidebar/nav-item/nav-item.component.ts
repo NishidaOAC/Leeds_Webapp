@@ -19,7 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-nav-item',
   imports: [ CommonModule, MatListModule, MatIconModule],
   templateUrl: './nav-item.component.html',
-  styleUrls: [],
+  styleUrls: ['./nav-item.component.scss'],
 })
 export class AppNavItemComponent implements OnChanges, OnInit {
   @Output() notify: EventEmitter<boolean> = new EventEmitter<boolean>();

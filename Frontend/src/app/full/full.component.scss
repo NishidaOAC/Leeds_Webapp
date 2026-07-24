@@ -1,149 +1,197 @@
 /* ==========================================================================
-   Top Navigation Header Container
+   1. Host & Layout Containers
+   ========================================================================== */
+:host {
+  display: block;
+  width: 100%;
+  height: 100vh;
+}
+
+mat-sidenav-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure child components stretch completely */
+app-sidebar,
+app-nav-item {
+  display: block;
+  width: 100% !important;
+}
+
+/* ==========================================================================
+   2. Compact Sidenav Drawer (170px Snug Fit - Removes White Gap)
+   ========================================================================== */
+::ng-deep {
+  mat-sidenav.sidebarNav,
+  .mat-drawer.sidebarNav {
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    background-color: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+
+    .mat-drawer-inner-container {
+      width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow-x: hidden !important;
+    }
+  }
+
+  mat-nav-list.sidebar-list,
+  .mat-mdc-nav-list {
+    padding: 6px 4px !important;
+    margin: 0 !important;
+  }
+
+  /* Nav Item Styling (Fixes Text Truncation & Spacing) */
+  .menu-list-item {
+    padding: 0 8px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+
+    .routeIcon,
+    mat-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+      margin-right: 6px !important;
+      flex-shrink: 0 !important;
+    }
+
+    .hide-menu,
+    span {
+      font-size: 11.5px !important; /* Scaled font so labels fit cleanly */
+      font-weight: 500 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      flex-grow: 1 !important;
+    }
+  }
+}
+
+.flex-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar Logo Block */
+/* Sidebar Logo Block */
+.sidebar-header {
+  height: 54px;
+  min-height: 54px;
+  padding: 8px 12px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-bottom: 1px solid #e2e8f0;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  width: 100%;
+
+  .logodark {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100%;
+    height: 100%;
+
+    img {
+      display: block !important;
+      max-width: 140px !important;
+      max-height: 36px !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   3. FIXED Top Navigation Bar Layout (Prevents Vertical Stacking)
    ========================================================================== */
 .top-nav-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  padding: 0 24px 0 16px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 52px;
+  padding: 0 16px;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 99;
-}
-
-/* Left Section: Menu Toggle */
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.header-left .toggle-btn {
-  color: #475569;
-  transition: color 0.2s ease;
-}
-
-.header-left .toggle-btn:hover {
-  color: #1e293b;
-}
-
-/* ==========================================================================
-   Center Section: Search Box
-   ========================================================================== */
-.header-center {
-  flex: 1;
-  max-width: 500px;
-  margin: 0 24px;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  background-color: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.search-box:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.search-input {
   width: 100%;
-  border: none;
-  background: transparent;
-  padding: 8px 14px;
-  font-size: 13px;
-  outline: none;
-  color: #0f172a;
+  box-sizing: border-box;
 }
 
-.search-input::placeholder {
-  color: #94a3b8;
+.header-left {
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 0;
+
+  .toggle-btn {
+    color: #475569;
+  }
 }
 
-.search-btn {
-  border: none;
-  background: #475569;
-  color: #ffffff;
-  padding: 6px 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.search-btn:hover {
-  background-color: #334155;
-}
-
-/* ==========================================================================
-   Right Section: Notifications & User Profile
-   ========================================================================== */
 .header-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 16px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
-/* Notification Badge Alignment */
+/* Notification Bell */
 .notification-box {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex !important;
+  align-items: center !important;
+
+  .badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    min-width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+  }
 }
 
-.notification-box .icon-btn {
-  color: #475569;
-  transition: color 0.2s ease;
-}
-
-.notification-box .icon-btn:hover {
-  color: #1e293b;
-}
-
-.notification-box .badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background-color: #2563eb; /* Primary Blue */
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 10px;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ffffff; /* Clean cutout border */
-  pointer-events: none;
-}
-
-/* User Profile Nav Styling */
+/* User Profile Row */
 .user-profile-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px;
 }
 
-/* Fallback Avatar Circle */
 .user-avatar-circle {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background-color: #eff6ff;
   color: #2563eb;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,60 +199,42 @@
   flex-shrink: 0;
 }
 
-/* Text Visibility Fixes */
 .user-info-text {
   display: flex;
   flex-direction: column;
 }
 
 .nav-username {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #0f172a !important;
+  color: #0f172a;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .nav-user-role {
-  font-size: 11px;
-  color: #64748b !important;
-  text-transform: lowercase;
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-/* Logout Action */
 .logout-icon {
   color: #64748b;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
 
-.logout-icon:hover {
-  color: #ef4444;
-  transform: translateX(2px);
+  &:hover {
+    color: #ef4444;
+  }
 }
 
 /* ==========================================================================
-   Sidebar Header Section
+   4. Main Page Content Padding Fix
    ========================================================================== */
-.sidebar-header {
+.pageWrapper {
   padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #f1f5f9;
+  box-sizing: border-box;
 }
 
-/* ==========================================================================
-   Responsive Adaptations
-   ========================================================================== */
-@media (max-width: 768px) {
-  .top-nav-header {
-    padding: 0 12px;
-  }
-
-  .header-center {
-    display: none; /* Hide search bar on smaller mobile viewports */
-  }
-
-  .user-info-text {
-    display: none; /* Hide text details on mobile to preserve layout space */
-  }
+.content-container {
+  margin-top: 0;
 }

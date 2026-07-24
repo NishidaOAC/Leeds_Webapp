@@ -37,7 +37,7 @@ export class SupplierList implements OnInit {
 
   // Pagination/Search State
   currentPage = 1;
-  pageSize = 7;
+  pageSize = 5;
   totalItems = 0;
   searchTerm = '';
 

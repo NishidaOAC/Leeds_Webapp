@@ -2,75 +2,71 @@ import { NavItem } from './nav-item/nav-item';
 
 export const navItems: NavItem[] = [
   {
-    // navCap: 'Home',
-  },
-  {
     displayName: 'Dashboard',
-    iconName: 'layout-grid-add',
+    iconName: 'dashboard', // Fixed icon name
     route: '/dashboard',
     bgcolor: 'primary',
-    roles: ['Admin', 'QualityAdmin', 'Manager', 'user'] 
+    roles: ['Admin', 'QualityAdmin', 'Manager', 'user', 'superadministrator'] 
   },
-    {
+  {
     displayName: 'Onboard Supplier',
-    iconName: 'layout-grid-add',
+    iconName: 'person_add',
     route: '/dashboard/supplier',
-    roles: ['QualityAdmin']
+    roles: ['QualityAdmin', 'superadministrator']
   },
   {
     displayName: 'Supplier Directory',
-    iconName: 'layout-grid-add',
+    iconName: 'folder_shared',
     route: '/dashboard/supplier/supplierlist',
-    roles: ['QualityAdmin']
+    roles: ['QualityAdmin', 'superadministrator']
   },
   {
     displayName: 'NewPayment',
-    iconName: 'layout-grid-add',
+    iconName: 'add_card',
     route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM'] // Only admin and manager can add payments
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM', 'superadministrator']
   },
   {
     displayName: 'Payments',
-    iconName: 'layout-grid-add',
+    iconName: 'payments',
     route: '/dashboard/payments',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] // All roles can view payments
+    roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant', 'superadministrator']
   },
   {
     displayName: 'Company',
-    iconName: 'layout-grid-add',
+    iconName: 'business',
     route: '/dashboard/company',
     bgcolor: 'primary',
-    roles: ['Admin'] // Only admin can manage company
+    roles: ['Admin', 'superadministrator']
   },
   {
     displayName: 'Users',
-    iconName: 'layout-grid-add',
+    iconName: 'people',
     route: '/dashboard/users',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager'] // Only admin can manage users
+    roles: ['Admin', 'Manager', 'superadministrator']
   },
   {
     displayName: 'Role',
-    iconName: 'layout-grid-add',
+    iconName: 'admin_panel_settings',
     route: '/dashboard/users/roles',
     bgcolor: 'primary',
-    roles: ['Admin'] // Only admin can manage roles
+    roles: ['Admin', 'superadministrator']
   },
   {
     displayName: 'Team',
-    iconName: 'layout-grid-add',
+    iconName: 'groups',
     route: '/dashboard/users/teams',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager'] // Admin and managers can manage teams
+    roles: ['Admin', 'Manager', 'superadministrator']
   },
   {
     displayName: 'Report',
-    iconName: 'layout-grid-add',
+    iconName: 'bar_chart',
     route: '/dashboard/payments/report',
     bgcolor: 'primary',
-    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM', 'Accountant'] // Admin and managers can view reports
-  },
-  // Add other items with role restrictions...
+    roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM', 'Accountant', 'superadministrator']
+  }
 ];

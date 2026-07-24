@@ -1,0 +1,96 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Direct Target - Clean & Modern Compact Sidebar Item */
+.menu-list-item {
+  display: flex !important;
+  align-items: center !important;
+  
+  /* 1. Balanced Height & Spacing (Reduced from 50px to 38px) */
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 10px !important;
+  margin: 4px 6px !important; /* Prevents edge clipping */
+  border-radius: 6px !important; /* Sleek rounded pill shape */
+  
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500; /* Fixed invalid font-weight: 1000 */
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+
+  /* Reset Material default line heights/pseudo elements */
+  &::before,
+  &::after {
+    display: none !important;
+  }
+
+  /* Compact Material MDC internal wrapper fix */
+  .mdc-list-item__content {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Properly Aligned Left Icon */
+  .routeIcon,
+  mat-icon {
+    font-size: 17px !important;
+    width: 17px !important;
+    height: 17px !important;
+    margin-right: 10px !important;
+    color: #64748b;
+    flex-shrink: 0;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Label Text with Crisp Alignment */
+  .hide-menu {
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    line-height: 1;
+  }
+
+  /* Nested Arrow Icon */
+  .arrow-icon mat-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    margin-right: 0 !important;
+  }
+
+  /* Soft Hover State */
+  &:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+
+    .routeIcon,
+    mat-icon {
+      color: #1e293b;
+    }
+  }
+
+  /* Active State (Matches Leeds / Professional Modern Blue Pill) */
+  &.activeMenu,
+  &.active {
+    background-color: #1d4ed8 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+
+    .hide-menu,
+    .routeIcon,
+    mat-icon {
+      color: #ffffff !important;
+    }
+  }
+}

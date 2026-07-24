@@ -1,28 +1,22 @@
 <mat-sidenav-container class="blue_theme light-theme" autosize autoFocus dir="ltr">
-  
+
   <!-- Compact Sidebar -->
   <mat-sidenav #leftsidenav [mode]="isOver ? 'over' : 'side'" [opened]="!isOver"
     (openedChange)="onSidenavOpenedChange($event)" (closedStart)="onSidenavClosedStart()" class="sidebarNav">
-    
+
     <div class="flex-layout">
-      <!-- Compact Header / Logo -->
-      <!-- <div class="sidebar-header">
+
+      <div class="sidebar-header">
         <a href="/" class="logodark">
-          <img src="./assets/images/logos/fintech_logo.jpeg" alt="logo" />
+          <img src="assets/images/logos/fintech_logo.jpeg" alt="AeroAssist Logo" />
         </a>
-      </div> -->
-      <!-- Compact Header / Logo -->
-<div class="sidebar-header">
-  <a href="/" class="logodark">
-    <img src="assets/images/logos/fintech_logo.jpeg" alt="AeroAssist Logo" />
-  </a>
-</div>
+      </div>
 
       <!-- Properly set height scrollbar -->
       <ng-scrollbar class="sidebar-scroll" style="height: calc(100vh - 44px)">
         <mat-nav-list class="sidebar-list">
           @for(item of navItems; track item) {
-            <app-nav-item [item]="item" (notify)="leftsidenav.toggle()"></app-nav-item>
+          <app-nav-item [item]="item" (notify)="leftsidenav.toggle()"></app-nav-item>
           }
         </mat-nav-list>
       </ng-scrollbar>
@@ -32,7 +26,7 @@
 
   <!-- Main Content Wrapper -->
   <mat-sidenav-content class="contentWrapper" #content>
-    
+
     <!-- Ultra-Compact Top Navbar -->
     <header class="top-nav-header">
       <div class="header-left">
@@ -55,7 +49,7 @@
           <div class="user-avatar-circle">
             <span>SA</span>
           </div>
-          
+
           <div class="user-info-text">
             <span class="nav-username">{{ username || 'System Super Administrator' }}</span>
             <span class="nav-user-role">{{ role || 'superadmin' }}</span>

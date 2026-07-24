@@ -7,11 +7,8 @@ import { NavigationEnd, Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { HeaderComponent } from './header/header.component';
-import { SidebarComponent } from './sidebar/sidebar.component';
 import { AppNavItemComponent } from './sidebar/nav-item/nav-item.component';
 import { navItems } from './sidebar/sidebar-data';
-import { AppTopstripComponent } from './top-strip/topstrip.component';
 import { MatListModule } from "@angular/material/list";
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,9 +25,7 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     RouterModule, MatButtonModule,
     AppNavItemComponent,
     CommonModule,
-    SidebarComponent,
     NgScrollbarModule,
-    AppTopstripComponent,
     MatSidenavContent,
     MatSidenavContainer,
     MatSidenav,

@@ -12,6 +12,17 @@ const PerformaInvoice = sequelize.define('PerformaInvoice',{
     accountantId : {type : DataTypes.INTEGER, allowNull : true},
     count: {type : DataTypes.INTEGER, defaultValue: 1},
 
+    supplierCompanyId: { 
+    type: DataTypes.INTEGER, 
+    allowNull: false,
+    comment: 'Refers to Company.id (Invoice Service)'
+  },
+  supplierProfileId: { 
+    type: DataTypes.UUID, 
+    allowNull: true,
+    comment: 'Refers to Supplier.id (Supplier Microservice)'
+  },
+
     supplierId: { type: DataTypes.INTEGER},
     supplierSoNo: { type: DataTypes.STRING },
     supplierPoNo: { type: DataTypes.STRING },

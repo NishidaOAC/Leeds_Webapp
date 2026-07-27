@@ -13,6 +13,12 @@ export class CompanyService {
 
   constructor(private http: HttpClient) { }
 
+
+  // company.service.ts
+getqualifiedSuppliers(): Observable<Company[]> {
+  return this.http.get<Company[]>(`${this.apiUrl}/qualified/suppliers`);
+}
+
   getCompany(filterValue?: string, page?: number, pagesize?:number): Observable<Company[]> {
     return this.http.get<Company[]>(`${this.apiUrl}/find?search=${filterValue}&page=${page}&pageSize=${pagesize}`);
   }

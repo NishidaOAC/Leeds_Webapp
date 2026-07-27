@@ -217,6 +217,65 @@ exports.dashboardWireTransfer = async (req, res) => {
 
 exports.saveInvoice = async (req, res) => {
   try {
+    const { piNo, supplierCompanyId, supplierProfileId, ...invoiceData } = req.body;
+    const userId = req.user.id;
+
+    const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
+    if (existingInvoice) {
+      return res.status(400).json({ error: 'Invoice already exists' });
+    }
+
+    // Inter-service check (or consume cached state via Redis/Events)
+    if (supplierProfileId) {
+      try {
+        const supplierRes = await axios.get(
+          `${process.env.SUPPLIER_SERVICE_URL}/api/suppliers/${supplierProfileId}`
+        );
+        const supplier = supplierRes.data;
+
+        if (supplier.status !== 'APPROVED' || !supplier.isActive) {
+          return res.status(400).json({ 
+            error: 'Selected supplier is not qualified or approved.' 
+          });
+        }
+      } catch (err) {
+        return res.status(502).json({ error: 'Failed to verify supplier qualification status.' });
+      }
+    }
+
+    const status = invoiceData.paymentMode === 'CreditCard' ? 'INITIATED' : 'GENERATED';
+
+    const invoice = await PerformaInvoice.create({
+      ...invoiceData,
+      piNo,
+      supplierCompanyId,
+      supplierProfileId,
+      status,
+      salesPersonId: userId,
+      addedById: userId,
+    });
+
+    // Publish event for downstream consumers
+    await publishEvent('INVOICE_CREATED', {
+      invoiceId: invoice.id,
+      piNo: invoice.piNo,
+      supplierCompanyId,
+      supplierProfileId,
+      status: invoice.status,
+      userId,
+    });
+
+    return res.status(201).json({
+      pi: invoice,
+      message: 'Invoice saved successfully',
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+exports.saveInvoiceOLD = async (req, res) => {
+  try {
     const { piNo, ...invoiceData } = req.body;
     const userId = req.user.id;
 

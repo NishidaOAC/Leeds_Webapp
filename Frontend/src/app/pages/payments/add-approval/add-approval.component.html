@@ -36,7 +36,7 @@
                        [matAutocomplete]="auto" 
                        (keyup)="search($event,'sup')">
                 <mat-icon matPrefix>business</mat-icon>
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="patch($event.option.value,'sup')">
+                <!-- <mat-autocomplete #auto="matAutocomplete" (optionSelected)="patch($event.option.value,'sup')">
                   <mat-option *ngFor="let suggestion of filteredOptions" [value]="suggestion">
                     <div class="suggestion-item">
                       <mat-icon>store</mat-icon>
@@ -49,7 +49,24 @@
                       <span>ADD NEW SUPPLIER</span>
                     </div>
                   </mat-option>
-                </mat-autocomplete>
+                </mat-autocomplete> -->
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="patch($event.option.value, 'sup')">
+  <mat-option *ngFor="let suggestion of filteredOptions" [value]="suggestion">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <mat-icon>store</mat-icon>
+        <span>{{ suggestion.companyName }}</span>
+      </div>
+
+      <!-- Displays when backend sets isNotQualified to true -->
+<span *ngIf="suggestion?.isNotQualified" 
+      style="background-color: #ffebee; color: #c62828; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; border: 1px solid #ef9a9a;">
+  Not Qualified
+</span>
+    </div>
+  </mat-option>
+</mat-autocomplete>
+              
               </mat-form-field>
             }
 

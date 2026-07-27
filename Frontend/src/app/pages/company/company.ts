@@ -20,6 +20,7 @@ export interface Company {
   remarks: string;
   customer: string;
   supplier: string;
+  isNotQualified?: boolean;
   createdAt: string;
   updatedAt: string;
 

@@ -18,7 +18,7 @@ export const navItems: NavItem[] = [
     displayName: 'Supplier Directory',
     iconName: 'folder_shared',
     route: '/dashboard/supplier/supplierlist',
-    roles: ['QualityAdmin', 'superadministrator']
+    roles: ['QualityAdmin', 'Admin']
   },
   {
     displayName: 'NewPayment',

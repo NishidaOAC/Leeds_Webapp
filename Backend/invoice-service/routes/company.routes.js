@@ -11,4 +11,8 @@ router.patch("/:id", CompController.updateCompany);
 router.get("/customers", CompController.getCustomers);
 
 router.get("/suppliers", CompController.getSuplliers);
+
+router.get("/qualified/suppliers", CompController.getSuppliersWithQualification);
+
+
 module.exports = router;

@@ -78,12 +78,20 @@ export class AddApprovalComponent {
   supplierCompanies: Company[] = [];
   public customerCompanies: Company[] = [];
   public filteredOptions: Company[] = [];
-  public getSuppliers(): void {
-    this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
-      this.supplierCompanies = suppliers;
-      this.filteredOptions = this.supplierCompanies
-    });
-  }
+  // public getSuppliers(): void {
+  //   this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
+  //     this.supplierCompanies = suppliers;
+  //     this.filteredOptions = this.supplierCompanies
+  //   });
+  // }
+
+  // add-approval.component.ts
+public getSuppliers(): void {
+  this.companyService.getqualifiedSuppliers().subscribe((suppliers: Company[]) => {
+    this.supplierCompanies = suppliers;
+    this.filteredOptions = suppliers;
+  });
+}
 
   filterValue!: string;
   filteredCustomers: Company[] = [];
@@ -103,9 +111,36 @@ export class AddApprovalComponent {
     }
   }
 
-  patch(selectedSuggestion: Company, type: string) {
+  patchold(selectedSuggestion: Company, type: string) {
     if(type === 'sup') this.piForm.patchValue({ supplierId: selectedSuggestion.id, supplierName: selectedSuggestion.companyName });
     else if(type === 'cust')  this.piForm.patchValue({ customerId: selectedSuggestion.id, customerName: selectedSuggestion.companyName});
+  }
+  patch(selectedSuggestion: any, type: string) {
+    if (type === 'sup') {
+      // Handle option select when 'ADD NEW' is selected
+      if (selectedSuggestion === 'add') {
+        this.add('sup');
+        return;
+      }
+
+      // 👇 UPDATE SUPPLIER PATCH VALUES HERE 👇
+      this.piForm.patchValue({ 
+        supplierId: selectedSuggestion.id || selectedSuggestion.companyId,
+        supplierName: selectedSuggestion.companyName,
+        supplierCompanyId: selectedSuggestion.companyId || selectedSuggestion.id,
+        supplierProfileId: selectedSuggestion.supplierProfileId || selectedSuggestion.supplierId
+      });
+    } else if (type === 'cust') {
+      if (selectedSuggestion === 'add') {
+        this.add('cust');
+        return;
+      }
+
+      this.piForm.patchValue({ 
+        customerId: selectedSuggestion.id, 
+        customerName: selectedSuggestion.companyName 
+      });
+    }
   }
 
   add(type: string){
@@ -179,6 +214,8 @@ export class AddApprovalComponent {
     amId:  <any>[],
     accountantId:  <any>[],
     supplierId: <any>['', Validators.required],
+    supplierCompanyId: [null],
+    supplierProfileId: [null],
     supplierName: [''],
     supplierPoNo: ['', Validators.required],
     supplierSoNo:[''],

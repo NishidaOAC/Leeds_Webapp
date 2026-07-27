@@ -1,5 +1,48 @@
 const Company = require("../models/company");
 const { Op, sequelize   } = require('sequelize');
+const axios = require('axios');
+
+
+exports.getSuppliersWithQualification = async (req, res) => {
+  try {
+    console.log('Request to get qualified suppliers received');
+    
+    // ✅ FIX: Use 'supplier: true' instead of 'type: "supplier"'
+    const invoiceCompanies = await Company.findAll({ where: { supplier: true } });
+
+    // 2. Call Supplier Microservice to get qualified suppliers
+    let qualifiedSuppliers = [];
+    try {
+      const supplierServiceRes = await axios.get('http://localhost:4000/api/suppliers/qualified-list');
+      qualifiedSuppliers = supplierServiceRes.data.data || [];
+    } catch (err) {
+      console.error('Supplier Microservice unreachable:', err.message);
+    }
+
+    console.log('Fetched suppliers:', invoiceCompanies);
+    // 3. Map through companies and check qualification
+    const mappedSuppliers = invoiceCompanies.map((company) => {
+      const plainCompany = company.get({ plain: true });
+
+      // Match by companyId or profile ID
+      const matchingSupplier = qualifiedSuppliers.find(
+        (s) => s.companyId === plainCompany.id || s.supplierProfileId === plainCompany.supplierProfileId
+      );
+
+      return {
+        ...plainCompany,
+        supplierProfileId: matchingSupplier ? matchingSupplier.supplierProfileId : null,
+        // Flag set to true if no match is found in Supplier Service
+        isNotQualified: !matchingSupplier
+      };
+    });
+
+    res.status(200).json(mappedSuppliers);
+  } catch (error) {
+    console.error('Error fetching suppliers:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 exports.getCompanies = async (req, res) => { 
   try {

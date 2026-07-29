@@ -118,6 +118,31 @@ patch(selectedSuggestion: any, type: string): void {
       this.add('sup');
       return;
     }
+
+    // ==================== [NEW BLOCKING LOGIC START] ====================
+    const isNotQualified = selectedSuggestion.isNotQualified === true || 
+                           selectedSuggestion.isSupplierQualified === false;
+
+    if (isNotQualified) {
+      // Show error popup immediately
+      this.snackBar.open(
+        `Blocked: "${selectedSuggestion.companyName || selectedSuggestion}" is NOT quality certified or active.`, 
+        'Close', 
+        { duration: 4000 }
+      );
+
+      // Clear form inputs so the unqualified supplier cannot stay selected
+      this.piForm.patchValue({
+        supplierId: '',
+        supplierName: '',
+        supplierCompanyId: null,
+        supplierProfileId: null
+      });
+
+      return; // Stop execution here
+    }
+    
+    // ===================== [NEW BLOCKING LOGIC END] =====================
     this.piForm.patchValue({
       supplierId: selectedSuggestion.id || selectedSuggestion.companyId,
       supplierName: selectedSuggestion, 

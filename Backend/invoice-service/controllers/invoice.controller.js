@@ -221,8 +221,25 @@ exports.dashboardWireTransfer = async (req, res) => {
 
 exports.saveInvoice = async (req, res) => {
   try {
-    const { piNo, ...invoiceData } = req.body;
+
+    const {
+      piNo,
+      supplierCompanyId,
+      supplierId,
+      supplierProfileId,
+      isSupplierQualified,
+      ...invoiceData
+    } = req.body;
+
+
     const userId = req.user.id;
+
+    // ADDED: Quality validation check prior to database actions
+    const qualCheck = validateSupplierQualification(supplierCompanyId, supplierId, isSupplierQualified);
+    if (!qualCheck.valid) {
+      return res.status(qualCheck.code).json({ error: qualCheck.message });
+    }
+
 
     const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
     if (existingInvoice) {
@@ -240,6 +257,11 @@ exports.saveInvoice = async (req, res) => {
       status,
       salesPersonId: userId,
       addedById: userId,
+      // ADDED: Quality metadata snapshots
+      supplierCompanyId: qualCheck.resolvedCompanyId,
+      supplierId: qualCheck.resolvedCompanyId,
+      supplierProfileId: supplierProfileId || null,
+      isSupplierQualified: true
     });
 
     await PerformaInvoiceStatus.create({
@@ -317,6 +339,12 @@ exports.updateInvoiceStatus = async (req, res) => {
     const invoice = await PerformaInvoice.findByPk(req.params.id);
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
+    if (!invoice.isSupplierQualified) {
+      return res.status(403).json({
+        error: 'Cannot update status. The underlying supplier is not quality qualified.'
+      });
+    }
+
     if (!validTransitions[invoice.status]?.includes(status)) {
       return res.status(400).json({ error: 'Invalid status transition' });
     }
@@ -388,215 +416,13 @@ exports.getPI = async (req, res) => {
   }
 }
 
+
+
+
 exports.addPI = async (req, res) => {
-    // 1. Destructure all mapping parameters sent by the frontend payload
-    let { 
-        piNo, url, kamId, amId, supplierId, supplierCompanyId, supplierProfileId, 
-        isSupplierQualified, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, 
-        purpose, customerId, customerPoNo, customerSoNo, customerCurrency, poValue, 
-        notes, paymentMode 
-    } = req.body;
-
-    if (Array.isArray(purpose)) {
-        purpose = purpose.join(', ');
-    }
-    const userId = req.user.id;
-    let status;
-
-    kamId = kamId === '' ? null : kamId;
-    amId = amId === '' ? null : amId;
-    customerId = customerId === '' ? null : customerId;
-
-    // 2. Resolve supplierCompanyId (fallback to supplierId if missing)
-    const resolvedSupplierCompanyId = supplierCompanyId || supplierId;
-
-    // ------------------------------------------------------------------
-    // VALIDATION & BLOCKING GUARDS
-    // ------------------------------------------------------------------
-    // Guard A: Ensure company ID is present
-    if (!resolvedSupplierCompanyId) {
-        return res.status(400).json({
-            success: false,
-            message: 'supplierCompanyId (or supplierId) is required and cannot be null.'
-        });
-    }
-
-    // Guard B: BLOCK UNQUALIFIED SUPPLIERS
-    // Convert boolean or string representation to explicit boolean
-    const qualifiedFlag = isSupplierQualified === true || isSupplierQualified === 'true';
-    if (!qualifiedFlag) {
-        return res.status(403).json({
-            success: false,
-            message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
-        });
-    }
-    // ------------------------------------------------------------------
-
-    if (paymentMode === 'CreditCard') {
-        if (!amId) {
-            return res.send('Please Select Account Manager');
-        }
-        status = 'INITIATED';
-    } else if (paymentMode === 'WireTransfer') {
-        if (!kamId) {
-            return res.send('Please Select Key Account Manager');
-        }
-        status = 'GENERATED';
-    }
-
-    try {
-        let recipientEmail = null;
-        let notificationRecipientId = null;
-        
-        // Get recipient info based on payment mode
-        if (paymentMode === 'CreditCard') {
-            const am = await getUserById(
-                amId,
-                req.headers.authorization
-            );
-            recipientEmail = am.user ? am.user.email : null;
-            notificationRecipientId = amId;
-            if (!recipientEmail) {
-                return res.send("AM project email is missing.\n Please inform the admin to add it.");
-            }
-        } else if (paymentMode === 'WireTransfer') {
-            const kam = await getUserById(
-                kamId,
-                req.headers.authorization
-            );
-            console.log(kam, "1111111111111111111");
-            
-            recipientEmail = kam.user ? kam.user.email : null;
-            notificationRecipientId = kamId;
-            if (!recipientEmail) {
-                return res.send("KAM project email is missing. \n Please inform the admin to add it.");
-            }
-        }
-
-        // Check for existing invoice
-        const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
-        if (existingInvoice) {
-            return res.json({ error: 'Invoice is already saved' });
-        }
-
-        // 3. Create new PI with mapped mapping IDs and quality status snapshot
-        const newPi = await PerformaInvoice.create({
-            piNo, 
-            url, 
-            status, 
-            salesPersonId: userId, 
-            kamId, 
-            amId,
-            
-            // Fixed Database Fields:
-            supplierCompanyId: Number(resolvedSupplierCompanyId), // Satisfies allowNull: false constraint
-            supplierProfileId: supplierProfileId || null,          // Remote Supplier Microservice UUID
-            isSupplierQualified: true,                             // Persisted qualification state
-            supplierId: Number(resolvedSupplierCompanyId),
-
-            supplierSoNo, 
-            supplierPoNo, 
-            supplierCurrency, 
-            supplierPrice, 
-            purpose,
-            customerId, 
-            customerPoNo, 
-            customerSoNo, 
-            customerCurrency, 
-            poValue,
-            addedById: userId, 
-            notes, 
-            paymentMode
-        });
-
-        // Create status record
-        await PerformaInvoiceStatus.create({
-            performaInvoiceId: newPi.id,
-            status,
-            date: new Date(),
-        });
-
-        // Handle different URL formats
-        let urlsToProcess = [];
-        
-        if (Array.isArray(url)) {
-            urlsToProcess = url.map(item => item.url).filter(Boolean);
-        } else if (typeof url === 'string') {
-            urlsToProcess = [url];
-        } else if (url && url.url) {
-            urlsToProcess = [url.url];
-        }
-        
-        const emailContent = await emailService.prepareNewPIEmailContent({
-            supplierId: resolvedSupplierCompanyId,
-            customerId,
-            urls: urlsToProcess
-        });
-
-        // Get finance emails
-        const financeEmails = await emailService.findFinanceEmails();
-        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-
-        // Send email using EmailService
-        const emailResult = await emailService.sendNewPIEmail({
-            piNo,
-            supplierName: emailContent.supplierName,
-            supplierPoNo,
-            supplierSoNo,
-            supplierPrice,
-            supplierCurrency,
-            status,
-            paymentMode,
-            purpose,
-            customerName: emailContent.customerName,
-            customerPoNo,
-            customerSoNo,
-            poValue,
-            customerCurrency,
-            notes,
-            requestedBy: req.user.name,
-            toEmail: recipientEmail,
-            ccEmails: financeEmails,
-            attachments: emailAttachments
-        });
-
-        try {
-            const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-                userId: notificationRecipientId,
-                message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
-                isRead: false,
-                type: 'PI_CREATED',
-                metadata: {
-                    piNo: piNo,
-                    piId: newPi.id,
-                    paymentMode: paymentMode,
-                    requestedBy: req.user.name,
-                    supplierPoNo: supplierPoNo
-                }
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': req.headers.authorization || ''
-                }
-            });
-        } catch (notificationError) {
-            console.error('Notification dispatch failed:', notificationError.message);
-        }
-
-        return res.json({
-            pi: newPi,
-            message: 'Proforma Invoice saved successfully and email sent.'
-        });
-
-    } catch (error) {
-        console.error('Error in addPI:', error);
-        return res.status(500).send(error.message);
-    }
-};
-
-
-exports.addPIold = async (req, res) => {
-  let { piNo, url, kamId, amId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
+  let { piNo, url, kamId, amId, supplierId,
+    supplierCompanyId, supplierProfileId, isSupplierQualified,
+    supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
     customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode } = req.body;
   if (Array.isArray(purpose)) {
     purpose = purpose.join(', ');
@@ -607,6 +433,28 @@ exports.addPIold = async (req, res) => {
   kamId = kamId === '' ? null : kamId;
   amId = amId === '' ? null : amId;
   customerId = customerId === '' ? null : customerId;
+
+
+  // ==================== [2. QUALIFICATION GUARD & ID RESOLUTION] ====================
+  const resolvedSupplierCompanyId = supplierCompanyId || supplierId; // 👈 ADDED
+
+  if (!resolvedSupplierCompanyId) { // 👈 ADDED: Required field check
+    return res.status(400).json({
+      success: false,
+      message: 'supplierCompanyId (or supplierId) is required.'
+    });
+  }
+
+  const isQualified = isSupplierQualified === true || isSupplierQualified === 'true'; // 👈 ADDED
+  if (!isQualified) { // 👈 ADDED: Block unqualified suppliers early
+    return res.status(403).json({
+      success: false,
+      message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
+    });
+  }
+  // ====================================================================
+
+
 
   if (paymentMode === 'CreditCard') {
     if (!amId) {
@@ -657,7 +505,13 @@ exports.addPIold = async (req, res) => {
 
     // Create new PI
     const newPi = await PerformaInvoice.create({
-      piNo, url, status, salesPersonId: userId, kamId, supplierId, amId,
+      piNo, url, status, salesPersonId: userId, kamId, amId,
+
+      supplierCompanyId: Number(resolvedSupplierCompanyId), // 👈 ADDED: Required non-null company ID
+      supplierProfileId: supplierProfileId || null,          // 👈 ADDED: Microservice profile UUID
+      isSupplierQualified: true,                             // 👈 ADDED: Snapshot flag
+      supplierId: Number(resolvedSupplierCompanyId),        // 👈 CHANGED: Standardized numeric ID
+
       supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
       customerId, customerPoNo, customerSoNo, customerCurrency, poValue,
       addedById: userId, notes, paymentMode
@@ -684,10 +538,11 @@ exports.addPIold = async (req, res) => {
       urlsToProcess = [url.url];
     }
 
+
     const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId,
+      supplierId: resolvedSupplierCompanyId, // 👈 CHANGED: Using resolved ID
       customerId,
-      urls: urlsToProcess  // Pass as urls (plural)
+      urls: urlsToProcess
     });
 
     // Get finance emails
@@ -752,11 +607,16 @@ exports.addPIold = async (req, res) => {
 }
 
 exports.updatePIBySE = async (req, res) => {
-  let { url, kamId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
+  let { url, kamId, supplierId, supplierCompanyId, supplierProfileId, isSupplierQualified, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
     customerId, customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, amId } = req.body;
 
   if (Array.isArray(purpose)) {
     purpose = purpose.join(', ');
+  }
+  // ADDED: Quality Qualification Guard Check
+  const qualCheck = validateSupplierQualification(supplierCompanyId, supplierId, isSupplierQualified);
+  if (!qualCheck.valid) {
+    return res.status(qualCheck.code).json({ success: false, message: qualCheck.message });
   }
 
   kamId = kamId === '' ? null : kamId;
@@ -830,7 +690,10 @@ exports.updatePIBySE = async (req, res) => {
       count: pi.count + 1,
       status,
       supplierSoNo,
-      supplierId,
+      supplierCompanyId: qualCheck.resolvedCompanyId,
+      supplierId: qualCheck.resolvedCompanyId,
+      supplierProfileId: supplierProfileId || pi.supplierProfileId,
+      isSupplierQualified: true,
       supplierPoNo,
       supplierCurrency,
       supplierPrice,
@@ -868,11 +731,17 @@ exports.updatePIBySE = async (req, res) => {
       urlsToProcess = [url.url || url.file];
     }
 
+    // const emailContent = await emailService.prepareNewPIEmailContent({
+    //   supplierId,
+    //   customerId,
+    //   urls: urlsToProcess
+    // });
     const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId,
+      supplierId: qualCheck.resolvedCompanyId, // UPDATED: Use resolved company ID
       customerId,
       urls: urlsToProcess
     });
+
 
     // Get finance emails for CC
     const financeEmails = await emailService.findFinanceEmails();
@@ -945,7 +814,9 @@ exports.updatePIBySE = async (req, res) => {
 
 exports.addPIKAM = async (req, res) => {
   let {
-    piNo, url, amId, supplierId, supplierSoNo, supplierPoNo,
+    piNo, url, amId, supplierId,
+    supplierCompanyId, supplierProfileId, isSupplierQualified,
+    supplierSoNo, supplierPoNo,
     supplierCurrency, supplierPrice, purpose, customerId,
     customerPoNo, customerSoNo, customerCurrency, poValue,
     notes, paymentMode
@@ -957,6 +828,26 @@ exports.addPIKAM = async (req, res) => {
   }
 
   const userId = req.user.id;
+
+  // ==================== [2. QUALIFICATION GUARD & ID RESOLUTION] ====================
+  const resolvedSupplierCompanyId = supplierCompanyId || supplierId; // 👈 ADDED
+
+  if (!resolvedSupplierCompanyId) { // 👈 ADDED: Required field check
+    return res.status(400).json({
+      success: false,
+      message: 'supplierCompanyId (or supplierId) is required.'
+    });
+  }
+
+  const isQualified = isSupplierQualified === true || isSupplierQualified === 'true'; // 👈 ADDED
+  if (!isQualified) { // 👈 ADDED: Block unqualified suppliers
+    return res.status(403).json({
+      success: false,
+      message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
+    });
+  }
+  // ====================================================================
+
 
   // Validate required fields
   if (!amId) {
@@ -1000,7 +891,12 @@ exports.addPIKAM = async (req, res) => {
       status,
       kamId: userId,
       amId,
-      supplierId,
+
+      supplierCompanyId: Number(resolvedSupplierCompanyId),
+      supplierProfileId: supplierProfileId || null,
+      isSupplierQualified: true,
+      supplierId: Number(resolvedSupplierCompanyId),
+
       supplierSoNo,
       supplierPoNo,
       supplierCurrency,
@@ -1037,9 +933,9 @@ exports.addPIKAM = async (req, res) => {
     }
     // 5. Prepare email content
     const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId,
+      supplierId: resolvedSupplierCompanyId,
       customerId,
-      urls: urlsToProcess  // Pass as urls (plural)
+      urls: urlsToProcess
     });
 
     // const supplierName = supplier ? supplier.companyName : 'Unknown Supplier';
@@ -1129,6 +1025,9 @@ exports.updatePIKAM = async (req, res) => {
     url,
     amId,
     supplierId,
+    supplierCompanyId,
+    supplierProfileId,
+    isSupplierQualified,
     supplierSoNo,
     supplierPoNo,
     supplierCurrency,
@@ -1147,6 +1046,12 @@ exports.updatePIKAM = async (req, res) => {
   if (Array.isArray(purpose)) {
     purpose = purpose.join(', ');
   }
+
+  const qualCheck = validateSupplierQualification(supplierCompanyId, supplierId, isSupplierQualified);
+  if (!qualCheck.valid) {
+    return res.status(qualCheck.code).json({ success: false, message: qualCheck.message });
+  }
+
 
   // Validate AM selection
   if (!amId) {
@@ -1204,7 +1109,10 @@ exports.updatePIKAM = async (req, res) => {
     const updateData = {
       url: url || pi.url,
       amId: amId || pi.amId,
-      supplierId: supplierId || pi.supplierId,
+      supplierCompanyId: qualCheck.resolvedCompanyId,
+      supplierId: qualCheck.resolvedCompanyId,
+      supplierProfileId: supplierProfileId || pi.supplierProfileId,
+      isSupplierQualified: true,
       supplierSoNo: supplierSoNo || pi.supplierSoNo,
       supplierPoNo: supplierPoNo || pi.supplierPoNo,
       supplierCurrency: supplierCurrency || pi.supplierCurrency,
@@ -1341,7 +1249,7 @@ exports.updatePIKAM = async (req, res) => {
 exports.addPIAM = async (req, res) => {
   // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
 
-  let { piNo, url, accountantId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
+  let { piNo, url, accountantId, supplierId, supplierCompanyId, supplierProfileId, isSupplierQualified, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
     customerId, customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode, kamId } = req.body;
 
   if (Array.isArray(purpose)) {
@@ -1352,6 +1260,26 @@ exports.addPIAM = async (req, res) => {
   kamId = kamId === '' ? null : kamId;
   accountantId = accountantId === '' ? null : accountantId;
   customerId = customerId === '' ? null : customerId;
+
+
+  // ==================== [2. QUALIFICATION GUARD & ID RESOLUTION] ====================
+  const resolvedSupplierCompanyId = supplierCompanyId || supplierId; // 👈 ADDED
+
+  if (!resolvedSupplierCompanyId) { // 👈 ADDED: Required field check
+    return res.status(400).json({
+      success: false,
+      message: 'supplierCompanyId (or supplierId) is required.'
+    });
+  }
+
+  const isQualified = isSupplierQualified === true || isSupplierQualified === 'true'; // 👈 ADDED
+  if (!isQualified) { // 👈 ADDED: Block unqualified suppliers
+    return res.status(403).json({
+      success: false,
+      message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
+    });
+  }
+  // ====================================================================
 
   let status;
 
@@ -1401,7 +1329,14 @@ exports.addPIAM = async (req, res) => {
 
     const newPi = await PerformaInvoice.create({
       kamId, piNo, url, accountantId, status: status, amId: userId,
-      supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
+
+      // Microservice Mappings:
+      supplierCompanyId: Number(resolvedSupplierCompanyId), // 👈 ADDED
+      supplierProfileId: supplierProfileId || null,          // 👈 ADDED
+      isSupplierQualified: true,                             // 👈 ADDED
+      supplierId: Number(resolvedSupplierCompanyId),        // 👈 CHANGED
+
+      supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
       customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, addedById: userId
     });
 
@@ -1425,10 +1360,16 @@ exports.addPIAM = async (req, res) => {
       urlsToProcess = [url.url];
     }
 
+    // const emailContent = await emailService.prepareNewPIEmailContent({
+    //   supplierId,
+    //   customerId,
+    //   urls: urlsToProcess
+    // });
+
     const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId,
+      supplierId: resolvedSupplierCompanyId, // 👈 CHANGED
       customerId,
-      urls: urlsToProcess  // Pass as urls (plural)
+      urls: urlsToProcess
     });
 
     // Get finance emails

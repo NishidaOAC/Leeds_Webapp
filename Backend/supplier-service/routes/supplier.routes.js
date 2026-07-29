@@ -27,6 +27,7 @@ router.get('/paginated', supplierCtrl.getPaginatedAllSuppliers);
 router.get('/expirycurrentmonth', supplierCtrl.getAllSuppliersExpiryinCurrentmonth);
 router.delete('/:id', supplierCtrl.deleteSupplier);
 router.get('/onboardingStatuses', supplierCtrl.getOnboardingStatuses);
+router.get('/qualified-list', supplierCtrl.getQualifiedSuppliers);
 
 // UPDATED: Update route also needs to support the plural 'qualityDocs'
 

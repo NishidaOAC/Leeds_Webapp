@@ -7,164 +7,7 @@ const moment = require('moment');
 const { Op } = require('sequelize');
 
 
-exports.onboardSupplierOld = async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-        const {
-            name, email, hasQualityCert, hasSefAndTradeRef,
-            expiryDate, poNumber, poDate, tradeReferences,
-            qualityDocNames,
-            onboardingStatusId // Recieved from frontend
-        } = req.body;
 
-        // 1. PRE-CHECK FOR DUPLICATE EMAIL
-        const existingEmail = await Supplier.findOne({ where: { email } });
-        if (existingEmail) {
-            return res.status(400).json({
-                success: false,
-                message: `The email ${email} is already registered to another supplier.`
-            });
-        }
-
-        const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
-        const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
-
-        // 2. Logic for Status & ID Generation (REMOVED HARD-CODED GUESSING)
-        let statusRecord;
-
-        if (onboardingStatusId) {
-            // Priority: Use the ID calculated by the Frontend UI
-            statusRecord = await OnboardingStatus.findByPk(onboardingStatusId);
-        }
-
-        if (!statusRecord) {
-            // Fallback: Use dynamic logic if ID is missing
-            let statusCode = isCertified ? 'LONG_TERM' : (hasRefs ? 'ONE_TIME' : 'CONDITIONAL');
-            statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode } });
-        }
-
-        let initialReviewer = isCertified ? 'QUALITY' : 'SALES';
-
-        const currentYear = moment().format('YY');
-        // Look for the last supplier using your actual format "LAD/AS/xx"
-        const lastSupplier = await Supplier.findOne({
-            where: { internalSupplierNumber: { [Op.like]: 'LAD/AS/%' } },
-            order: [['internalSupplierNumber', 'DESC']],
-            transaction
-        });
-
-        let nextSequence = 1;
-        if (lastSupplier) {
-            // Split by '/' instead of '-' to read the number at the end
-            const parts = lastSupplier.internalSupplierNumber.split('/');
-            if (parts.length === 3) nextSequence = parseInt(parts[2], 10) + 1;
-        }
-
-        // Safely generate the next unique ID
-        const internalNo = `LAD/AS/${nextSequence.toString().padStart(2, '0')}`;
-        // const lastSupplier = await Supplier.findOne({
-        //     where: { internalSupplierNumber: { [Op.like]: `SUP-${currentYear}-%` } },
-        //     order: [['internalSupplierNumber', 'DESC']],
-        //     transaction
-        // });
-
-        // let nextSequence = 1;
-        // if (lastSupplier) {
-        //     const parts = lastSupplier.internalSupplierNumber.split('-');
-        //     if (parts.length === 3) nextSequence = parseInt(parts[2], 10) + 1;
-        // }
-        //const internalNo = `SUP-${currentYear}-${nextSequence.toString().padStart(4, '0')}`;
-        //  const internalNo = `LAD/AS/${nextSequence.toString().padStart(2, '0')}`;
-
-        // 3. Handle Files and Metadata Prep
-        const documentRecords = [];
-        const certsJsonData = [];
-
-        // --- 1. Evaluation Document (SAF) ---
-        if (req.files && req.files.evaluationDoc) {
-            const file = req.files.evaluationDoc[0];
-            const uploadResult = await s3Service.uploadToS3(file, internalNo);
-
-            documentRecords.push({
-                documentType: 'SAF',
-                fileName: file.originalname,
-                fileUrl: uploadResult.s3Key,
-                s3Key: uploadResult.s3Key,
-                status: 'ACTIVE'
-            });
-        }
-
-        // --- 2. Multiple Quality Certificates ---
-        if (isCertified && req.files && req.files.qualityDocs) {
-            const files = req.files.qualityDocs;
-            const names = Array.isArray(qualityDocNames) ? qualityDocNames : [qualityDocNames];
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const customName = names[i] || `Cert_${i + 1}`;
-                const uploadResult = await s3Service.uploadToS3(file, internalNo);
-
-                documentRecords.push({
-                    documentType: 'QUALITY_CERT',
-                    fileName: customName,
-                    fileUrl: uploadResult.s3Key,
-                    s3Key: uploadResult.s3Key,
-                    status: 'ACTIVE'
-                });
-
-                certsJsonData.push({
-                    type: customName,
-                    fileName: file.originalname,
-                    s3Key: uploadResult.s3Key
-                });
-            }
-        }
-
-        // 4. Create Supplier using the Dynamic Record Found
-        const supplier = await Supplier.create({
-            name,
-            email,
-            internalSupplierNumber: internalNo,
-            hasQualityCert: isCertified,
-            certifications: certsJsonData,
-            hasSefAndTradeRef: hasRefs,
-            currentReviewer: initialReviewer,
-            status: 'PENDING',
-            // Use the ID from the record we fetched above
-            onboardingStatusId: statusRecord ? statusRecord.id : null,
-            expiryDate: expiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
-            poNumber: !isCertified ? poNumber : null,
-            poDate: !isCertified ? poDate : null,
-            tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null
-        }, { transaction });
-
-        // 5. Link documents to created Supplier
-        if (documentRecords.length > 0) {
-            const finalDocs = documentRecords.map(doc => ({ ...doc, supplierId: supplier.id }));
-            await SupplierDocument.bulkCreate(finalDocs, { transaction });
-        }
-
-        await transaction.commit();
-
-        res.status(201).json({
-            success: true,
-            supplierId: supplier.id,
-            internalSupplierNumber: supplier.internalSupplierNumber,
-            assignedStatus: statusRecord ? statusRecord.code : 'UNKNOWN',
-            documentsUploaded: documentRecords.length
-        });
-
-    } catch (error) {
-        if (transaction) await transaction.rollback();
-        console.error("Onboarding Error:", error);
-
-        if (error.name === 'SequelizeUniqueConstraintError') {
-            return res.status(409).json({ success: false, message: "A supplier with this Email or ID already exists." });
-        }
-
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
 
 
 exports.onboardSupplier = async (req, res) => {
@@ -331,6 +174,32 @@ exports.onboardSupplier = async (req, res) => {
         }
         res.status(500).json({ success: false, message: error.message });
     }
+};
+
+exports.getQualifiedSuppliers = async (req, res) => {
+  try {
+    const today = new Date();
+
+    const qualifiedSuppliers = await Supplier.findAll({
+      where: {
+        isActive: true,
+        // CHECK WITH DATE ONLY: Either expiryDate is NULL OR expiryDate >= Today
+        [Op.or]: [
+          { expiryDate: null },
+          { expiryDate: { [Op.gte]: today } }
+        ]
+      },
+      attributes: ['id', 'name', 'email', 'internalSupplierNumber', 'expiryDate', 'hasQualityCert']
+    });
+
+    res.status(200).json({
+      success: true,
+      data: qualifiedSuppliers
+    });
+  } catch (error) {
+    console.error('Error fetching qualified suppliers:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 exports.updateSupplier = async (req, res) => {

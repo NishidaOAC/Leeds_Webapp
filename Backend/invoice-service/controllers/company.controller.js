@@ -5,52 +5,40 @@ const axios = require('axios');
 
 exports.getSuppliersWithQualification = async (req, res) => {
   try {
-    // 1. Fetch companies flagged as suppliers in Invoice Service DB
-    const invoiceCompanies = await Company.findAll({ where: { supplier: true } });
-
-    // 2. Fetch suppliers with valid dates from Supplier Microservice
-    let qualifiedSuppliers = [];
+    const companies = await Company.findAll({ where: { supplier: true }, raw: true });
+    
+    let qualified = [];
     try {
-      const supplierServiceUrl = process.env.SUPPLIER_SERVICE_URL || 'http://localhost:3000';
-      const supplierServiceRes = await axios.get(`${supplierServiceUrl}/api/supplier/qualified-list`);
-      qualifiedSuppliers = supplierServiceRes.data.data || [];
+      const url = `${process.env.SUPPLIER_SERVICE_URL || 'http://localhost:3000'}/api/supplier/qualified-list`;
+      const response = await axios.get(url, { timeout: 5000 });
+      qualified = response.data?.data || response.data || [];
     } catch (err) {
-      console.error('Supplier Microservice unreachable:', err.message);
+      console.error('Supplier Service unreachable:', err.message);
     }
 
-    console.log(`Successfully fetched ${qualifiedSuppliers.length} qualified suppliers from Supplier Service.`);
-
-    // 3. Map through companies and check qualification based on the date-filtered suppliers
-    const mappedSuppliers = invoiceCompanies.map((company) => {
-      const plainCompany = company.get({ plain: true });
-
-      // Match by email or company name (case-insensitive)
-      const matchingSupplier = qualifiedSuppliers.find(
-        (s) =>
-          (s.email && plainCompany.email && s.email.toLowerCase() === plainCompany.email.toLowerCase()) ||
-          (s.name && plainCompany.companyName && s.name.toLowerCase() === plainCompany.companyName.toLowerCase())
+    const mapped = companies.map((c) => {
+      const match = qualified.find((s) => 
+        (s.email && c.email && s.email.toLowerCase() === c.email.toLowerCase()) ||
+        (s.name && c.companyName && s.name.toLowerCase() === c.companyName.toLowerCase())
       );
 
-      const isQualified = Boolean(matchingSupplier);
-
       return {
-        ...plainCompany,
-        supplierProfileId: matchingSupplier ? matchingSupplier.id : null,
-        hasQualityCert: matchingSupplier ? matchingSupplier.hasQualityCert : false,
-        expiryDate: matchingSupplier ? matchingSupplier.expiryDate : null,
-
-        // Qualification flags
-        isSupplierQualified: isQualified,     // 👈 Send directly to saveInvoice payload
-        isNotQualified: !isQualified          // 👈 Used for UI warning badges
+        ...c,
+        supplierProfileId: match?.id || null,
+        hasQualityCert: !!match?.hasQualityCert,
+        expiryDate: match?.expiryDate || null,
+        isSupplierQualified: !!match,
+        isNotQualified: !match
       };
     });
 
-    res.status(200).json(mappedSuppliers);
+    return res.json(mapped);
   } catch (error) {
-    console.error('Error fetching suppliers with qualification:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: error.message });
   }
 };
+
+
 
 exports.getCompanies = async (req, res) => {
   try {

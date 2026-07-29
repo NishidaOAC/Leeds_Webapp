@@ -1,55 +1,63 @@
 const Company = require("../models/company");
-const { Op, sequelize   } = require('sequelize');
+const { Op, sequelize } = require('sequelize');
 const axios = require('axios');
 
 
 exports.getSuppliersWithQualification = async (req, res) => {
   try {
-    console.log('Request to get qualified suppliers received');
-    
-    // ✅ FIX: Use 'supplier: true' instead of 'type: "supplier"'
+    // 1. Fetch companies flagged as suppliers in Invoice Service DB
     const invoiceCompanies = await Company.findAll({ where: { supplier: true } });
 
-    // 2. Call Supplier Microservice to get qualified suppliers
+    // 2. Fetch suppliers with valid dates from Supplier Microservice
     let qualifiedSuppliers = [];
     try {
-      const supplierServiceRes = await axios.get('http://localhost:4000/api/suppliers/qualified-list');
+      const supplierServiceUrl = process.env.SUPPLIER_SERVICE_URL || 'http://localhost:3000';
+      const supplierServiceRes = await axios.get(`${supplierServiceUrl}/api/supplier/qualified-list`);
       qualifiedSuppliers = supplierServiceRes.data.data || [];
     } catch (err) {
       console.error('Supplier Microservice unreachable:', err.message);
     }
 
-    console.log('Fetched suppliers:', invoiceCompanies);
-    // 3. Map through companies and check qualification
+    console.log(`Successfully fetched ${qualifiedSuppliers.length} qualified suppliers from Supplier Service.`);
+
+    // 3. Map through companies and check qualification based on the date-filtered suppliers
     const mappedSuppliers = invoiceCompanies.map((company) => {
       const plainCompany = company.get({ plain: true });
 
-      // Match by companyId or profile ID
+      // Match by email or company name (case-insensitive)
       const matchingSupplier = qualifiedSuppliers.find(
-        (s) => s.companyId === plainCompany.id || s.supplierProfileId === plainCompany.supplierProfileId
+        (s) =>
+          (s.email && plainCompany.email && s.email.toLowerCase() === plainCompany.email.toLowerCase()) ||
+          (s.name && plainCompany.companyName && s.name.toLowerCase() === plainCompany.companyName.toLowerCase())
       );
+
+      const isQualified = Boolean(matchingSupplier);
 
       return {
         ...plainCompany,
-        supplierProfileId: matchingSupplier ? matchingSupplier.supplierProfileId : null,
-        // Flag set to true if no match is found in Supplier Service
-        isNotQualified: !matchingSupplier
+        supplierProfileId: matchingSupplier ? matchingSupplier.id : null,
+        hasQualityCert: matchingSupplier ? matchingSupplier.hasQualityCert : false,
+        expiryDate: matchingSupplier ? matchingSupplier.expiryDate : null,
+
+        // Qualification flags
+        isSupplierQualified: isQualified,     // 👈 Send directly to saveInvoice payload
+        isNotQualified: !isQualified          // 👈 Used for UI warning badges
       };
     });
 
     res.status(200).json(mappedSuppliers);
   } catch (error) {
-    console.error('Error fetching suppliers:', error);
+    console.error('Error fetching suppliers with qualification:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-exports.getCompanies = async (req, res) => { 
+exports.getCompanies = async (req, res) => {
   try {
     let whereClause = {};
     let limit;
     let offset;
-    
+
     if (req.query.pageSize != 'undefined' && req.query.page != 'undefined') {
       limit = parseInt(req.query.pageSize);
       offset = (parseInt(req.query.page) - 1) * limit;
@@ -92,7 +100,7 @@ exports.getCompanies = async (req, res) => {
 
     const company = await Company.findAll(queryOptions);
     const totalCount = await Company.count({ where: whereClause });
-    
+
     if (req.query.page != 'undefined' && req.query.pageSize != 'undefined') {
       const response = {
         count: totalCount,
@@ -131,10 +139,10 @@ exports.addCompany = async (req, res) => {
 
     } = req.body;
 
-    const compExist = await Company.findOne({ 
+    const compExist = await Company.findOne({
       where: { companyName: companyName }
     })
-    if(compExist){
+    if (compExist) {
       return res.send('There is already a company that exists under the same name.')
     }
 
@@ -160,7 +168,7 @@ exports.addCompany = async (req, res) => {
     });
     await company.save();
     res.send(company)
-    
+
 
   } catch (error) {
     res.send(error.message);
@@ -220,8 +228,8 @@ exports.updateCompany = async (req, res) => {
 
 exports.getCustomers = async (req, res) => {
   try {
-    const companies = await Company.findAll({ 
-      where: { customer: true }, 
+    const companies = await Company.findAll({
+      where: { customer: true },
       order: [['createdAt', 'DESC']],
     });
     res.send(companies);
@@ -230,9 +238,9 @@ exports.getCustomers = async (req, res) => {
   }
 }
 
-exports.getSuplliers =  async (req, res) => {
+exports.getSuplliers = async (req, res) => {
   try {
-    const companies = await Company.findAll({ 
+    const companies = await Company.findAll({
       where: { supplier: true }, // Filter where supplier is true
       order: [['createdAt', 'DESC']],
     });

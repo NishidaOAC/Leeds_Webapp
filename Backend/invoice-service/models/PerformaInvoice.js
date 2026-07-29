@@ -22,6 +22,12 @@ const PerformaInvoice = sequelize.define('PerformaInvoice',{
     allowNull: true,
     comment: 'Refers to Supplier.id (Supplier Microservice)'
   },
+  isSupplierQualified: { 
+    type: DataTypes.BOOLEAN, 
+    defaultValue: false,
+    allowNull: false,
+    comment: 'Historical snapshot: Tracks if supplier was certified/valid at invoice creation date'
+  },
 
     supplierId: { type: DataTypes.INTEGER},
     supplierSoNo: { type: DataTypes.STRING },

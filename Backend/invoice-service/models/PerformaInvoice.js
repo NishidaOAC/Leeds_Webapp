@@ -1,51 +1,42 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-const PerformaInvoice = sequelize.define('PerformaInvoice',{
-    piNo : {type : DataTypes.STRING, allowNull : false},
-    url: { type: DataTypes.ARRAY(DataTypes.JSON), allowNull: true },
-    bankSlip : {type : DataTypes.STRING},
-    status: {type : DataTypes.STRING, defaultValue: 'Generated'},
-    salesPersonId :{type : DataTypes.INTEGER },
-    kamId : {type : DataTypes.INTEGER, allowNull : true},
-    amId: {type : DataTypes.INTEGER, allowNull : true},
-    accountantId : {type : DataTypes.INTEGER, allowNull : true},
-    count: {type : DataTypes.INTEGER, defaultValue: 1},
+const PerformaInvoice = sequelize.define('PerformaInvoice', {
+  piNo: { type: DataTypes.STRING, allowNull: false },
+  url: { type: DataTypes.ARRAY(DataTypes.JSON), allowNull: true },
+  bankSlip: { type: DataTypes.STRING },
+  status: { type: DataTypes.STRING, defaultValue: 'Generated' },
+  salesPersonId: { type: DataTypes.INTEGER },
+  kamId: { type: DataTypes.INTEGER, allowNull: true },
+  amId: { type: DataTypes.INTEGER, allowNull: true },
+  accountantId: { type: DataTypes.INTEGER, allowNull: true },
+  count: { type: DataTypes.INTEGER, defaultValue: 1 },
 
-    supplierCompanyId: { 
-    type: DataTypes.INTEGER, 
-    allowNull: false,
-    comment: 'Refers to Company.id (Invoice Service)'
-  },
-  supplierProfileId: { 
-    type: DataTypes.UUID, 
+
+  supplierProfileId: {
+    type: DataTypes.UUID,
     allowNull: true,
     comment: 'Refers to Supplier.id (Supplier Microservice)'
   },
-  isSupplierQualified: { 
-    type: DataTypes.BOOLEAN, 
-    defaultValue: false,
-    allowNull: false,
-    comment: 'Historical snapshot: Tracks if supplier was certified/valid at invoice creation date'
-  },
-
-    supplierId: { type: DataTypes.INTEGER},
-    supplierSoNo: { type: DataTypes.STRING },
-    supplierPoNo: { type: DataTypes.STRING },
-    supplierCurrency: { type: DataTypes.STRING },
-    supplierPrice: { type: DataTypes.STRING },
-    
-    customerId: { type: DataTypes.INTEGER, allowNull : true},
-    customerSoNo: { type: DataTypes.STRING },
-    customerPoNo: { type: DataTypes.STRING },
-    customerCurrency: { type: DataTypes.STRING },
-    poValue: { type: DataTypes.STRING },
-    paymentMode:  { type: DataTypes.STRING },
 
 
-    purpose: { type: DataTypes.STRING },
-    addedById: { type: DataTypes.INTEGER },
-    notes:  { type: DataTypes.TEXT }
+  supplierId: { type: DataTypes.INTEGER },
+  supplierSoNo: { type: DataTypes.STRING },
+  supplierPoNo: { type: DataTypes.STRING },
+  supplierCurrency: { type: DataTypes.STRING },
+  supplierPrice: { type: DataTypes.STRING },
+
+  customerId: { type: DataTypes.INTEGER, allowNull: true },
+  customerSoNo: { type: DataTypes.STRING },
+  customerPoNo: { type: DataTypes.STRING },
+  customerCurrency: { type: DataTypes.STRING },
+  poValue: { type: DataTypes.STRING },
+  paymentMode: { type: DataTypes.STRING },
+
+
+  purpose: { type: DataTypes.STRING },
+  addedById: { type: DataTypes.INTEGER },
+  notes: { type: DataTypes.TEXT }
 })
 
 module.exports = PerformaInvoice;

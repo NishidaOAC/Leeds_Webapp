@@ -78,20 +78,12 @@ export class AddApprovalComponent {
   supplierCompanies: Company[] = [];
   public customerCompanies: Company[] = [];
   public filteredOptions: Company[] = [];
-  // public getSuppliers(): void {
-  //   this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
-  //     this.supplierCompanies = suppliers;
-  //     this.filteredOptions = this.supplierCompanies
-  //   });
-  // }
-
-  // add-approval.component.ts
-public getSuppliers(): void {
-  this.companyService.getqualifiedSuppliers().subscribe((suppliers: Company[]) => {
-    this.supplierCompanies = suppliers;
-    this.filteredOptions = suppliers;
-  });
-}
+  public getSuppliers(): void {
+    this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
+      this.supplierCompanies = suppliers;
+      this.filteredOptions = this.supplierCompanies
+    });
+  }
 
   filterValue!: string;
   filteredCustomers: Company[] = [];
@@ -111,55 +103,10 @@ public getSuppliers(): void {
     }
   }
 
-
-patch(selectedSuggestion: any, type: string): void {
-  if (type === 'sup') {
-    if (selectedSuggestion === 'add') {
-      this.add('sup');
-      return;
-    }
-
-    // ==================== [NEW BLOCKING LOGIC START] ====================
-    const isNotQualified = selectedSuggestion.isNotQualified === true || 
-                           selectedSuggestion.isSupplierQualified === false;
-
-    if (isNotQualified) {
-      // Show error popup immediately
-      this.snackBar.open(
-        `Blocked: "${selectedSuggestion.companyName || selectedSuggestion}" is NOT quality certified or active.`, 
-        'Close', 
-        { duration: 4000 }
-      );
-
-      // Clear form inputs so the unqualified supplier cannot stay selected
-      this.piForm.patchValue({
-        supplierId: '',
-        supplierName: '',
-        supplierCompanyId: null,
-        supplierProfileId: null
-      });
-
-      return; // Stop execution here
-    }
-    
-    // ===================== [NEW BLOCKING LOGIC END] =====================
-    this.piForm.patchValue({
-      supplierId: selectedSuggestion.id || selectedSuggestion.companyId,
-      supplierName: selectedSuggestion, 
-      supplierCompanyId: selectedSuggestion.companyId || selectedSuggestion.id,
-      supplierProfileId: selectedSuggestion.supplierProfileId || selectedSuggestion.supplierId || null
-    });
-  } else if (type === 'cust') {
-    if (selectedSuggestion === 'add') {
-      this.add('cust');
-      return;
-    }
-    this.piForm.patchValue({
-      customerId: selectedSuggestion.id,
-      customerName: selectedSuggestion.companyName
-    });
+  patch(selectedSuggestion: Company, type: string) {
+    if(type === 'sup') this.piForm.patchValue({ supplierId: selectedSuggestion.id, supplierName: selectedSuggestion.companyName });
+    else if(type === 'cust')  this.piForm.patchValue({ customerId: selectedSuggestion.id, customerName: selectedSuggestion.companyName});
   }
-}
 
   add(type: string){
     const name = this.filterValue;
@@ -232,8 +179,6 @@ patch(selectedSuggestion: any, type: string): void {
     amId:  <any>[],
     accountantId:  <any>[],
     supplierId: <any>['', Validators.required],
-    supplierCompanyId: [null],
-    supplierProfileId: [null],
     supplierName: [''],
     supplierPoNo: ['', Validators.required],
     supplierSoNo:[''],
@@ -434,83 +379,39 @@ patch(selectedSuggestion: any, type: string): void {
     return result;
   }
 
-  displaySupplierFn(supplier: any): string {
-  if (!supplier) return '';
-  return typeof supplier === 'string' ? supplier : supplier.companyName || '';
-}
-
   submit! : Subscription
   submitted: boolean = false;
+  onSubmit() {
+    this.submitted = true;
+    let submitMethod;
+    if (this.roleName === 'SalesExecutive') {
+        submitMethod = this.invoiceService.addPI(this.piForm.getRawValue());
+    } else if (this.roleName === 'KAM') {
+        submitMethod = this.invoiceService.addPIByKAM(this.piForm.getRawValue());
+    } else if (this.roleName === 'Manager') {
+        submitMethod = this.invoiceService.addPIByAM(this.piForm.getRawValue());
+    }
 
-onSubmit(): void {
-  if (this.piForm.invalid || !this.isImageUploaded()) return;
-  const formVal: any = this.piForm.getRawValue();
-  let selectedSup: any = formVal.supplierName;
-  if (typeof selectedSup === 'string') {
-    const found = this.supplierCompanies.find(
-      (s: any) => s.companyName?.trim().toLowerCase() === selectedSup.trim().toLowerCase()
-    );
-    if (found) {
-      selectedSup = found;
+    if (submitMethod) {
+        this.submit = submitMethod.subscribe({
+            next: (invoice: any) => {
+                const piNo = invoice?.pi.piNo;
+                if (piNo) {
+                    this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, "", { duration: 3000 });
+                    this.submitted = false;
+                    this.router.navigateByUrl('dashboard/payments');
+                } else {
+                    this.snackBar.open('Failed to upload the invoice. Please try again.', "", { duration: 3000 });
+                }
+            },
+            error: (err: any) => {
+                const errorMessage = err?.error?.text || 'An error occurred while uploading the invoice.';
+                this.submitted = false;
+                alert(`Error: ${errorMessage}`);
+            }
+        });
     }
   }
-  const isObjectSup = typeof selectedSup === 'object' && selectedSup !== null;
-  const isNotQualified = isObjectSup 
-    ? (selectedSup.isNotQualified === true || selectedSup.isSupplierQualified === false)
-    : false;
-
-  if (isNotQualified) {
-    this.snackBar.open('Blocked: Cannot create invoice for an unqualified supplier.', 'Close', { 
-      duration: 4000,
-      panelClass: ['error-snackbar']
-    });
-    return; 
-  }
-
-  
-  const companyId = isObjectSup
-    ? (selectedSup.id || selectedSup.companyId || selectedSup.supplierCompanyId)
-    : (formVal.supplierCompanyId || formVal.supplierId);
-
-  const supplierProfileId = isObjectSup
-    ? selectedSup.supplierProfileId
-    : (formVal.supplierProfileId || null);
-
-  const payload = {
-    ...formVal,
-    supplierCompanyId: Number(companyId),
-    supplierId: Number(companyId),
-    supplierName: isObjectSup ? selectedSup.companyName : selectedSup,
-    supplierProfileId: supplierProfileId || null,
-    isSupplierQualified: true
-  };
-
-  // 3. Role-based execution
-  this.submitted = true;
-  let submit$ = this.roleName === 'SalesExecutive' ? this.invoiceService.addPI(payload) :
-                this.roleName === 'KAM' ? this.invoiceService.addPIByKAM(payload) :
-                this.roleName === 'Manager' ? this.invoiceService.addPIByAM(payload) : null;
-
-  if (!submit$) {
-    this.submitted = false;
-    return;
-  }
-
-  this.submit = submit$.subscribe({
-    next: (res: any) => {
-      this.submitted = false;
-      const piNo = res?.pi?.piNo || res?.piNo;
-      this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, '', { duration: 3000 });
-      this.router.navigateByUrl('dashboard/payments');
-    },
-    error: (err: any) => {
-      this.submitted = false;
-      alert(`Error: ${err?.error?.message || err?.error?.text || 'Upload failed'}`);
-    }
-  });
-}
-
-
 
   onDeleteImage(i: number){
     this.fileService.deleteUploadByurl(this.imageUrl[i]).subscribe(()=>{

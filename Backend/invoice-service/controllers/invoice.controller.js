@@ -15,15 +15,14 @@ exports.dashboardCreditCard = async (req, res) => {
   try {
     const status = req.query.status;
     const loggedInUserId = req.user.id;
-    const where = {
-      paymentMode: 'CreditCard',
+    const where = { paymentMode: 'CreditCard',
       [Op.or]: [
         { kamId: loggedInUserId },
         { amId: loggedInUserId },
         { salesPersonId: loggedInUserId },
         { accountantId: loggedInUserId }
       ]
-    };
+     };
 
     if (status && status !== 'undefined') {
       where.status = status;
@@ -43,13 +42,13 @@ exports.dashboardCreditCard = async (req, res) => {
 
     if (!isAdmin) {
 
-      let limit, offset;
-      if (
-        req.query.pageSize &&
-        req.query.page &&
-        req.query.pageSize !== 'undefined' &&
-        req.query.page !== 'undefined'
-      ) {
+    let limit, offset;
+    if (
+      req.query.pageSize &&
+      req.query.page &&
+      req.query.pageSize !== 'undefined' &&
+      req.query.page !== 'undefined'
+    ) {
         const page = Number(req.query.page);
         const pageSize = Number(req.query.pageSize);
 
@@ -60,60 +59,60 @@ exports.dashboardCreditCard = async (req, res) => {
           limit && Number.isInteger(page) && page > 0
             ? (page - 1) * limit
             : null;
-      }
+    }
 
-      // 1️⃣ Fetch invoices
-      const { rows: invoices, count: totalCount } =
-        await PerformaInvoice.findAndCountAll({
-          where,
-          limit,
-          offset,
-          order: [['id', 'DESC']],
-          include: [{ model: PerformaInvoiceStatus }],
-          distinct: true
-        });
-      console.log(invoices);
-
-      // 2️⃣ Collect unique userIds
-      const userIds = [
-        ...new Set(
-          invoices.flatMap(inv => [
-            inv.salesPersonId,
-            inv.kamId,
-            inv.amId,
-            inv.accountantId,
-            inv.addedById
-          ]).filter(Boolean)
-        )
-      ];
-      console.log(userIds);
-
-      // 3️⃣ Fetch users using helper
-      const usersMap = await findUsersByIds(
-        userIds,
-        req.headers.authorization
-      );
-      console.log(usersMap, "111111111111111");
-
-      // 4️⃣ Enrich invoices
-      const enrichedInvoices = invoices.map(inv => {
-        const i = inv.toJSON();
-        return {
-          ...i,
-          salesPerson: usersMap[i.salesPersonId] || null,
-          kam: usersMap[i.kamId] || null,
-          am: usersMap[i.amId] || null,
-          accountant: usersMap[i.accountantId] || null,
-          addedBy: usersMap[i.addedById] || null,
-        };
+    // 1️⃣ Fetch invoices
+    const { rows: invoices, count: totalCount } =
+      await PerformaInvoice.findAndCountAll({
+        where,
+        limit,
+        offset,
+        order: [['id', 'DESC']],
+        include: [{ model: PerformaInvoiceStatus }],
+        distinct: true
       });
+      console.log(invoices);
+      
+    // 2️⃣ Collect unique userIds
+    const userIds = [
+      ...new Set(
+        invoices.flatMap(inv => [
+          inv.salesPersonId,
+          inv.kamId,
+          inv.amId,
+          inv.accountantId,
+          inv.addedById
+        ]).filter(Boolean)
+      )
+    ];
+    console.log(userIds);
+    
+    // 3️⃣ Fetch users using helper
+    const usersMap = await findUsersByIds(
+      userIds,
+      req.headers.authorization
+    );
+    console.log(usersMap,"111111111111111");
+    
+    // 4️⃣ Enrich invoices
+    const enrichedInvoices = invoices.map(inv => {
+      const i = inv.toJSON();
+      return {
+        ...i,
+        salesPerson: usersMap[i.salesPersonId] || null,
+        kam: usersMap[i.kamId] || null,
+        am: usersMap[i.amId] || null,
+        accountant: usersMap[i.accountantId] || null,
+        addedBy: usersMap[i.addedById] || null,
+      };
+    });
 
-      // 5️⃣ Response
-      if (limit !== undefined) {
-        res.json({ count: totalCount, items: enrichedInvoices });
-      } else {
-        res.json(enrichedInvoices);
-      }
+    // 5️⃣ Response
+    if (limit !== undefined) {
+      res.json({ count: totalCount, items: enrichedInvoices });
+    } else {
+      res.json(enrichedInvoices);
+    }
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -124,15 +123,14 @@ exports.dashboardWireTransfer = async (req, res) => {
   try {
     const status = req.query.status;
     const loggedInUserId = req.user.id;
-    const where = {
-      paymentMode: 'WireTransfer',
+    const where = { paymentMode: 'WireTransfer',
       [Op.or]: [
         { kamId: loggedInUserId },
         { amId: loggedInUserId },
         { salesPersonId: loggedInUserId },
         { accountantId: loggedInUserId }
       ]
-    };
+     };
 
     if (status && status !== 'undefined') {
       where.status = status;
@@ -145,18 +143,18 @@ exports.dashboardWireTransfer = async (req, res) => {
       req.query.pageSize !== 'undefined' &&
       req.query.page !== 'undefined'
     ) {
-      const page = Number(req.query.page);
-      const pageSize = Number(req.query.pageSize);
+        const page = Number(req.query.page);
+        const pageSize = Number(req.query.pageSize);
 
-      limit =
-        Number.isInteger(pageSize) && pageSize > 0 ? pageSize : null;
+        limit =
+          Number.isInteger(pageSize) && pageSize > 0 ? pageSize : null;
 
-      offset =
-        limit && Number.isInteger(page) && page > 0
-          ? (page - 1) * limit
-          : null;
+        offset =
+          limit && Number.isInteger(page) && page > 0
+            ? (page - 1) * limit
+            : null;
     }
-
+    
     // 1️⃣ Fetch invoices (NO User includes)
     const { rows: invoices, count: totalCount } =
       await PerformaInvoice.findAndCountAll({
@@ -181,14 +179,14 @@ exports.dashboardWireTransfer = async (req, res) => {
       )
     ];
     console.log(userIds);
-
+    
     // 3️⃣ Fetch users from auth-service
     const usersMap = await findUsersByIds(
       userIds,
       req.headers.authorization
     );
     console.log(usersMap);
-
+    
     // 4️⃣ Enrich invoices with user info
     const enrichedInvoices = invoices.map(inv => {
       const i = inv.toJSON();
@@ -201,7 +199,7 @@ exports.dashboardWireTransfer = async (req, res) => {
         addedBy: usersMap[i.addedById] || null,
       };
     });
-
+    
     // 5️⃣ Response
     if (limit !== undefined) {
       res.json({
@@ -217,29 +215,10 @@ exports.dashboardWireTransfer = async (req, res) => {
   }
 };
 
-
-
 exports.saveInvoice = async (req, res) => {
   try {
-
-    const {
-      piNo,
-      supplierCompanyId,
-      supplierId,
-      supplierProfileId,
-      isSupplierQualified,
-      ...invoiceData
-    } = req.body;
-
-
+    const { piNo, ...invoiceData } = req.body;
     const userId = req.user.id;
-
-    // ADDED: Quality validation check prior to database actions
-    const qualCheck = validateSupplierQualification(supplierCompanyId, supplierId, isSupplierQualified);
-    if (!qualCheck.valid) {
-      return res.status(qualCheck.code).json({ error: qualCheck.message });
-    }
-
 
     const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
     if (existingInvoice) {
@@ -257,11 +236,6 @@ exports.saveInvoice = async (req, res) => {
       status,
       salesPersonId: userId,
       addedById: userId,
-      // ADDED: Quality metadata snapshots
-      supplierCompanyId: qualCheck.resolvedCompanyId,
-      supplierId: qualCheck.resolvedCompanyId,
-      supplierProfileId: supplierProfileId || null,
-      isSupplierQualified: true
     });
 
     await PerformaInvoiceStatus.create({
@@ -339,12 +313,6 @@ exports.updateInvoiceStatus = async (req, res) => {
     const invoice = await PerformaInvoice.findByPk(req.params.id);
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
-    if (!invoice.isSupplierQualified) {
-      return res.status(403).json({
-        error: 'Cannot update status. The underlying supplier is not quality qualified.'
-      });
-    }
-
     if (!validTransitions[invoice.status]?.includes(status)) {
       return res.status(400).json({ error: 'Invalid status transition' });
     }
@@ -375,1403 +343,722 @@ exports.updateInvoiceStatus = async (req, res) => {
   }
 };
 
-exports.getPI = async (req, res) => {
-  let status = req.query.status;
-
-  let where = {};
-  if (status != '' && status != 'undefined') {
-    where = { status: status }
-  }
-
-  let limit;
-  let offset;
-  if (req.query.pageSize && req.query.page && req.query.pageSize != 'undefined' && req.query.page != 'undefined') {
-    limit = parseInt(req.query.pageSize, 10);
-    offset = (parseInt(req.query.page, 10) - 1) * limit;
-  }
-
-  try {
-    const pi = await PerformaInvoice.findAll({
-      where: where, limit, offset,
-      order: [['id', 'DESC']],
-      include: [
-        { model: Company, as: 'suppliers' },
-        { model: Company, as: 'customers' },
-        { model: PerformaInvoiceStatus }
-      ],
-    })
-    const totalCount = await PerformaInvoice.count({ where: where });
-
-    if (req.query.pageSize && req.query.page && req.query.pageSize != 'undefined' && req.query.page != 'undefined') {
-      const response = {
-        count: totalCount,
-        items: pi,
-      };
-      res.json(response);
-    } else {
-      res.send(pi);
+exports.getPI =  async(req, res) => {
+    let status = req.query.status;
+    
+    let where = {};
+    if(status != '' && status != 'undefined'){
+        where = { status: status}
     }
-  } catch (error) {
-    res.send(error.message)
-  }
+
+    let limit; 
+    let offset; 
+    if (req.query.pageSize && req.query.page && req.query.pageSize != 'undefined' && req.query.page != 'undefined') {
+        limit = parseInt(req.query.pageSize, 10);
+        offset = (parseInt(req.query.page, 10) - 1) * limit;
+    }
+
+    try {
+        const pi = await PerformaInvoice.findAll({
+            where: where, limit, offset,
+            order: [['id', 'DESC']],
+            include:[
+                { model: Company, as: 'suppliers' }, 
+                { model: Company, as: 'customers' }, 
+                { model: PerformaInvoiceStatus }
+            ],
+        })
+        const totalCount = await PerformaInvoice.count({ where: where });
+
+        if (req.query.pageSize && req.query.page && req.query.pageSize != 'undefined' && req.query.page != 'undefined') {
+            const response = {
+                count: totalCount,
+                items: pi,
+            };
+            res.json(response);
+        } else {
+            res.send(pi);
+        }
+    } catch (error) {
+        res.send(error.message)
+    }
 }
 
-
-
-
 exports.addPI = async (req, res) => {
-  let { piNo, url, kamId, amId, supplierId,
-    supplierCompanyId, supplierProfileId, isSupplierQualified,
-    supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
-    customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode } = req.body;
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-  const userId = req.user.id;
-  let status;
-
-  kamId = kamId === '' ? null : kamId;
-  amId = amId === '' ? null : amId;
-  customerId = customerId === '' ? null : customerId;
-
-
-  // ==================== [2. QUALIFICATION GUARD & ID RESOLUTION] ====================
-  const resolvedSupplierCompanyId = supplierCompanyId || supplierId; // 👈 ADDED
-
-  if (!resolvedSupplierCompanyId) { // 👈 ADDED: Required field check
-    return res.status(400).json({
-      success: false,
-      message: 'supplierCompanyId (or supplierId) is required.'
-    });
-  }
-
-  const isQualified = isSupplierQualified === true || isSupplierQualified === 'true'; // 👈 ADDED
-  if (!isQualified) { // 👈 ADDED: Block unqualified suppliers early
-    return res.status(403).json({
-      success: false,
-      message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
-    });
-  }
-  // ====================================================================
-
-
-
-  if (paymentMode === 'CreditCard') {
-    if (!amId) {
-      return res.send('Please Select Account Manager');
+    let { piNo, url, kamId, amId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
+        customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode } = req.body;
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
     }
-    status = 'INITIATED';
-  } else if (paymentMode === 'WireTransfer') {
-    if (!kamId) {
-      return res.send('Please Select Key Account Manager');
-    }
-    status = 'GENERATED';
-  }
+    const userId = req.user.id;
+    let status;
 
-  try {
-    let recipientEmail = null;
-    let notificationRecipientId = null;
+    kamId = kamId === '' ? null : kamId;
+    amId = amId === '' ? null : amId;
+    customerId = customerId === '' ? null : customerId;
 
-    // Get recipient info based on payment mode
     if (paymentMode === 'CreditCard') {
-      const am = await getUserById(
-        amId,
-        req.headers.authorization
-      );
-      recipientEmail = am.user ? am.user.email : null;
-      notificationRecipientId = amId;
-      if (!recipientEmail) {
-        return res.send("AM project email is missing.\n Please inform the admin to add it.");
-      }
+        if (!amId) {
+            return res.send('Please Select Account Manager');
+        }
+        status = 'INITIATED';
     } else if (paymentMode === 'WireTransfer') {
-      const kam = await getUserById(
-        kamId,
-        req.headers.authorization
-      );
-      console.log(kam, "1111111111111111111");
-
-      recipientEmail = kam.user ? kam.user.email : null;
-      notificationRecipientId = kamId;
-      if (!recipientEmail) {
-        return res.send("KAM project email is missing. \n Please inform the admin to add it.");
-      }
+        if (!kamId) {
+            return res.send('Please Select Key Account Manager');
+        }
+        status = 'GENERATED';
     }
 
-    // Check for existing invoice
-    const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
-    if (existingInvoice) {
-      return res.json({ error: 'Invoice is already saved' });
-    }
-
-    // Create new PI
-    const newPi = await PerformaInvoice.create({
-      piNo, url, status, salesPersonId: userId, kamId, amId,
-
-      supplierCompanyId: Number(resolvedSupplierCompanyId), // 👈 ADDED: Required non-null company ID
-      supplierProfileId: supplierProfileId || null,          // 👈 ADDED: Microservice profile UUID
-      isSupplierQualified: true,                             // 👈 ADDED: Snapshot flag
-      supplierId: Number(resolvedSupplierCompanyId),        // 👈 CHANGED: Standardized numeric ID
-
-      supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
-      customerId, customerPoNo, customerSoNo, customerCurrency, poValue,
-      addedById: userId, notes, paymentMode
-    });
-
-    // Create status record
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: newPi.id,
-      status,
-      date: new Date(),
-    });
-
-    // Handle different URL formats
-    let urlsToProcess = [];
-
-    if (Array.isArray(url)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = url.map(item => item.url).filter(Boolean);
-    } else if (typeof url === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [url];
-    } else if (url && url.url) {
-      // If URL is an object with url property
-      urlsToProcess = [url.url];
-    }
-
-
-    const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId: resolvedSupplierCompanyId, // 👈 CHANGED: Using resolved ID
-      customerId,
-      urls: urlsToProcess
-    });
-
-    // Get finance emails
-    const financeEmails = await emailService.findFinanceEmails();
-    // Ensure attachments is always an array
-    const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-    // Send email using EmailService
-    const emailResult = await emailService.sendNewPIEmail({
-      piNo,
-      supplierName: emailContent.supplierName,
-      supplierPoNo,
-      supplierSoNo,
-      supplierPrice,
-      supplierCurrency,
-      status,
-      paymentMode,
-      purpose,
-      customerName: emailContent.customerName,
-      customerPoNo,
-      customerSoNo,
-      poValue,
-      customerCurrency,
-      notes,
-      requestedBy: req.user.name,
-      toEmail: recipientEmail,
-      ccEmails: financeEmails,
-      attachments: emailAttachments
-    });
     try {
-      // Assuming notification service runs on port 3001
-      // You can make this configurable via environment variables
-      const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-        userId: notificationRecipientId,
-        message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
-        isRead: false,
-        type: 'PI_CREATED', // Add type if your notification service supports it
-        metadata: {
-          piNo: piNo,
-          piId: newPi.id,
-          paymentMode: paymentMode,
-          requestedBy: req.user.name,
-          supplierPoNo: supplierPoNo
+        let recipientEmail = null;
+        let notificationRecipientId = null;
+        
+        // Get recipient info based on payment mode
+        if (paymentMode === 'CreditCard') {
+            const am = await getUserById(
+                amId,
+                req.headers.authorization
+            );
+            recipientEmail = am.user ? am.user.email : null;
+            notificationRecipientId = amId;
+            if (!recipientEmail) {
+                return res.send("AM project email is missing.\n Please inform the admin to add it.");
+            }
+        } else if (paymentMode === 'WireTransfer') {
+            const kam = await getUserById(
+                kamId,
+                req.headers.authorization
+            );
+            console.log(kam,"1111111111111111111");
+            
+            recipientEmail = kam.user ? kam.user.email : null;
+            notificationRecipientId = kamId;
+            if (!recipientEmail) {
+                return res.send("KAM project email is missing. \n Please inform the admin to add it.");
+            }
         }
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any authentication headers if needed
-          'Authorization': req.headers.authorization || ''
-        }
-      });
-    } catch (notificationError) {
-      // You might want to implement a retry mechanism or queue for failed notifications
-    }
 
-    res.json({
-      pi: newPi,
-      message: 'Proforma Invoice saved successfully and email sent.'
-    });
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
+        // Check for existing invoice
+        const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
+        if (existingInvoice) {
+            return res.json({ error: 'Invoice is already saved' });
+        }
+
+        // Create new PI
+        const newPi = await PerformaInvoice.create({
+            piNo, url, status, salesPersonId: userId, kamId, supplierId, amId,
+            supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
+            customerId, customerPoNo, customerSoNo, customerCurrency, poValue,
+            addedById: userId, notes, paymentMode
+        });
+
+        // Create status record
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: newPi.id,
+            status,
+            date: new Date(),
+        });
+
+        // Handle different URL formats
+        let urlsToProcess = [];
+        
+        if (Array.isArray(url)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = url.map(item => item.url).filter(Boolean);
+        } else if (typeof url === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [url];
+        } else if (url && url.url) {
+            // If URL is an object with url property
+            urlsToProcess = [url.url];
+        }
+        
+        const emailContent = await emailService.prepareNewPIEmailContent({
+            supplierId,
+            customerId,
+            urls: urlsToProcess  // Pass as urls (plural)
+        });
+
+        // Get finance emails
+        const financeEmails = await emailService.findFinanceEmails();
+        // Ensure attachments is always an array
+        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+        // Send email using EmailService
+        const emailResult = await emailService.sendNewPIEmail({
+            piNo,
+            supplierName: emailContent.supplierName,
+            supplierPoNo,
+            supplierSoNo,
+            supplierPrice,
+            supplierCurrency,
+            status,
+            paymentMode,
+            purpose,
+            customerName: emailContent.customerName,
+            customerPoNo,
+            customerSoNo,
+            poValue,
+            customerCurrency,
+            notes,
+            requestedBy: req.user.name,
+            toEmail: recipientEmail,
+            ccEmails: financeEmails,
+            attachments: emailAttachments
+        });
+        try {
+            // Assuming notification service runs on port 3001
+            // You can make this configurable via environment variables
+            const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                userId: notificationRecipientId,
+                message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
+                isRead: false,
+                type: 'PI_CREATED', // Add type if your notification service supports it
+                metadata: {
+                    piNo: piNo,
+                    piId: newPi.id,
+                    paymentMode: paymentMode,
+                    requestedBy: req.user.name,
+                    supplierPoNo: supplierPoNo
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add any authentication headers if needed
+                    'Authorization': req.headers.authorization || ''
+                }
+            });
+        } catch (notificationError) {
+            // You might want to implement a retry mechanism or queue for failed notifications
+        }
+
+        res.json({
+            pi: newPi,
+            message: 'Proforma Invoice saved successfully and email sent.'
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 }
 
 exports.updatePIBySE = async (req, res) => {
-  let { url, kamId, supplierId, supplierCompanyId, supplierProfileId, isSupplierQualified, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
-    customerId, customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, amId } = req.body;
+    let { url, kamId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, 
+        customerId, customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, amId } = req.body;
 
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-  // ADDED: Quality Qualification Guard Check
-  const qualCheck = validateSupplierQualification(supplierCompanyId, supplierId, isSupplierQualified);
-  if (!qualCheck.valid) {
-    return res.status(qualCheck.code).json({ success: false, message: qualCheck.message });
-  }
-
-  kamId = kamId === '' ? null : kamId;
-  amId = amId === '' ? null : amId;
-  customerId = customerId === '' ? null : customerId;
-
-  let recipientEmail = null;
-  let notificationRecipientId = null;
-
-  try {
-    // Get recipient info based on payment mode
-    if (paymentMode === 'CreditCard') {
-      if (!amId) {
-        return res.send('Please select Account Manager and proceed');
-      }
-      const am = await getUserById(
-        amId,
-        req.headers.authorization
-      );
-      recipientEmail = am.user ? am.user.email : null;
-      notificationRecipientId = amId;
-
-      if (!recipientEmail) {
-        return res.send("AM email is missing. Please inform the admin to add it.");
-      }
-    } else if (paymentMode === 'WireTransfer') {
-      if (!kamId) {
-        return res.send('Please select Key Account Manager and proceed');
-      }
-      const kam = await getUserById(
-        kamId,
-        req.headers.authorization
-      );
-      recipientEmail = kam.user ? kam.user.email : null;
-      notificationRecipientId = kamId;
-
-      if (!recipientEmail) {
-        return res.send("KAM email is missing. Please inform the admin to add it.");
-      }
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
     }
-  } catch (error) {
-    return res.status(500).send(error.message);
-  }
+    
+    kamId = kamId === '' ? null : kamId;
+    amId = amId === '' ? null : amId;
+    customerId = customerId === '' ? null : customerId;
 
-  try {
-    const pi = await PerformaInvoice.findByPk(req.params.id);
-    if (!pi) {
-      return res.status(404).send('Proforma Invoice not found.');
-    }
-
-    const piNo = pi.piNo;
-    let status;
-
-    if (paymentMode === 'CreditCard') {
-      if (!amId) {
-        return res.send('Please select Account Manager.');
-      }
-      status = 'INITIATED';
-    } else if (paymentMode === 'WireTransfer') {
-      if (!kamId) {
-        return res.send('Please select Key Account Manager.');
-      }
-      status = 'GENERATED';
-    }
-
-    // Update PI
-    const updateData = {
-      url,
-      kamId,
-      amId,
-      count: pi.count + 1,
-      status,
-      supplierSoNo,
-      supplierCompanyId: qualCheck.resolvedCompanyId,
-      supplierId: qualCheck.resolvedCompanyId,
-      supplierProfileId: supplierProfileId || pi.supplierProfileId,
-      isSupplierQualified: true,
-      supplierPoNo,
-      supplierCurrency,
-      supplierPrice,
-      purpose,
-      customerId,
-      customerSoNo,
-      customerPoNo,
-      customerCurrency,
-      poValue,
-      paymentMode,
-      notes
-    };
-
-    await pi.update(updateData);
-
-    // Create status record
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: pi.id,
-      status: status,
-      date: new Date(),
-      count: pi.count
-    });
-
-    // Handle different URL formats for email attachments
-    let urlsToProcess = [];
-
-    if (Array.isArray(url)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = url.map(item => item.url || item.file).filter(Boolean);
-    } else if (typeof url === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [url];
-    } else if (url && (url.url || url.file)) {
-      // If URL is an object with url or file property
-      urlsToProcess = [url.url || url.file];
-    }
-
-    // const emailContent = await emailService.prepareNewPIEmailContent({
-    //   supplierId,
-    //   customerId,
-    //   urls: urlsToProcess
-    // });
-    const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId: qualCheck.resolvedCompanyId, // UPDATED: Use resolved company ID
-      customerId,
-      urls: urlsToProcess
-    });
-
-
-    // Get finance emails for CC
-    const financeEmails = await emailService.findFinanceEmails();
-
-    // Ensure attachments is always an array
-    const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-
-    // Send email using EmailService
-    const emailResult = await emailService.sendUpdatedPIEmail({
-      piNo: piNo,
-      supplierName: emailContent.supplierName,
-      supplierPoNo: supplierPoNo,
-      supplierSoNo: supplierSoNo,
-      supplierPrice: supplierPrice,
-      supplierCurrency: supplierCurrency,
-      status: status,
-      paymentMode: paymentMode,
-      purpose: purpose,
-      customerName: emailContent.customerName,
-      customerPoNo: customerPoNo,
-      customerSoNo: customerSoNo,
-      customerCurrency: customerCurrency,
-      poValue: poValue,
-      notes: notes,
-      updatedBy: req.user.name,
-      updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-      toEmail: recipientEmail,
-      ccEmails: financeEmails,
-      attachments: emailAttachments,
-      action: 'updated'
-    });
+    let recipientEmail = null;
+    let notificationRecipientId = null;
 
     try {
-      // Send notification to notification service
-      const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-        userId: notificationRecipientId,
-        message: `Payment Request Updated ${piNo} / ${supplierPoNo}`,
-        isRead: false,
-        type: 'PI_UPDATED',
-        metadata: {
-          piNo: piNo,
-          piId: pi.id,
-          paymentMode: paymentMode,
-          updatedBy: req.user.name,
-          supplierPoNo: supplierPoNo,
-          updatedAt: new Date().toISOString()
+        // Get recipient info based on payment mode
+        if (paymentMode === 'CreditCard') {
+            if (!amId) {
+                return res.send('Please select Account Manager and proceed');
+            }
+            const am = await getUserById(
+                amId,
+                req.headers.authorization
+            );
+            recipientEmail = am.user ? am.user.email : null;
+            notificationRecipientId = amId;
+
+            if (!recipientEmail) {
+                return res.send("AM email is missing. Please inform the admin to add it.");
+            }
+        } else if (paymentMode === 'WireTransfer') {
+            if (!kamId) {
+                return res.send('Please select Key Account Manager and proceed');
+            }
+            const kam = await getUserById(
+                kamId,
+                req.headers.authorization
+            );
+            recipientEmail = kam.user ? kam.user.email : null;
+            notificationRecipientId = kamId;
+
+            if (!recipientEmail) {
+                return res.send("KAM email is missing. Please inform the admin to add it.");
+            }
         }
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': req.headers.authorization || ''
-        }
-      });
-    } catch (notificationError) {
-      // Log the error but don't fail the main operation
-      console.error('Failed to create notification:', notificationError.message);
+    } catch (error) {
+        return res.status(500).send(error.message);
     }
 
-    res.json({
-      piNo: piNo,
-      status: status,
-      pi: pi,
-      message: 'Proforma Invoice updated successfully'
-    });
+    try {
+        const pi = await PerformaInvoice.findByPk(req.params.id);
+        if (!pi) {
+            return res.status(404).send('Proforma Invoice not found.');
+        }
 
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
+        const piNo = pi.piNo;
+        let status;
+
+        if (paymentMode === 'CreditCard') {
+            if (!amId) {
+                return res.send('Please select Account Manager.');
+            }
+            status = 'INITIATED';
+        } else if (paymentMode === 'WireTransfer') {
+            if (!kamId) {
+                return res.send('Please select Key Account Manager.');
+            }
+            status = 'GENERATED';
+        }
+
+        // Update PI
+        const updateData = {
+            url,
+            kamId,
+            amId,
+            count: pi.count + 1,
+            status,
+            supplierSoNo,
+            supplierId,
+            supplierPoNo,
+            supplierCurrency,
+            supplierPrice,
+            purpose,
+            customerId,
+            customerSoNo,
+            customerPoNo,
+            customerCurrency,
+            poValue,
+            paymentMode,
+            notes
+        };
+
+        await pi.update(updateData);
+
+        // Create status record
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: pi.id,
+            status: status,
+            date: new Date(),
+            count: pi.count
+        });
+
+        // Handle different URL formats for email attachments
+        let urlsToProcess = [];
+        
+        if (Array.isArray(url)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = url.map(item => item.url || item.file).filter(Boolean);
+        } else if (typeof url === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [url];
+        } else if (url && (url.url || url.file)) {
+            // If URL is an object with url or file property
+            urlsToProcess = [url.url || url.file];
+        }
+
+        const emailContent = await emailService.prepareNewPIEmailContent({
+            supplierId,
+            customerId,
+            urls: urlsToProcess
+        });
+
+        // Get finance emails for CC
+        const financeEmails = await emailService.findFinanceEmails();
+        
+        // Ensure attachments is always an array
+        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+
+        // Send email using EmailService
+        const emailResult = await emailService.sendUpdatedPIEmail({
+            piNo: piNo,
+            supplierName: emailContent.supplierName,
+            supplierPoNo: supplierPoNo,
+            supplierSoNo: supplierSoNo,
+            supplierPrice: supplierPrice,
+            supplierCurrency: supplierCurrency,
+            status: status,
+            paymentMode: paymentMode,
+            purpose: purpose,
+            customerName: emailContent.customerName,
+            customerPoNo: customerPoNo,
+            customerSoNo: customerSoNo,
+            customerCurrency: customerCurrency,
+            poValue: poValue,
+            notes: notes,
+            updatedBy: req.user.name,
+            updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+            toEmail: recipientEmail,
+            ccEmails: financeEmails,
+            attachments: emailAttachments,
+            action: 'updated'
+        });
+
+        try {
+            // Send notification to notification service
+            const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                userId: notificationRecipientId,
+                message: `Payment Request Updated ${piNo} / ${supplierPoNo}`,
+                isRead: false,
+                type: 'PI_UPDATED',
+                metadata: {
+                    piNo: piNo,
+                    piId: pi.id,
+                    paymentMode: paymentMode,
+                    updatedBy: req.user.name,
+                    supplierPoNo: supplierPoNo,
+                    updatedAt: new Date().toISOString()
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': req.headers.authorization || ''
+                }
+            });
+        } catch (notificationError) {
+            // Log the error but don't fail the main operation
+            console.error('Failed to create notification:', notificationError.message);
+        }
+
+        res.json({
+            piNo: piNo,
+            status: status,
+            pi: pi,
+            message: 'Proforma Invoice updated successfully'
+        });
+
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 };
 
 exports.addPIKAM = async (req, res) => {
-  let {
-    piNo, url, amId, supplierId,
-    supplierCompanyId, supplierProfileId, isSupplierQualified,
-    supplierSoNo, supplierPoNo,
-    supplierCurrency, supplierPrice, purpose, customerId,
-    customerPoNo, customerSoNo, customerCurrency, poValue,
-    notes, paymentMode
-  } = req.body;
+    let { 
+        piNo, url, amId, supplierId, supplierSoNo, supplierPoNo, 
+        supplierCurrency, supplierPrice, purpose, customerId,
+        customerPoNo, customerSoNo, customerCurrency, poValue,  
+        notes, paymentMode 
+    } = req.body;
 
-  // Handle array purpose (if coming from multi-select)
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-
-  const userId = req.user.id;
-
-  // ==================== [2. QUALIFICATION GUARD & ID RESOLUTION] ====================
-  const resolvedSupplierCompanyId = supplierCompanyId || supplierId; // 👈 ADDED
-
-  if (!resolvedSupplierCompanyId) { // 👈 ADDED: Required field check
-    return res.status(400).json({
-      success: false,
-      message: 'supplierCompanyId (or supplierId) is required.'
-    });
-  }
-
-  const isQualified = isSupplierQualified === true || isSupplierQualified === 'true'; // 👈 ADDED
-  if (!isQualified) { // 👈 ADDED: Block unqualified suppliers
-    return res.status(403).json({
-      success: false,
-      message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
-    });
-  }
-  // ====================================================================
-
-
-  // Validate required fields
-  if (!amId) {
-    return res.status(400).json({
-      success: false,
-      message: 'Please Select Manager to be assigned'
-    });
-  }
-
-  // Determine status based on payment mode
-  let status;
-  if (paymentMode === 'CreditCard') {
-    status = 'INITIATED';
-  } else {
-    status = 'KAM VERIFIED';
-  }
-
-  try {
-    // 1. Get recipient information (using auth service since users are in different DB)
-    const am = await emailService.getRecipientInfo(amId, req.headers.authorization);
-    if (!am || !am.email) {
-      return res.status(400).json({
-        success: false,
-        message: "AM email is missing. Please inform the admin to add it."
-      });
+    // Handle array purpose (if coming from multi-select)
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
     }
 
-    // 2. Check for duplicate invoice
-    const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
-    if (existingInvoice) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invoice is already saved'
-      });
+    const userId = req.user.id;
+    
+    // Validate required fields
+    if (!amId) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Please Select Manager to be assigned' 
+        });
     }
 
-    // 3. Create new invoice
-    const newPi = await PerformaInvoice.create({
-      piNo,
-      url,
-      status,
-      kamId: userId,
-      amId,
-
-      supplierCompanyId: Number(resolvedSupplierCompanyId),
-      supplierProfileId: supplierProfileId || null,
-      isSupplierQualified: true,
-      supplierId: Number(resolvedSupplierCompanyId),
-
-      supplierSoNo,
-      supplierPoNo,
-      supplierCurrency,
-      supplierPrice,
-      purpose,
-      customerId,
-      customerPoNo,
-      customerSoNo,
-      customerCurrency,
-      poValue,
-      addedById: userId,
-      notes,
-      paymentMode
-    });
-
-    // 4. Create status record
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: newPi.id,
-      status: status,
-      date: new Date(),
-    });
-    // Handle different URL formats
-    let urlsToProcess = [];
-
-    if (Array.isArray(url)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = url.map(item => item.url).filter(Boolean);
-    } else if (typeof url === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [url];
-    } else if (url && url.url) {
-      // If URL is an object with url property
-      urlsToProcess = [url.url];
-    }
-    // 5. Prepare email content
-    const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId: resolvedSupplierCompanyId,
-      customerId,
-      urls: urlsToProcess
-    });
-
-    // const supplierName = supplier ? supplier.companyName : 'Unknown Supplier';
-    // const customerName = customer ? customer.companyName : 'Unknown Customer';
-
-    // Get finance emails for CC
-    const financeEmails = await emailService.findFinanceEmails();
-    const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-    let recipientEmail = null;
-    let notificationRecipientId = null;
-
-    // Get recipient info based on payment mode
+    // Determine status based on payment mode
+    let status;
     if (paymentMode === 'CreditCard') {
-      const am = await getUserById(
-        amId,
-        req.headers.authorization
-      );
-      recipientEmail = am.user ? am.user.email : null;
-      notificationRecipientId = amId;
-      if (!recipientEmail) {
-        return res.send("AM project email is missing.\n Please inform the admin to add it.");
-      }
-    } else if (paymentMode === 'WireTransfer') {
-      const am = await getUserById(
-        amId,
-        req.headers.authorization
-      );
-      recipientEmail = am.user ? am.user.email : null;
-      notificationRecipientId = amId;
-      if (!recipientEmail) {
-        return res.send("AM email is missing. \n Please inform the admin to add it.");
-      }
+        status = 'INITIATED';
+    } else {
+        status = 'KAM VERIFIED';
     }
-    // 6. Send email notification
 
-    const emailResult = await emailService.sendNewPIEmail({
-      piNo,
-      supplierName: emailContent.supplierName,
-      supplierPoNo,
-      supplierSoNo,
-      supplierPrice,
-      supplierCurrency,
-      status,
-      paymentMode,
-      purpose,
-      customerName: emailContent.customerName,
-      customerPoNo,
-      customerSoNo,
-      customerCurrency,
-      notes,
-      requestedBy: req.user.name,
-      requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-      toEmail: recipientEmail,
-      ccEmails: financeEmails,
-      attachments: emailAttachments
-    });
+    try {
+        // 1. Get recipient information (using auth service since users are in different DB)
+        const am = await emailService.getRecipientInfo(amId, req.headers.authorization);
+        if (!am || !am.email) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "AM email is missing. Please inform the admin to add it." 
+            });
+        }
 
-    // 7. Create notification (using notification service)
-    // notificationService.handleStatusNotification({
-    //     pi: newPi,
-    //     status,
-    //     kamId: userId,
-    //     authToken: req.headers.authorization
-    // }).catch(error => {
-    //     console.error('Background notification creation failed:', error);
-    // });
+        // 2. Check for duplicate invoice
+        const existingInvoice = await PerformaInvoice.findOne({ where: { piNo } });
+        if (existingInvoice) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invoice is already saved' 
+            });
+        }
 
-    // 8. Return success response
-    res.status(201).json({
-      success: true,
-      message: 'Proforma Invoice saved successfully',
-      pi: newPi
-    });
+        // 3. Create new invoice
+        const newPi = await PerformaInvoice.create({
+            piNo, 
+            url, 
+            status, 
+            kamId: userId, 
+            amId, 
+            supplierId,
+            supplierSoNo, 
+            supplierPoNo, 
+            supplierCurrency, 
+            supplierPrice, 
+            purpose, 
+            customerId, 
+            customerPoNo, 
+            customerSoNo,
+            customerCurrency, 
+            poValue, 
+            addedById: userId, 
+            notes, 
+            paymentMode
+        });
 
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create proforma invoice',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
+        // 4. Create status record
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: newPi.id,
+            status: status,
+            date: new Date(),
+        });
+        // Handle different URL formats
+        let urlsToProcess = [];
+        
+        if (Array.isArray(url)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = url.map(item => item.url).filter(Boolean);
+        } else if (typeof url === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [url];
+        } else if (url && url.url) {
+            // If URL is an object with url property
+            urlsToProcess = [url.url];
+        }
+        // 5. Prepare email content
+        const emailContent = await emailService.prepareNewPIEmailContent({
+            supplierId,
+            customerId,
+            urls: urlsToProcess  // Pass as urls (plural)
+        });
+
+        // const supplierName = supplier ? supplier.companyName : 'Unknown Supplier';
+        // const customerName = customer ? customer.companyName : 'Unknown Customer';
+
+        // Get finance emails for CC
+        const financeEmails = await emailService.findFinanceEmails();
+        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+        let recipientEmail = null;
+        let notificationRecipientId = null;
+        
+        // Get recipient info based on payment mode
+        if (paymentMode === 'CreditCard') {
+            const am = await getUserById(
+                amId,
+                req.headers.authorization
+            );
+            recipientEmail = am.user ? am.user.email : null;
+            notificationRecipientId = amId;
+            if (!recipientEmail) {
+                return res.send("AM project email is missing.\n Please inform the admin to add it.");
+            }
+        } else if (paymentMode === 'WireTransfer') {
+            const am = await getUserById(
+                amId,
+                req.headers.authorization
+            );
+            recipientEmail = am.user ? am.user.email : null;
+            notificationRecipientId = amId;
+            if (!recipientEmail) {
+                return res.send("AM email is missing. \n Please inform the admin to add it.");
+            }
+        }
+        // 6. Send email notification
+        
+        const emailResult = await emailService.sendNewPIEmail({
+            piNo,
+            supplierName: emailContent.supplierName,
+            supplierPoNo,
+            supplierSoNo,
+            supplierPrice,
+            supplierCurrency,
+            status,
+            paymentMode,
+            purpose,
+            customerName: emailContent.customerName,
+            customerPoNo,
+            customerSoNo,
+            customerCurrency,
+            notes,
+            requestedBy: req.user.name,
+            requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+            toEmail: recipientEmail,
+            ccEmails: financeEmails,
+            attachments: emailAttachments
+        });
+
+        // 7. Create notification (using notification service)
+        // notificationService.handleStatusNotification({
+        //     pi: newPi,
+        //     status,
+        //     kamId: userId,
+        //     authToken: req.headers.authorization
+        // }).catch(error => {
+        //     console.error('Background notification creation failed:', error);
+        // });
+
+        // 8. Return success response
+        res.status(201).json({
+            success: true,
+            message: 'Proforma Invoice saved successfully',
+            pi: newPi
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to create proforma invoice',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
 };
 
 exports.updatePIKAM = async (req, res) => {
+    
+    let { 
+        url, 
+        amId, 
+        supplierId, 
+        supplierSoNo, 
+        supplierPoNo, 
+        supplierCurrency, 
+        supplierPrice, 
+        purpose, 
+        customerId,
+        customerSoNo, 
+        customerPoNo, 
+        customerCurrency, 
+        poValue, 
+        notes, 
+        paymentMode 
+    } = req.body;
 
-  let {
-    url,
-    amId,
-    supplierId,
-    supplierCompanyId,
-    supplierProfileId,
-    isSupplierQualified,
-    supplierSoNo,
-    supplierPoNo,
-    supplierCurrency,
-    supplierPrice,
-    purpose,
-    customerId,
-    customerSoNo,
-    customerPoNo,
-    customerCurrency,
-    poValue,
-    notes,
-    paymentMode
-  } = req.body;
-
-  // Handle array purpose (if coming from multi-select)
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-
-  const qualCheck = validateSupplierQualification(supplierCompanyId, supplierId, isSupplierQualified);
-  if (!qualCheck.valid) {
-    return res.status(qualCheck.code).json({ success: false, message: qualCheck.message });
-  }
-
-
-  // Validate AM selection
-  if (!amId) {
-    return res.status(400).json({
-      success: false,
-      message: "Select a manager and proceed"
-    });
-  }
-
-  // Determine status based on payment mode
-  let status;
-  if (paymentMode === 'CreditCard') {
-    status = 'INITIATED';
-  } else {
-    status = 'KAM VERIFIED';
-  }
-
-  let recipientEmail = null;
-  let notificationRecipientId = null;
-
-  try {
-    // Get recipient information using auth service
-    const am = await getUserById(amId, req.headers.authorization);
-
-    if (!am || !am.user || !am.user.email) {
-      return res.status(400).json({
-        success: false,
-        message: "AM email is missing. Please inform the admin to add it."
-      });
+    // Handle array purpose (if coming from multi-select)
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
     }
 
-    recipientEmail = am.user.email;
-    notificationRecipientId = amId;
-
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-
-  try {
-    // Find the existing PI
-    const pi = await PerformaInvoice.findByPk(req.params.id);
-    if (!pi) {
-      return res.status(404).json({
-        success: false,
-        message: 'Proforma Invoice not found'
-      });
+    // Validate AM selection
+    if (!amId) {
+        return res.status(400).json({
+            success: false,
+            message: "Select a manager and proceed"
+        });
     }
 
-    const piNo = pi.piNo;
-
-    // Update PI fields
-    const updateData = {
-      url: url || pi.url,
-      amId: amId || pi.amId,
-      supplierCompanyId: qualCheck.resolvedCompanyId,
-      supplierId: qualCheck.resolvedCompanyId,
-      supplierProfileId: supplierProfileId || pi.supplierProfileId,
-      isSupplierQualified: true,
-      supplierSoNo: supplierSoNo || pi.supplierSoNo,
-      supplierPoNo: supplierPoNo || pi.supplierPoNo,
-      supplierCurrency: supplierCurrency || pi.supplierCurrency,
-      supplierPrice: supplierPrice || pi.supplierPrice,
-      purpose: purpose || pi.purpose,
-      customerId: customerId === '' ? null : (customerId || pi.customerId),
-      customerSoNo: customerSoNo || pi.customerSoNo,
-      customerPoNo: customerPoNo || pi.customerPoNo,
-      customerCurrency: customerCurrency || pi.customerCurrency,
-      poValue: poValue || pi.poValue,
-      paymentMode: paymentMode || pi.paymentMode,
-      notes: notes || pi.notes,
-      count: pi.count + 1,
-      status: status
-    };
-
-    // Preserve KAM ID (should be the current user for KAM updates)
-    updateData.kamId = req.user.id;
-
-    await pi.update(updateData);
-
-    // Create status record
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: pi.id,
-      status: status,
-      date: new Date(),
-      count: pi.count
-    });
-
-    // Handle different URL formats for email attachments
-    let urlsToProcess = [];
-    const urlData = url || pi.url;
-
-    if (Array.isArray(urlData)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = urlData.map(item => item.url || item.file).filter(Boolean);
-    } else if (typeof urlData === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [urlData];
-    } else if (urlData && (urlData.url || urlData.file)) {
-      // If URL is an object with url or file property
-      urlsToProcess = [urlData.url || urlData.file];
-    } else if (pi.url) {
-      // Fallback to existing PI URL
-      if (Array.isArray(pi.url)) {
-        urlsToProcess = pi.url.map(item => item.url || item.file).filter(Boolean);
-      } else if (typeof pi.url === 'string') {
-        urlsToProcess = [pi.url];
-      }
-    }
-
-    // Prepare email content using email service
-    const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId: updateData.supplierId,
-      customerId: updateData.customerId,
-      urls: urlsToProcess
-    });
-
-    // Get finance emails for CC
-    const financeEmails = await emailService.findFinanceEmails();
-
-    // Ensure attachments is always an array
-    const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-
-    // Send email using EmailService
-    const emailResult = await emailService.sendUpdatedPIEmail({
-      piNo: piNo,
-      supplierName: emailContent.supplierName,
-      supplierPoNo: updateData.supplierPoNo,
-      supplierSoNo: updateData.supplierSoNo,
-      supplierPrice: updateData.supplierPrice,
-      supplierCurrency: updateData.supplierCurrency,
-      status: status,
-      paymentMode: updateData.paymentMode,
-      purpose: updateData.purpose,
-      customerName: emailContent.customerName,
-      customerPoNo: updateData.customerPoNo,
-      customerSoNo: updateData.customerSoNo,
-      customerCurrency: updateData.customerCurrency,
-      poValue: updateData.poValue,
-      notes: updateData.notes,
-      updatedBy: req.user.name,
-      updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-      toEmail: recipientEmail,
-      ccEmails: financeEmails,
-      attachments: emailAttachments,
-      action: 'updated'
-    });
-
-    // Create notification using notification service
-    try {
-      await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-        userId: notificationRecipientId,
-        message: `Payment Request Updated ${piNo} / ${updateData.supplierPoNo}`,
-        isRead: false,
-        type: 'PI_UPDATED_BY_KAM',
-        metadata: {
-          piNo: piNo,
-          piId: pi.id,
-          paymentMode: updateData.paymentMode,
-          updatedBy: req.user.name,
-          supplierPoNo: updateData.supplierPoNo,
-          updatedAt: new Date().toISOString(),
-          status: status
-        }
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': req.headers.authorization || ''
-        }
-      });
-    } catch (notificationError) {
-      // Log the error but don't fail the main operation
-      console.error('Failed to create notification:', notificationError.message);
-    }
-
-    // Return success response
-    res.json({
-      success: true,
-      piNo: pi.piNo,
-      status: status,
-      pi: pi,
-      message: 'Proforma Invoice updated successfully by KAM'
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-
-exports.addPIAM = async (req, res) => {
-  // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
-
-  let { piNo, url, accountantId, supplierId, supplierCompanyId, supplierProfileId, isSupplierQualified, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
-    customerId, customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode, kamId } = req.body;
-
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-
-  const userId = req.user.id;
-  kamId = kamId === '' ? null : kamId;
-  accountantId = accountantId === '' ? null : accountantId;
-  customerId = customerId === '' ? null : customerId;
-
-
-  // ==================== [2. QUALIFICATION GUARD & ID RESOLUTION] ====================
-  const resolvedSupplierCompanyId = supplierCompanyId || supplierId; // 👈 ADDED
-
-  if (!resolvedSupplierCompanyId) { // 👈 ADDED: Required field check
-    return res.status(400).json({
-      success: false,
-      message: 'supplierCompanyId (or supplierId) is required.'
-    });
-  }
-
-  const isQualified = isSupplierQualified === true || isSupplierQualified === 'true'; // 👈 ADDED
-  if (!isQualified) { // 👈 ADDED: Block unqualified suppliers
-    return res.status(403).json({
-      success: false,
-      message: 'Invoice Creation Blocked: Selected supplier is NOT quality certified or active.'
-    });
-  }
-  // ====================================================================
-
-  let status;
-
-
-  if (paymentMode === 'CreditCard') {
-    if (kamId == null) {
-      return res.send('Please Select Key Account Manager');
-    }
-    status = 'AM APPROVED';
-  } else {
-    if (accountantId == null) {
-      return res.send('Please Select Accountant');
-    }
-    status = 'AM VERIFIED';
-  }
-  let recipientEmail = null;
-  let notificationRecipientId = null;
-
-  // Get recipient info based on payment mode
-  if (paymentMode === 'CreditCard') {
-    const am = await getUserById(
-      accountantId,
-      req.headers.authorization
-    );
-    recipientEmail = am.user ? am.user.email : null;
-    notificationRecipientId = accountantId;
-    if (!recipientEmail) {
-      return res.send("AM project email is missing.\n Please inform the admin to add it.");
-    }
-  } else if (paymentMode === 'WireTransfer') {
-    const accountant = await getUserById(
-      accountantId,
-      req.headers.authorization
-    );
-    recipientEmail = accountant.user ? accountant.user.email : null;
-    notificationRecipientId = accountantId;
-    if (!recipientEmail) {
-      return res.send("Accountant email is missing. \n Please inform the admin to add it.");
-    }
-  }
-
-  try {
-    const existingInvoice = await PerformaInvoice.findOne({ where: { piNo: piNo } });
-    if (existingInvoice) {
-      return res.send('Invoice is already saved')
-    }
-
-    const newPi = await PerformaInvoice.create({
-      kamId, piNo, url, accountantId, status: status, amId: userId,
-
-      // Microservice Mappings:
-      supplierCompanyId: Number(resolvedSupplierCompanyId), // 👈 ADDED
-      supplierProfileId: supplierProfileId || null,          // 👈 ADDED
-      isSupplierQualified: true,                             // 👈 ADDED
-      supplierId: Number(resolvedSupplierCompanyId),        // 👈 CHANGED
-
-      supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
-      customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, addedById: userId
-    });
-
-    const piId = newPi.id;
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: piId,
-      status: status,
-      date: new Date(),
-    });
-
-    let urlsToProcess = [];
-
-    if (Array.isArray(url)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = url.map(item => item.url).filter(Boolean);
-    } else if (typeof url === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [url];
-    } else if (url && url.url) {
-      // If URL is an object with url property
-      urlsToProcess = [url.url];
-    }
-
-    // const emailContent = await emailService.prepareNewPIEmailContent({
-    //   supplierId,
-    //   customerId,
-    //   urls: urlsToProcess
-    // });
-
-    const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId: resolvedSupplierCompanyId, // 👈 CHANGED
-      customerId,
-      urls: urlsToProcess
-    });
-
-    // Get finance emails
-    const financeEmails = await emailService.findFinanceEmails();
-    // Ensure attachments is always an array
-    const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-    // Send email using EmailService
-    const emailResult = await emailService.sendNewPIEmail({
-      piNo,
-      supplierName: emailContent.supplierName,
-      supplierPoNo,
-      supplierSoNo,
-      supplierPrice,
-      supplierCurrency,
-      status,
-      paymentMode,
-      purpose,
-      customerName: emailContent.customerName,
-      customerPoNo,
-      customerSoNo,
-      customerCurrency,
-      notes,
-      requestedBy: req.user.name,
-      requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-      toEmail: recipientEmail,
-      ccEmails: financeEmails,
-      attachments: emailAttachments
-    });
-
-    try {
-      // Assuming notification service runs on port 3001
-      // You can make this configurable via environment variables
-      const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-        userId: notificationRecipientId,
-        message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
-        isRead: false,
-        type: 'PI_CREATED', // Add type if your notification service supports it
-        metadata: {
-          piNo: piNo,
-          piId: newPi.id,
-          paymentMode: paymentMode,
-          requestedBy: req.user.name,
-          supplierPoNo: supplierPoNo
-        }
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any authentication headers if needed
-          'Authorization': req.headers.authorization || ''
-        }
-      });
-    } catch (notificationError) {
-      // Log the error but don't fail the main operation
-      console.error('Failed to create notification:', notificationError.message);
-      // You might want to implement a retry mechanism or queue for failed notifications
-    }
-
-
-    res.json({
-      pi: newPi,
-      status: status,
-      message: 'Proforma Invoice saved successfully'
-    });
-  } catch (error) {
-    res.send(error.message);
-  }
-}
-
-exports.updatePIAM = async (req, res) => {
-  let {
-    url,
-    kamId,
-    accountantId,
-    supplierId,
-    supplierSoNo,
-    supplierPoNo,
-    supplierCurrency,
-    supplierPrice,
-    purpose,
-    customerId,
-    customerPoNo,
-    customerSoNo,
-    customerCurrency,
-    poValue,
-    paymentMode,
-    notes
-  } = req.body;
-
-  // Handle array purpose (if coming from multi-select)
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-
-  try {
     // Determine status based on payment mode
     let status;
-    let validationError = null;
-
     if (paymentMode === 'CreditCard') {
-      if (!kamId) {
-        validationError = 'Please Select Key Account Manager';
-      }
-      status = 'AM APPROVED';
+        status = 'INITIATED';
     } else {
-      if (!accountantId) {
-        validationError = 'Please Select Accountant';
-      }
-      status = 'AM VERIFIED';
-    }
-
-    if (validationError) {
-      return res.status(400).json({
-        success: false,
-        message: validationError
-      });
+        status = 'KAM VERIFIED';
     }
 
     let recipientEmail = null;
     let notificationRecipientId = null;
 
-    // Get recipient info based on payment mode
     try {
-      if (paymentMode === 'CreditCard') {
-        const kam = await getUserById(kamId, req.headers.authorization);
-        recipientEmail = kam?.user?.email || null;
-        notificationRecipientId = kamId;
-
-        if (!recipientEmail) {
-          return res.status(400).json({
-            success: false,
-            message: "KAM email is missing. Please inform the admin to add it."
-          });
+        // Get recipient information using auth service
+        const am = await getUserById(amId, req.headers.authorization);
+        
+        if (!am || !am.user || !am.user.email) {
+            return res.status(400).json({
+                success: false,
+                message: "AM email is missing. Please inform the admin to add it."
+            });
         }
-      } else if (paymentMode === 'WireTransfer') {
-        const accountant = await getUserById(accountantId, req.headers.authorization);
-        recipientEmail = accountant?.user?.email || null;
-        notificationRecipientId = accountantId;
+        
+        recipientEmail = am.user.email;
+        notificationRecipientId = amId;
 
-        if (!recipientEmail) {
-          return res.status(400).json({
-            success: false,
-            message: "Accountant email is missing. Please inform the admin to add it."
-          });
-        }
-      }
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 
-    // Find the existing PI
-    const pi = await PerformaInvoice.findByPk(req.params.id);
-    if (!pi) {
-      return res.status(404).json({
-        success: false,
-        message: 'Proforma Invoice not found'
-      });
-    }
-
-    const piNo = pi.piNo;
-
-    // Clean up IDs
-    kamId = kamId === '' ? null : kamId;
-    accountantId = accountantId === '' ? null : accountantId;
-    customerId = customerId === '' ? null : customerId;
-
-    // Update PI fields
-    const updateData = {
-      url: url || pi.url,
-      kamId: kamId || pi.kamId,
-      accountantId: accountantId || pi.accountantId,
-      supplierId: supplierId || pi.supplierId,
-      supplierPoNo: supplierPoNo || pi.supplierPoNo,
-      supplierSoNo: supplierSoNo || pi.supplierSoNo,
-      supplierCurrency: supplierCurrency || pi.supplierCurrency,
-      supplierPrice: supplierPrice || pi.supplierPrice,
-      purpose: purpose || pi.purpose,
-      customerId: customerId || pi.customerId,
-      customerPoNo: customerPoNo || pi.customerPoNo,
-      customerSoNo: customerSoNo || pi.customerSoNo,
-      customerCurrency: customerCurrency || pi.customerCurrency,
-      poValue: poValue || pi.poValue,
-      paymentMode: paymentMode || pi.paymentMode,
-      notes: notes || pi.notes,
-      count: pi.count + 1,
-      status: status
-    };
-
-    // Preserve AM ID (should be the current user for AM updates)
-    updateData.amId = req.user.id;
-
-    await pi.update(updateData);
-
-    // Create status record - use the determined status
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: pi.id,
-      status: status,
-      date: new Date(),
-      count: pi.count
-    });
-
-    // Handle different URL formats for email attachments
-    let urlsToProcess = [];
-    const urlData = url || pi.url;
-
-    if (Array.isArray(urlData)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = urlData.map(item => item.url || item.file).filter(Boolean);
-    } else if (typeof urlData === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [urlData];
-    } else if (urlData && (urlData.url || urlData.file)) {
-      // If URL is an object with url or file property
-      urlsToProcess = [urlData.url || urlData.file];
-    } else if (pi.url) {
-      // Fallback to existing PI URL
-      if (Array.isArray(pi.url)) {
-        urlsToProcess = pi.url.map(item => item.url || item.file).filter(Boolean);
-      } else if (typeof pi.url === 'string') {
-        urlsToProcess = [pi.url];
-      }
-    }
-
-    // Prepare email content using email service
-    const emailContent = await emailService.prepareNewPIEmailContent({
-      supplierId: updateData.supplierId,
-      customerId: updateData.customerId,
-      urls: urlsToProcess
-    });
-
-    // Get finance emails for CC
-    const financeEmails = await emailService.findFinanceEmails();
-
-    // Ensure attachments is always an array
-    const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-
-    // Send email using EmailService
-    const emailResult = await emailService.sendUpdatedPIEmail({
-      piNo: piNo,
-      supplierName: emailContent.supplierName,
-      supplierPoNo: updateData.supplierPoNo,
-      supplierSoNo: updateData.supplierSoNo,
-      supplierPrice: updateData.supplierPrice,
-      supplierCurrency: updateData.supplierCurrency,
-      status: status,
-      paymentMode: updateData.paymentMode,
-      purpose: updateData.purpose,
-      customerName: emailContent.customerName,
-      customerPoNo: updateData.customerPoNo,
-      customerSoNo: updateData.customerSoNo,
-      customerCurrency: updateData.customerCurrency,
-      poValue: updateData.poValue,
-      notes: updateData.notes,
-      updatedBy: req.user.name,
-      updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-      toEmail: recipientEmail,
-      ccEmails: financeEmails,
-      attachments: emailAttachments,
-      action: 'updated'
-    });
-
-    // Create notification using notification service
     try {
-      await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-        userId: notificationRecipientId,
-        message: `Payment Request Updated ${piNo} / ${updateData.supplierPoNo}`,
-        isRead: false,
-        type: paymentMode === 'CreditCard' ? 'PI_AM_APPROVED' : 'PI_AM_VERIFIED',
-        metadata: {
-          piNo: piNo,
-          piId: pi.id,
-          paymentMode: updateData.paymentMode,
-          updatedBy: req.user.name,
-          supplierPoNo: updateData.supplierPoNo,
-          updatedAt: new Date().toISOString(),
-          status: status
+        // Find the existing PI
+        const pi = await PerformaInvoice.findByPk(req.params.id);
+        if (!pi) {
+            return res.status(404).json({
+                success: false,
+                message: 'Proforma Invoice not found'
+            });
         }
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': req.headers.authorization || ''
+
+        const piNo = pi.piNo;
+
+        // Update PI fields
+        const updateData = {
+            url: url || pi.url,
+            amId: amId || pi.amId,
+            supplierId: supplierId || pi.supplierId,
+            supplierSoNo: supplierSoNo || pi.supplierSoNo,
+            supplierPoNo: supplierPoNo || pi.supplierPoNo,
+            supplierCurrency: supplierCurrency || pi.supplierCurrency,
+            supplierPrice: supplierPrice || pi.supplierPrice,
+            purpose: purpose || pi.purpose,
+            customerId: customerId === '' ? null : (customerId || pi.customerId),
+            customerSoNo: customerSoNo || pi.customerSoNo,
+            customerPoNo: customerPoNo || pi.customerPoNo,
+            customerCurrency: customerCurrency || pi.customerCurrency,
+            poValue: poValue || pi.poValue,
+            paymentMode: paymentMode || pi.paymentMode,
+            notes: notes || pi.notes,
+            count: pi.count + 1,
+            status: status
+        };
+
+        // Preserve KAM ID (should be the current user for KAM updates)
+        updateData.kamId = req.user.id;
+
+        await pi.update(updateData);
+
+        // Create status record
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: pi.id,
+            status: status,
+            date: new Date(),
+            count: pi.count
+        });
+
+        // Handle different URL formats for email attachments
+        let urlsToProcess = [];
+        const urlData = url || pi.url;
+        
+        if (Array.isArray(urlData)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = urlData.map(item => item.url || item.file).filter(Boolean);
+        } else if (typeof urlData === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [urlData];
+        } else if (urlData && (urlData.url || urlData.file)) {
+            // If URL is an object with url or file property
+            urlsToProcess = [urlData.url || urlData.file];
+        } else if (pi.url) {
+            // Fallback to existing PI URL
+            if (Array.isArray(pi.url)) {
+                urlsToProcess = pi.url.map(item => item.url || item.file).filter(Boolean);
+            } else if (typeof pi.url === 'string') {
+                urlsToProcess = [pi.url];
+            }
         }
-      });
-    } catch (notificationError) {
-      // Log the error but don't fail the main operation
-      console.error('Failed to create notification:', notificationError.message);
-    }
 
-    // Return success response
-    res.json({
-      success: true,
-      piNo: pi.piNo,
-      status: status,
-      pi: pi,
-      message: 'Proforma Invoice updated successfully by AM'
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-
-exports.updatePIAdmin = async (req, res) => {
-  let {
-    url,
-    kamId,
-    accountantId,
-    supplierId,
-    supplierSoNo,
-    supplierPoNo,
-    supplierCurrency,
-    supplierPrice,
-    purpose,
-    customerId,
-    customerPoNo,
-    customerSoNo,
-    customerCurrency,
-    poValue,
-    paymentMode,
-    notes
-  } = req.body;
-
-  // Handle array purpose (if coming from multi-select)
-  if (Array.isArray(purpose)) {
-    purpose = purpose.join(', ');
-  }
-
-  try {
-    // Find the existing PI
-    const pi = await PerformaInvoice.findByPk(req.params.id);
-    if (!pi) {
-      return res.status(404).json({
-        success: false,
-        message: 'Proforma Invoice not found'
-      });
-    }
-
-    const piNo = pi.piNo;
-
-    // Update PI fields - preserve accountant ID if not provided
-    const updateData = {
-      url: url || pi.url,
-      kamId: kamId === '' ? null : (kamId || pi.kamId),
-      accountantId: accountantId === '' ? null : (accountantId || pi.accountantId),
-      supplierId: supplierId || pi.supplierId,
-      supplierPoNo: supplierPoNo || pi.supplierPoNo,
-      supplierSoNo: supplierSoNo || pi.supplierSoNo,
-      supplierCurrency: supplierCurrency || pi.supplierCurrency,
-      supplierPrice: supplierPrice || pi.supplierPrice,
-      purpose: purpose || pi.purpose,
-      customerId: customerId === '' ? null : (customerId || pi.customerId),
-      customerPoNo: customerPoNo || pi.customerPoNo,
-      customerSoNo: customerSoNo || pi.customerSoNo,
-      customerCurrency: customerCurrency || pi.customerCurrency,
-      poValue: poValue || pi.poValue,
-      paymentMode: paymentMode || pi.paymentMode,
-      notes: notes || pi.notes,
-      count: pi.count + 1,
-      // Keep the existing status - don't override it
-      status: pi.status
-    };
-
-    await pi.update(updateData);
-
-    // Create status record with existing status
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: pi.id,
-      status: pi.status,
-      date: new Date(),
-      count: pi.count
-    });
-
-    // Handle different URL formats for email attachments (if needed in future)
-    let urlsToProcess = [];
-    const urlData = url || pi.url;
-
-    if (Array.isArray(urlData)) {
-      // If URL is an array of objects with url property
-      urlsToProcess = urlData.map(item => item.url || item.file).filter(Boolean);
-    } else if (typeof urlData === 'string') {
-      // If URL is a simple string
-      urlsToProcess = [urlData];
-    } else if (urlData && (urlData.url || urlData.file)) {
-      // If URL is an object with url or file property
-      urlsToProcess = [urlData.url || urlData.file];
-    }
-
-    // Optional: Send email notification if needed
-    // This is commented out since the original function doesn't send emails
-    /*
-    if (recipientEmail) {
+        // Prepare email content using email service
         const emailContent = await emailService.prepareNewPIEmailContent({
             supplierId: updateData.supplierId,
             customerId: updateData.customerId,
             urls: urlsToProcess
         });
 
+        // Get finance emails for CC
+        const financeEmails = await emailService.findFinanceEmails();
+        
+        // Ensure attachments is always an array
+        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+
+        // Send email using EmailService
         const emailResult = await emailService.sendUpdatedPIEmail({
             piNo: piNo,
             supplierName: emailContent.supplierName,
@@ -1779,7 +1066,7 @@ exports.updatePIAdmin = async (req, res) => {
             supplierSoNo: updateData.supplierSoNo,
             supplierPrice: updateData.supplierPrice,
             supplierCurrency: updateData.supplierCurrency,
-            status: pi.status,
+            status: status,
             paymentMode: updateData.paymentMode,
             purpose: updateData.purpose,
             customerName: emailContent.customerName,
@@ -1789,69 +1076,630 @@ exports.updatePIAdmin = async (req, res) => {
             poValue: updateData.poValue,
             notes: updateData.notes,
             updatedBy: req.user.name,
+            updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
             toEmail: recipientEmail,
+            ccEmails: financeEmails,
             attachments: emailAttachments,
             action: 'updated'
         });
-    }
-    */
 
-    // Optional: Create notification if needed
-    /*
-    try {
-        await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-            userId: notificationRecipientId,
-            message: `Payment Request Updated ${piNo} / ${updateData.supplierPoNo}`,
-            isRead: false,
-            type: 'PI_UPDATED_BY_ACCOUNTANT',
-            metadata: {
-                piNo: piNo,
-                piId: pi.id,
-                updatedBy: req.user.name,
-                updatedAt: new Date().toISOString()
-            }
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': req.headers.authorization || ''
-            }
+        // Create notification using notification service
+        try {
+            await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                userId: notificationRecipientId,
+                message: `Payment Request Updated ${piNo} / ${updateData.supplierPoNo}`,
+                isRead: false,
+                type: 'PI_UPDATED_BY_KAM',
+                metadata: {
+                    piNo: piNo,
+                    piId: pi.id,
+                    paymentMode: updateData.paymentMode,
+                    updatedBy: req.user.name,
+                    supplierPoNo: updateData.supplierPoNo,
+                    updatedAt: new Date().toISOString(),
+                    status: status
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': req.headers.authorization || ''
+                }
+            });
+        } catch (notificationError) {
+            // Log the error but don't fail the main operation
+            console.error('Failed to create notification:', notificationError.message);
+        }
+
+        // Return success response
+        res.json({
+            success: true,
+            piNo: pi.piNo,
+            status: status,
+            pi: pi,
+            message: 'Proforma Invoice updated successfully by KAM'
         });
-    } catch (notificationError) {
-        console.error('Failed to create notification:', notificationError.message);
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
-    */
+};
 
-    // Return success response
-    res.json({
-      success: true,
-      piNo: pi.piNo,
-      status: pi.status,
-      pi: pi,
-      message: 'Proforma Invoice updated successfully'
-    });
+exports.addPIAM = async (req, res) => {
+    // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
 
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
+    let { piNo, url, accountantId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
+        customerId, customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode, kamId } = req.body;
+
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
+    }
+
+    const userId = req.user.id;
+    kamId = kamId === '' ? null : kamId;
+    accountantId = accountantId === '' ? null : accountantId;
+    customerId = customerId === '' ? null : customerId;
+
+    let status;
+   
+
+    if (paymentMode === 'CreditCard') {
+        if (kamId == null) {
+            return res.send('Please Select Key Account Manager');
+        }
+        status = 'AM APPROVED';
+    } else {
+        if (accountantId == null) {
+            return res.send('Please Select Accountant');
+        }
+        status = 'AM VERIFIED';
+    }
+    let recipientEmail = null;
+    let notificationRecipientId = null;
+    
+    // Get recipient info based on payment mode
+    if (paymentMode === 'CreditCard') {
+        const am = await getUserById(
+            accountantId,
+            req.headers.authorization
+        );
+        recipientEmail = am.user ? am.user.email : null;
+        notificationRecipientId = accountantId;
+        if (!recipientEmail) {
+            return res.send("AM project email is missing.\n Please inform the admin to add it.");
+        }
+    } else if (paymentMode === 'WireTransfer') {
+        const accountant = await getUserById(
+            accountantId,
+            req.headers.authorization
+        );
+        recipientEmail = accountant.user ? accountant.user.email : null;
+        notificationRecipientId = accountantId;
+        if (!recipientEmail) {
+            return res.send("Accountant email is missing. \n Please inform the admin to add it.");
+        }
+    }
+
+    try {
+        const existingInvoice = await PerformaInvoice.findOne({ where: { piNo: piNo } });
+        if (existingInvoice) {
+            return res.send('Invoice is already saved') 
+        }
+
+        const newPi = await PerformaInvoice.create({
+            kamId, piNo, url, accountantId, status: status, amId: userId,
+            supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
+            customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, addedById: userId
+        });
+
+        const piId = newPi.id;
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: piId,
+            status: status,
+            date: new Date(),
+        });
+
+        let urlsToProcess = [];
+        
+        if (Array.isArray(url)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = url.map(item => item.url).filter(Boolean);
+        } else if (typeof url === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [url];
+        } else if (url && url.url) {
+            // If URL is an object with url property
+            urlsToProcess = [url.url];
+        }
+        
+        const emailContent = await emailService.prepareNewPIEmailContent({
+            supplierId,
+            customerId,
+            urls: urlsToProcess  // Pass as urls (plural)
+        });
+
+        // Get finance emails
+        const financeEmails = await emailService.findFinanceEmails();
+        // Ensure attachments is always an array
+        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+        // Send email using EmailService
+        const emailResult = await emailService.sendNewPIEmail({
+            piNo,
+            supplierName: emailContent.supplierName,
+            supplierPoNo,
+            supplierSoNo,
+            supplierPrice,
+            supplierCurrency,
+            status,
+            paymentMode,
+            purpose,
+            customerName: emailContent.customerName,
+            customerPoNo,
+            customerSoNo,
+            customerCurrency,
+            notes,
+            requestedBy: req.user.name,
+            requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+            toEmail: recipientEmail,
+            ccEmails: financeEmails,
+            attachments: emailAttachments
+        });
+
+        try {
+            // Assuming notification service runs on port 3001
+            // You can make this configurable via environment variables
+            const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                userId: notificationRecipientId,
+                message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
+                isRead: false,
+                type: 'PI_CREATED', // Add type if your notification service supports it
+                metadata: {
+                    piNo: piNo,
+                    piId: newPi.id,
+                    paymentMode: paymentMode,
+                    requestedBy: req.user.name,
+                    supplierPoNo: supplierPoNo
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add any authentication headers if needed
+                    'Authorization': req.headers.authorization || ''
+                }
+            });
+        } catch (notificationError) {
+            // Log the error but don't fail the main operation
+            console.error('Failed to create notification:', notificationError.message);
+            // You might want to implement a retry mechanism or queue for failed notifications
+        }
+        
+
+        res.json({
+            pi: newPi,
+            status: status, 
+            message: 'Proforma Invoice saved successfully'
+        });
+    } catch (error) {
+        res.send(error.message);
+    }
+}
+
+exports.updatePIAM = async (req, res) => {
+    let { 
+        url, 
+        kamId, 
+        accountantId, 
+        supplierId, 
+        supplierSoNo,
+        supplierPoNo,
+        supplierCurrency, 
+        supplierPrice, 
+        purpose, 
+        customerId, 
+        customerPoNo,
+        customerSoNo,
+        customerCurrency, 
+        poValue,
+        paymentMode, 
+        notes
+    } = req.body;
+
+    // Handle array purpose (if coming from multi-select)
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
+    }
+
+    try {
+        // Determine status based on payment mode
+        let status;
+        let validationError = null;
+
+        if (paymentMode === 'CreditCard') {
+            if (!kamId) {
+                validationError = 'Please Select Key Account Manager';
+            }
+            status = 'AM APPROVED';
+        } else {
+            if (!accountantId) {
+                validationError = 'Please Select Accountant';
+            }
+            status = 'AM VERIFIED';
+        }
+
+        if (validationError) {
+            return res.status(400).json({
+                success: false,
+                message: validationError
+            });
+        }
+
+        let recipientEmail = null;
+        let notificationRecipientId = null;
+
+        // Get recipient info based on payment mode
+        try {
+            if (paymentMode === 'CreditCard') {
+                const kam = await getUserById(kamId, req.headers.authorization);
+                recipientEmail = kam?.user?.email || null;
+                notificationRecipientId = kamId;
+
+                if (!recipientEmail) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "KAM email is missing. Please inform the admin to add it."
+                    });
+                }
+            } else if (paymentMode === 'WireTransfer') {
+                const accountant = await getUserById(accountantId, req.headers.authorization);
+                recipientEmail = accountant?.user?.email || null;
+                notificationRecipientId = accountantId;
+
+                if (!recipientEmail) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Accountant email is missing. Please inform the admin to add it."
+                    });
+                }
+            }
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        // Find the existing PI
+        const pi = await PerformaInvoice.findByPk(req.params.id);
+        if (!pi) {
+            return res.status(404).json({
+                success: false,
+                message: 'Proforma Invoice not found'
+            });
+        }
+
+        const piNo = pi.piNo;
+
+        // Clean up IDs
+        kamId = kamId === '' ? null : kamId;
+        accountantId = accountantId === '' ? null : accountantId;
+        customerId = customerId === '' ? null : customerId;
+
+        // Update PI fields
+        const updateData = {
+            url: url || pi.url,
+            kamId: kamId || pi.kamId,
+            accountantId: accountantId || pi.accountantId,
+            supplierId: supplierId || pi.supplierId,
+            supplierPoNo: supplierPoNo || pi.supplierPoNo,
+            supplierSoNo: supplierSoNo || pi.supplierSoNo,
+            supplierCurrency: supplierCurrency || pi.supplierCurrency,
+            supplierPrice: supplierPrice || pi.supplierPrice,
+            purpose: purpose || pi.purpose,
+            customerId: customerId || pi.customerId,
+            customerPoNo: customerPoNo || pi.customerPoNo,
+            customerSoNo: customerSoNo || pi.customerSoNo,
+            customerCurrency: customerCurrency || pi.customerCurrency,
+            poValue: poValue || pi.poValue,
+            paymentMode: paymentMode || pi.paymentMode,
+            notes: notes || pi.notes,
+            count: pi.count + 1,
+            status: status
+        };
+
+        // Preserve AM ID (should be the current user for AM updates)
+        updateData.amId = req.user.id;
+
+        await pi.update(updateData);
+
+        // Create status record - use the determined status
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: pi.id,
+            status: status,
+            date: new Date(),
+            count: pi.count
+        });
+
+        // Handle different URL formats for email attachments
+        let urlsToProcess = [];
+        const urlData = url || pi.url;
+        
+        if (Array.isArray(urlData)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = urlData.map(item => item.url || item.file).filter(Boolean);
+        } else if (typeof urlData === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [urlData];
+        } else if (urlData && (urlData.url || urlData.file)) {
+            // If URL is an object with url or file property
+            urlsToProcess = [urlData.url || urlData.file];
+        } else if (pi.url) {
+            // Fallback to existing PI URL
+            if (Array.isArray(pi.url)) {
+                urlsToProcess = pi.url.map(item => item.url || item.file).filter(Boolean);
+            } else if (typeof pi.url === 'string') {
+                urlsToProcess = [pi.url];
+            }
+        }
+
+        // Prepare email content using email service
+        const emailContent = await emailService.prepareNewPIEmailContent({
+            supplierId: updateData.supplierId,
+            customerId: updateData.customerId,
+            urls: urlsToProcess
+        });
+
+        // Get finance emails for CC
+        const financeEmails = await emailService.findFinanceEmails();
+        
+        // Ensure attachments is always an array
+        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+
+        // Send email using EmailService
+        const emailResult = await emailService.sendUpdatedPIEmail({
+            piNo: piNo,
+            supplierName: emailContent.supplierName,
+            supplierPoNo: updateData.supplierPoNo,
+            supplierSoNo: updateData.supplierSoNo,
+            supplierPrice: updateData.supplierPrice,
+            supplierCurrency: updateData.supplierCurrency,
+            status: status,
+            paymentMode: updateData.paymentMode,
+            purpose: updateData.purpose,
+            customerName: emailContent.customerName,
+            customerPoNo: updateData.customerPoNo,
+            customerSoNo: updateData.customerSoNo,
+            customerCurrency: updateData.customerCurrency,
+            poValue: updateData.poValue,
+            notes: updateData.notes,
+            updatedBy: req.user.name,
+            updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+            toEmail: recipientEmail,
+            ccEmails: financeEmails,
+            attachments: emailAttachments,
+            action: 'updated'
+        });
+
+        // Create notification using notification service
+        try {
+            await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                userId: notificationRecipientId,
+                message: `Payment Request Updated ${piNo} / ${updateData.supplierPoNo}`,
+                isRead: false,
+                type: paymentMode === 'CreditCard' ? 'PI_AM_APPROVED' : 'PI_AM_VERIFIED',
+                metadata: {
+                    piNo: piNo,
+                    piId: pi.id,
+                    paymentMode: updateData.paymentMode,
+                    updatedBy: req.user.name,
+                    supplierPoNo: updateData.supplierPoNo,
+                    updatedAt: new Date().toISOString(),
+                    status: status
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': req.headers.authorization || ''
+                }
+            });
+        } catch (notificationError) {
+            // Log the error but don't fail the main operation
+            console.error('Failed to create notification:', notificationError.message);
+        }
+
+        // Return success response
+        res.json({
+            success: true,
+            piNo: pi.piNo,
+            status: status,
+            pi: pi,
+            message: 'Proforma Invoice updated successfully by AM'
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+exports.updatePIAdmin = async (req, res) => {
+    let { 
+        url, 
+        kamId,
+        accountantId,
+        supplierId, 
+        supplierSoNo,
+        supplierPoNo,
+        supplierCurrency, 
+        supplierPrice, 
+        purpose, 
+        customerId, 
+        customerPoNo,
+        customerSoNo,
+        customerCurrency, 
+        poValue,
+        paymentMode, 
+        notes
+    } = req.body;
+
+    // Handle array purpose (if coming from multi-select)
+    if (Array.isArray(purpose)) {
+        purpose = purpose.join(', ');
+    }
+
+    try {
+        // Find the existing PI
+        const pi = await PerformaInvoice.findByPk(req.params.id);
+        if (!pi) {
+            return res.status(404).json({
+                success: false,
+                message: 'Proforma Invoice not found'
+            });
+        }
+
+        const piNo = pi.piNo;
+
+        // Update PI fields - preserve accountant ID if not provided
+        const updateData = {
+            url: url || pi.url,
+            kamId: kamId === '' ? null : (kamId || pi.kamId),
+            accountantId: accountantId === '' ? null : (accountantId || pi.accountantId),
+            supplierId: supplierId || pi.supplierId,
+            supplierPoNo: supplierPoNo || pi.supplierPoNo,
+            supplierSoNo: supplierSoNo || pi.supplierSoNo,
+            supplierCurrency: supplierCurrency || pi.supplierCurrency,
+            supplierPrice: supplierPrice || pi.supplierPrice,
+            purpose: purpose || pi.purpose,
+            customerId: customerId === '' ? null : (customerId || pi.customerId),
+            customerPoNo: customerPoNo || pi.customerPoNo,
+            customerSoNo: customerSoNo || pi.customerSoNo,
+            customerCurrency: customerCurrency || pi.customerCurrency,
+            poValue: poValue || pi.poValue,
+            paymentMode: paymentMode || pi.paymentMode,
+            notes: notes || pi.notes,
+            count: pi.count + 1,
+            // Keep the existing status - don't override it
+            status: pi.status
+        };
+
+        await pi.update(updateData);
+
+        // Create status record with existing status
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: pi.id,
+            status: pi.status,
+            date: new Date(),
+            count: pi.count
+        });
+
+        // Handle different URL formats for email attachments (if needed in future)
+        let urlsToProcess = [];
+        const urlData = url || pi.url;
+        
+        if (Array.isArray(urlData)) {
+            // If URL is an array of objects with url property
+            urlsToProcess = urlData.map(item => item.url || item.file).filter(Boolean);
+        } else if (typeof urlData === 'string') {
+            // If URL is a simple string
+            urlsToProcess = [urlData];
+        } else if (urlData && (urlData.url || urlData.file)) {
+            // If URL is an object with url or file property
+            urlsToProcess = [urlData.url || urlData.file];
+        }
+
+        // Optional: Send email notification if needed
+        // This is commented out since the original function doesn't send emails
+        /*
+        if (recipientEmail) {
+            const emailContent = await emailService.prepareNewPIEmailContent({
+                supplierId: updateData.supplierId,
+                customerId: updateData.customerId,
+                urls: urlsToProcess
+            });
+
+            const emailResult = await emailService.sendUpdatedPIEmail({
+                piNo: piNo,
+                supplierName: emailContent.supplierName,
+                supplierPoNo: updateData.supplierPoNo,
+                supplierSoNo: updateData.supplierSoNo,
+                supplierPrice: updateData.supplierPrice,
+                supplierCurrency: updateData.supplierCurrency,
+                status: pi.status,
+                paymentMode: updateData.paymentMode,
+                purpose: updateData.purpose,
+                customerName: emailContent.customerName,
+                customerPoNo: updateData.customerPoNo,
+                customerSoNo: updateData.customerSoNo,
+                customerCurrency: updateData.customerCurrency,
+                poValue: updateData.poValue,
+                notes: updateData.notes,
+                updatedBy: req.user.name,
+                toEmail: recipientEmail,
+                attachments: emailAttachments,
+                action: 'updated'
+            });
+        }
+        */
+
+        // Optional: Create notification if needed
+        /*
+        try {
+            await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                userId: notificationRecipientId,
+                message: `Payment Request Updated ${piNo} / ${updateData.supplierPoNo}`,
+                isRead: false,
+                type: 'PI_UPDATED_BY_ACCOUNTANT',
+                metadata: {
+                    piNo: piNo,
+                    piId: pi.id,
+                    updatedBy: req.user.name,
+                    updatedAt: new Date().toISOString()
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': req.headers.authorization || ''
+                }
+            });
+        } catch (notificationError) {
+            console.error('Failed to create notification:', notificationError.message);
+        }
+        */
+
+        // Return success response
+        res.json({
+            success: true,
+            piNo: pi.piNo,
+            status: pi.status,
+            pi: pi,
+            message: 'Proforma Invoice updated successfully'
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 };
 
 exports.getPIByAdmin = async (req, res) => {
   try {
     let status = req.query.status;
     let search = req.query.search;
-
+    
     // Default where condition
     let where = {};
-
+    
     if (status && status !== '' && status !== 'undefined' && status !== 'REJECTED') {
       where.status = status;
     } else if (status === 'REJECTED') {
       where.status = { [Op.or]: ['KAM REJECTED', 'AM REJECTED'] };
     }
-
+    
     if (search && search !== '' && search !== 'undefined') {
       const searchTerm = search.replace(/\s+/g, '').trim().toLowerCase();
       where[Op.or] = [
@@ -1953,7 +1801,7 @@ exports.getPIByMA = async (req, res) => {
     } else if (status === 'REJECTED') {
       where.status = { [Op.or]: ['KAM REJECTED', 'AM REJECTED'] };
     }
-
+    
     if (search && search !== '' && search !== 'undefined') {
       const searchTerm = search.replace(/\s+/g, '').trim().toLowerCase();
       where[Op.or] = [
@@ -2044,7 +1892,7 @@ exports.getAMPIs = async (req, res) => {
     let status = req.query.status;
     let search = req.query.search;
     let amId = req.user.id;
-
+    
     let where = {};
 
     // Build where clause based on status
@@ -2052,7 +1900,7 @@ exports.getAMPIs = async (req, res) => {
       where.status = { [Op.or]: ['GENERATED', 'INITIATED'] };
     } else {
       where.amId = amId;
-
+      
       if (status && status !== '' && status !== 'undefined') {
         if (status === 'BANK SLIP ISSUED') {
           where.status = { [Op.or]: ['BANK SLIP ISSUED', 'CARD PAYMENT SUCCESS'] };
@@ -2061,16 +1909,16 @@ exports.getAMPIs = async (req, res) => {
         } else if (status === 'REJECTED') {
           where.status = { [Op.or]: ['KAM REJECTED', 'AM REJECTED'] };
         } else if (
-          status !== 'REJECTED' &&
-          status !== 'KAM VERIFIED' &&
-          status !== 'BANK SLIP ISSUED' &&
+          status !== 'REJECTED' && 
+          status !== 'KAM VERIFIED' && 
+          status !== 'BANK SLIP ISSUED' && 
           status !== 'GENERATED'
         ) {
           where.status = status;
         }
       }
     }
-
+    
     // Add search functionality
     if (search && search !== '' && search !== 'undefined') {
       const searchTerm = search.replace(/\s+/g, '').trim().toLowerCase();
@@ -2129,10 +1977,10 @@ exports.getAMPIs = async (req, res) => {
     if (userIdsArray.length > 0) {
       // Use authClient to fetch users
       const authHeader = req.headers['authorization'];
-
+      
       try {
         const userMapFromAuth = await findUsersByIds(userIdsArray, authHeader);
-
+        
         // Transform to the format you need
         Object.entries(userMapFromAuth).forEach(([id, user]) => {
           usersMap[id] = {
@@ -2194,7 +2042,7 @@ exports.getKAMPIs = async (req, res) => {
     let status = req.query.status;
     let search = req.query.search;
     let kamId = req.user.id;
-
+    
     // Build where clause
     let where = { kamId: kamId };
 
@@ -2206,14 +2054,14 @@ exports.getKAMPIs = async (req, res) => {
       } else if (status === 'REJECTED') {
         where.status = { [Op.or]: ['KAM REJECTED', 'AM REJECTED'] };
       } else if (
-        status !== 'REJECTED' &&
-        status !== 'GENERATED' &&
+        status !== 'REJECTED' && 
+        status !== 'GENERATED' && 
         status !== 'BANK SLIP ISSUED'
       ) {
         where.status = status;
       }
     }
-
+    
     // Add search functionality
     if (search && search !== '' && search !== 'undefined') {
       const searchTerm = search.replace(/\s+/g, '').trim().toLowerCase();
@@ -2272,10 +2120,10 @@ exports.getKAMPIs = async (req, res) => {
     if (userIdsArray.length > 0) {
       // Use authClient to fetch users
       const authHeader = req.headers['authorization'];
-
+      
       try {
         const userMapFromAuth = await findUsersByIds(userIdsArray, authHeader);
-
+        
         // Transform to the format you need
         Object.entries(userMapFromAuth).forEach(([id, user]) => {
           usersMap[id] = {
@@ -2353,14 +2201,14 @@ exports.getSalesTeamPIs = async (req, res) => {
       } else if (status === 'REJECTED') {
         where.status = { [Op.or]: ['KAM REJECTED', 'AM REJECTED', 'AM DECLINED'] };
       } else if (
-        status !== 'REJECTED' &&
-        status !== 'BANK SLIP ISSUED' &&
+        status !== 'REJECTED' && 
+        status !== 'BANK SLIP ISSUED' && 
         status !== 'GENERATED'
       ) {
         where.status = status;
       }
     }
-
+    
     if (search && search !== '' && search !== 'undefined') {
       const searchTerm = search.replace(/\s+/g, '').trim().toLowerCase();
       where[Op.or] = [
@@ -2699,7 +2547,7 @@ exports.getSalesTeamPIReport = async (req, res) => {
 exports.findPIById = async (req, res) => {
   try {
     const { id } = req.params;
-
+    
     // 1️⃣ Fetch the PI with basic includes (excluding user-related models)
     const pi = await PerformaInvoice.findByPk(id, {
       include: [
@@ -2720,9 +2568,9 @@ exports.findPIById = async (req, res) => {
     if (pi.amId) userIds.add(pi.amId);
     if (pi.accountantId) userIds.add(pi.accountantId);
     if (pi.addedById) userIds.add(pi.addedById);
-
+    
     const userIdsArray = Array.from(userIds);
-
+    
     // 3️⃣ Fetch users from auth service
     let usersMap = {};
     if (userIdsArray.length > 0) {
@@ -2745,7 +2593,7 @@ exports.findPIById = async (req, res) => {
       addedBy: pi.addedById ? usersMap[pi.addedById] : null
     };
     res.json(formattedPI);
-
+    
   } catch (error) {
     console.error('Error fetching PI:', error);
     res.status(500).json({ error: 'Failed to fetch Proforma Invoice' });
@@ -2753,270 +2601,270 @@ exports.findPIById = async (req, res) => {
 };
 
 exports.addBankSlip = async (req, res) => {
-  const { bankSlip } = req.body;
-
-  try {
-    // 1️⃣ Fetch the PI with basic includes
-    const pi = await PerformaInvoice.findByPk(req.params.id, {
-      include: [
-        { model: Company, as: 'suppliers' },
-        { model: Company, as: 'customers' },
-        { model: PerformaInvoiceStatus }
-      ]
-    });
-
-    if (!pi) {
-      return res.status(404).json({ error: 'Invoice not found' });
-    }
-
-    let message = 'processed';
-    if (pi.bankSlip != null) {
-      message = 'updated';
-      pi.count += 1;
-      await pi.save();
-
-      // Delete old bank slip from S3
-      const key = pi.bankSlip;
-      const fileKey = key ? key.replace(`https://approval-management-data-s3.s3.ap-south-1.amazonaws.com/`, '') : null;
-      try {
-        if (!fileKey) {
-          return res.status(400).json({ error: 'No file key provided' });
-        }
-
-        const deleteParams = {
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: fileKey
-        };
-
-        await s3.deleteObject(deleteParams).promise();
-      } catch (error) {
-        console.error('Error deleting old bank slip:', error);
-        return res.status(500).json({ error: error.message });
-      }
-    }
-
-    // 2️⃣ Determine new status
-    let newStat;
-    if (pi.status === 'AM APPROVED' || pi.status === 'CARD PAYMENT SUCCESS') {
-      newStat = 'CARD PAYMENT SUCCESS';
-    } else if (pi.status === 'AM VERIFIED' || pi.status === 'BANK SLIP ISSUED') {
-      newStat = 'BANK SLIP ISSUED';
-    } else {
-      return res.status(400).json({ error: 'Invalid status' });
-    }
-
-    // 3️⃣ Update PI
-    pi.bankSlip = bankSlip;
-    pi.status = newStat;
-    await pi.save();
-
-    // 4️⃣ Log status change
-    await PerformaInvoiceStatus.create({
-      performaInvoiceId: pi.id,
-      status: newStat,
-      date: new Date()
-    });
-
-    // 5️⃣ Get user information for emails and notifications
-    const userIds = new Set();
-    const userIdsArray = [];
-
-    // Collect user IDs with their roles
-    const userRoles = [];
-    if (pi.salesPersonId) {
-      userIds.add(pi.salesPersonId);
-      userIdsArray.push(pi.salesPersonId);
-      userRoles.push({ id: pi.salesPersonId, role: 'SalesPerson' });
-    }
-    if (pi.kamId) {
-      userIds.add(pi.kamId);
-      userIdsArray.push(pi.kamId);
-      userRoles.push({ id: pi.kamId, role: 'KAM' });
-    }
-    if (pi.amId) {
-      userIds.add(pi.amId);
-      userIdsArray.push(pi.amId);
-      userRoles.push({ id: pi.amId, role: 'AM' });
-    }
-    if (pi.accountantId) {
-      userIds.add(pi.accountantId);
-      userIdsArray.push(pi.accountantId);
-      userRoles.push({ id: pi.accountantId, role: 'Accountant' });
-    }
-
-    const authHeader = req.headers['authorization'];
-    const usersMap = await findUsersByIds(userIdsArray, authHeader);
-    // 6️⃣ Check for missing user emails
-    const missingEmails = userRoles
-      .filter(user => {
-        const userInfo = usersMap[user.id];
-        return !userInfo || !userInfo.email;
-      })
-      .map(user => {
-        const userInfo = usersMap[user.id];
-        return `${user.role} (ID: ${user.id}) is missing an email.`;
-      });
-
-    if (missingEmails.length > 0) {
-      return res.status(400).json({
-        error: 'Missing user emails',
-        details: missingEmails
-      });
-    }
-
-    // 7️⃣ Collect recipient emails (all except accountant)
-    const recipientEmails = userRoles
-      .filter(user => user.id !== pi.accountantId)
-      .map(user => {
-        const userInfo = usersMap[user.id];
-        return userInfo?.email;
-      })
-      .filter(Boolean);
-    // Get finance emails for CC
-    const financeEmails = await emailService.findFinanceEmails();
-
-    // 8️⃣ Prepare email content using EmailService
-    if (recipientEmails.length > 0) {
-      try {
-        // Prepare attachments
-        let attachments = [];
-
-        // Add PI files
-        if (pi.url && Array.isArray(pi.url)) {
-          try {
-            const urls = pi.url
-              .filter(item => item?.url && typeof item.url === 'string')
-              .map(item => item.url);
-
-            if (urls.length > 0) {
-              attachments = await emailService.getAttachmentsFromS3(urls);
-            }
-          } catch (s3Error) {
-            console.warn('Failed to fetch PI attachments:', s3Error.message);
-          }
-        }
-
-        // Add bank slip
-        if (bankSlip && typeof bankSlip === 'string') {
-          try {
-            const bankSlipAttachments = await emailService.getAttachmentsFromS3([bankSlip]);
-            attachments.push(...bankSlipAttachments);
-          } catch (s3Error) {
-            console.warn('Failed to fetch bank slip attachment:', s3Error.message);
-          }
-        }
-
-        // Prepare email data
-        const emailData = {
-          piNo: pi.piNo,
-          supplierName: pi.suppliers?.companyName || 'Unknown Supplier',
-          supplierPoNo: pi.supplierPoNo,
-          supplierSoNo: pi.supplierSoNo,
-          supplierPrice: pi.supplierPrice,
-          supplierCurrency: pi.supplierCurrency,
-          status: newStat,
-          paymentMode: pi.paymentMode,
-          purpose: pi.purpose,
-          customerName: pi.customers?.companyName || 'Unknown Customer',
-          customerPoNo: pi.customerPoNo,
-          customerSoNo: pi.customerSoNo,
-          customerCurrency: pi.customerCurrency,
-          poValue: pi.poValue,
-          notes: pi.notes,
-          requestedBy: req.user?.name || 'System'
-        };
-
-        // Customize subject based on status
-        let emailSubject;
-        if (newStat === 'CARD PAYMENT SUCCESS') {
-          emailSubject = `Card Payment Successfully ${message.charAt(0).toUpperCase() + message.slice(1)} for Proforma Invoice - ${pi.piNo}`;
-        } else {
-          emailSubject = `Payslip Issued for Proforma Invoice - ${pi.piNo}`;
-        }
-
-        // Send email using EmailService's sendNewPIEmail method
-        await emailService.sendBankSlipEmail({
-          piNo: pi.piNo,
-          supplierName: emailData.supplierName,
-          supplierPoNo: emailData.supplierPoNo,
-          supplierSoNo: emailData.supplierSoNo,
-          supplierPrice: emailData.supplierPrice,
-          supplierCurrency: emailData.supplierCurrency,
-          status: emailData.status,
-          paymentMode: emailData.paymentMode,
-          purpose: emailData.purpose,
-          customerName: emailData.customerName,
-          customerPoNo: emailData.customerPoNo,
-          customerSoNo: emailData.customerSoNo,
-          customerCurrency: emailData.customerCurrency,
-          notes: emailData.notes,
-          requestedBy: emailData.requestedBy,
-          requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-          toEmail: recipientEmails.join(','),
-          ccEmails: financeEmails,
-          attachments: attachments,
-          // Override subject for bank slip emails
-          subject: emailSubject
+    const { bankSlip } = req.body;
+    
+    try {
+        // 1️⃣ Fetch the PI with basic includes
+        const pi = await PerformaInvoice.findByPk(req.params.id, {
+            include: [
+                { model: Company, as: 'suppliers' },
+                { model: Company, as: 'customers' },
+                { model: PerformaInvoiceStatus }
+            ]
         });
 
-      } catch (emailError) {
-        console.error('Failed to send bank slip email:', emailError);
-        // Don't fail the whole operation if email fails
-      }
-    } else {
-      console.warn('No recipients defined for bank slip email');
+        if (!pi) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        let message = 'processed';
+        if (pi.bankSlip != null) {
+            message = 'updated';
+            pi.count += 1;
+            await pi.save();
+
+            // Delete old bank slip from S3
+            const key = pi.bankSlip;
+            const fileKey = key ? key.replace(`https://approval-management-data-s3.s3.ap-south-1.amazonaws.com/`, '') : null;
+            try {
+                if (!fileKey) {
+                    return res.status(400).json({ error: 'No file key provided' });
+                }
+
+                const deleteParams = {
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: fileKey
+                };
+
+                await s3.deleteObject(deleteParams).promise();
+            } catch (error) {
+                console.error('Error deleting old bank slip:', error);
+                return res.status(500).json({ error: error.message });
+            }
+        }
+
+        // 2️⃣ Determine new status
+        let newStat;
+        if (pi.status === 'AM APPROVED' || pi.status === 'CARD PAYMENT SUCCESS') {
+            newStat = 'CARD PAYMENT SUCCESS';
+        } else if (pi.status === 'AM VERIFIED' || pi.status === 'BANK SLIP ISSUED') {
+            newStat = 'BANK SLIP ISSUED';
+        } else {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+
+        // 3️⃣ Update PI
+        pi.bankSlip = bankSlip;
+        pi.status = newStat;
+        await pi.save();
+
+        // 4️⃣ Log status change
+        await PerformaInvoiceStatus.create({
+            performaInvoiceId: pi.id,
+            status: newStat,
+            date: new Date()
+        });
+
+        // 5️⃣ Get user information for emails and notifications
+        const userIds = new Set();
+        const userIdsArray = [];
+        
+        // Collect user IDs with their roles
+        const userRoles = [];
+        if (pi.salesPersonId) {
+            userIds.add(pi.salesPersonId);
+            userIdsArray.push(pi.salesPersonId);
+            userRoles.push({ id: pi.salesPersonId, role: 'SalesPerson' });
+        }
+        if (pi.kamId) {
+            userIds.add(pi.kamId);
+            userIdsArray.push(pi.kamId);
+            userRoles.push({ id: pi.kamId, role: 'KAM' });
+        }
+        if (pi.amId) {
+            userIds.add(pi.amId);
+            userIdsArray.push(pi.amId);
+            userRoles.push({ id: pi.amId, role: 'AM' });
+        }
+        if (pi.accountantId) {
+            userIds.add(pi.accountantId);
+            userIdsArray.push(pi.accountantId);
+            userRoles.push({ id: pi.accountantId, role: 'Accountant' });
+        }
+        
+        const authHeader = req.headers['authorization'];
+        const usersMap = await findUsersByIds(userIdsArray, authHeader);
+        // 6️⃣ Check for missing user emails
+        const missingEmails = userRoles
+            .filter(user => {
+                const userInfo = usersMap[user.id];
+                return !userInfo || !userInfo.email;
+            })
+            .map(user => {
+                const userInfo = usersMap[user.id];
+                return `${user.role} (ID: ${user.id}) is missing an email.`;
+            });
+
+        if (missingEmails.length > 0) {
+            return res.status(400).json({ 
+                error: 'Missing user emails',
+                details: missingEmails 
+            });
+        }
+
+        // 7️⃣ Collect recipient emails (all except accountant)
+        const recipientEmails = userRoles
+            .filter(user => user.id !== pi.accountantId)
+            .map(user => {
+                const userInfo = usersMap[user.id];
+                return userInfo?.email;
+            })
+            .filter(Boolean);
+        // Get finance emails for CC
+        const financeEmails = await emailService.findFinanceEmails();
+            
+        // 8️⃣ Prepare email content using EmailService
+        if (recipientEmails.length > 0) {
+            try {
+                // Prepare attachments
+                let attachments = [];
+                
+                // Add PI files
+                if (pi.url && Array.isArray(pi.url)) {
+                    try {
+                        const urls = pi.url
+                            .filter(item => item?.url && typeof item.url === 'string')
+                            .map(item => item.url);
+                        
+                        if (urls.length > 0) {
+                            attachments = await emailService.getAttachmentsFromS3(urls);
+                        }
+                    } catch (s3Error) {
+                        console.warn('Failed to fetch PI attachments:', s3Error.message);
+                    }
+                }
+
+                // Add bank slip
+                if (bankSlip && typeof bankSlip === 'string') {
+                    try {
+                        const bankSlipAttachments = await emailService.getAttachmentsFromS3([bankSlip]);
+                        attachments.push(...bankSlipAttachments);
+                    } catch (s3Error) {
+                        console.warn('Failed to fetch bank slip attachment:', s3Error.message);
+                    }
+                }
+
+                // Prepare email data
+                const emailData = {
+                    piNo: pi.piNo,
+                    supplierName: pi.suppliers?.companyName || 'Unknown Supplier',
+                    supplierPoNo: pi.supplierPoNo,
+                    supplierSoNo: pi.supplierSoNo,
+                    supplierPrice: pi.supplierPrice,
+                    supplierCurrency: pi.supplierCurrency,
+                    status: newStat,
+                    paymentMode: pi.paymentMode,
+                    purpose: pi.purpose,
+                    customerName: pi.customers?.companyName || 'Unknown Customer',
+                    customerPoNo: pi.customerPoNo,
+                    customerSoNo: pi.customerSoNo,
+                    customerCurrency: pi.customerCurrency,
+                    poValue: pi.poValue,
+                    notes: pi.notes,
+                    requestedBy: req.user?.name || 'System'
+                };
+
+                // Customize subject based on status
+                let emailSubject;
+                if (newStat === 'CARD PAYMENT SUCCESS') {
+                    emailSubject = `Card Payment Successfully ${message.charAt(0).toUpperCase() + message.slice(1)} for Proforma Invoice - ${pi.piNo}`;
+                } else {
+                    emailSubject = `Payslip Issued for Proforma Invoice - ${pi.piNo}`;
+                }
+
+                // Send email using EmailService's sendNewPIEmail method
+                await emailService.sendBankSlipEmail({
+                    piNo: pi.piNo,
+                    supplierName: emailData.supplierName,
+                    supplierPoNo: emailData.supplierPoNo,
+                    supplierSoNo: emailData.supplierSoNo,
+                    supplierPrice: emailData.supplierPrice,
+                    supplierCurrency: emailData.supplierCurrency,
+                    status: emailData.status,
+                    paymentMode: emailData.paymentMode,
+                    purpose: emailData.purpose,
+                    customerName: emailData.customerName,
+                    customerPoNo: emailData.customerPoNo,
+                    customerSoNo: emailData.customerSoNo,
+                    customerCurrency: emailData.customerCurrency,
+                    notes: emailData.notes,
+                    requestedBy: emailData.requestedBy,
+                    requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+                    toEmail: recipientEmails.join(','),
+                    ccEmails: financeEmails,
+                    attachments: attachments,
+                    // Override subject for bank slip emails
+                    subject: emailSubject
+                });
+
+            } catch (emailError) {
+                console.error('Failed to send bank slip email:', emailError);
+                // Don't fail the whole operation if email fails
+            }
+        } else {
+            console.warn('No recipients defined for bank slip email');
+        }
+
+        // 9️⃣ Create notifications using NotificationService
+        const notificationMessage = `${newStat} for Proforma Invoice ID: ${pi.piNo}.`;
+        
+        await notificationService.createNotification({
+            userIds: userIdsArray,
+            message: notificationMessage,
+            piId: pi.id,
+            status: newStat,
+            createdBy: req.user?.id || 'system'
+        });
+        // 🔟 Format response with user details
+        const formattedPI = {
+            ...pi.toJSON(),
+            salesPerson: pi.salesPersonId ? {
+                id: pi.salesPersonId,
+                name: usersMap[pi.salesPersonId]?.name,
+                email: usersMap[pi.salesPersonId]?.email
+            } : null,
+            kam: pi.kamId ? {
+                id: pi.kamId,
+                name: usersMap[pi.kamId]?.name,
+                email: usersMap[pi.kamId]?.email
+            } : null,
+            am: pi.amId ? {
+                id: pi.amId,
+                name: usersMap[pi.amId]?.name,
+                email: usersMap[pi.amId]?.email
+            } : null,
+            accountant: pi.accountantId ? {
+                id: pi.accountantId,
+                name: usersMap[pi.accountantId]?.name,
+                email: usersMap[pi.accountantId]?.email
+            } : null
+        };
+
+        return res.json({ 
+            success: true, 
+            pi: formattedPI, 
+            status: newStat,
+            message: `Bank slip ${message} successfully`,
+            emailSentTo: recipientEmails
+        });
+
+    } catch (error) {
+        console.error('Error in addBankSlip:', error);
+        return res.status(500).json({ error: error.message });
     }
-
-    // 9️⃣ Create notifications using NotificationService
-    const notificationMessage = `${newStat} for Proforma Invoice ID: ${pi.piNo}.`;
-
-    await notificationService.createNotification({
-      userIds: userIdsArray,
-      message: notificationMessage,
-      piId: pi.id,
-      status: newStat,
-      createdBy: req.user?.id || 'system'
-    });
-    // 🔟 Format response with user details
-    const formattedPI = {
-      ...pi.toJSON(),
-      salesPerson: pi.salesPersonId ? {
-        id: pi.salesPersonId,
-        name: usersMap[pi.salesPersonId]?.name,
-        email: usersMap[pi.salesPersonId]?.email
-      } : null,
-      kam: pi.kamId ? {
-        id: pi.kamId,
-        name: usersMap[pi.kamId]?.name,
-        email: usersMap[pi.kamId]?.email
-      } : null,
-      am: pi.amId ? {
-        id: pi.amId,
-        name: usersMap[pi.amId]?.name,
-        email: usersMap[pi.amId]?.email
-      } : null,
-      accountant: pi.accountantId ? {
-        id: pi.accountantId,
-        name: usersMap[pi.accountantId]?.name,
-        email: usersMap[pi.accountantId]?.email
-      } : null
-    };
-
-    return res.json({
-      success: true,
-      pi: formattedPI,
-      status: newStat,
-      message: `Bank slip ${message} successfully`,
-      emailSentTo: recipientEmails
-    });
-
-  } catch (error) {
-    console.error('Error in addBankSlip:', error);
-    return res.status(500).json({ error: error.message });
-  }
 };
-
-exports.deleteInvoice = async (req, res) => {
+ 
+exports.deleteInvoice = async(req,res)=>{
   try {
     // Find the invoice first
     const invoice = await PerformaInvoice.findOne({
@@ -3032,19 +2880,19 @@ exports.deleteInvoice = async (req, res) => {
     // Helper function to safely extract URLs
     const extractUrlFromValue = (value) => {
       if (!value) return null;
-
+      
       // If it's a string URL
       if (typeof value === 'string') {
         return value.trim() !== '' ? value : null;
       }
-
+      
       // If it's an object with a url property
       if (typeof value === 'object' && value !== null && value.url) {
         if (typeof value.url === 'string' && value.url.trim() !== '') {
           return value.url;
         }
       }
-
+      
       // If it's an object with other URL properties
       if (typeof value === 'object' && value !== null) {
         // Check for common URL property names
@@ -3055,13 +2903,13 @@ exports.deleteInvoice = async (req, res) => {
           }
         }
       }
-
+      
       return null;
     };
 
     // Collect all files to delete
     const filesToDelete = [];
-
+    
     // Handle 'url' field - could be array, object, or string
     if (invoice.url) {
       // If it's an array
@@ -3080,7 +2928,7 @@ exports.deleteInvoice = async (req, res) => {
         }
       }
     }
-
+    
     // Handle 'bankSlip' field
     if (invoice.bankSlip) {
       const url = extractUrlFromValue(invoice.bankSlip);
@@ -3088,7 +2936,7 @@ exports.deleteInvoice = async (req, res) => {
         filesToDelete.push(url);
       }
     }
-
+    
     // Delete all files from file service - USE QUERY PARAMETER
     const deletePromises = filesToDelete.map(async (fileUrl) => {
       try {
@@ -3098,30 +2946,30 @@ exports.deleteInvoice = async (req, res) => {
           headers: { 'Content-Type': 'application/json' },
           timeout: 5000
         });
-        return {
-          success: true,
-          fileUrl,
-          response: response.data
+        return { 
+          success: true, 
+          fileUrl, 
+          response: response.data 
         };
       } catch (error) {
         console.warn(`Failed to delete file ${fileUrl}:`, error.message);
-        return {
-          success: false,
-          fileUrl,
+        return { 
+          success: false, 
+          fileUrl, 
           error: error.message,
           status: error.response?.status
         };
       }
     });
-
+    
     // Wait for all file deletion attempts
     const fileDeletionResults = await Promise.allSettled(deletePromises);
-
+    
     // Delete all related status records
     await PerformaInvoiceStatus.destroy({
       where: { performaInvoiceId: req.params.id }
     });
-
+    
     // Then delete the invoice from database
     const result = await PerformaInvoice.destroy({
       where: { id: req.params.id },
@@ -3132,10 +2980,10 @@ exports.deleteInvoice = async (req, res) => {
     const fulfilledResults = fileDeletionResults
       .filter(r => r.status === 'fulfilled')
       .map(r => r.value);
-
+    
     const successfulDeletions = fulfilledResults.filter(r => r.success).length;
     const failedDeletions = fulfilledResults.filter(r => !r.success).length;
-
+    
     res.status(200).json({
       success: true,
       message: 'Invoice deleted successfully',
@@ -3150,7 +2998,7 @@ exports.deleteInvoice = async (req, res) => {
         results: fulfilledResults
       } : undefined
     });
-
+    
   } catch (error) {
     console.error("Delete error:", error.stack);
     res.status(500).json({
@@ -3163,126 +3011,126 @@ exports.deleteInvoice = async (req, res) => {
 }
 
 exports.getAdminReports = async (req, res) => {
-  try {
-    const { invoiceNo, addedBy, status, startDate, endDate, teamId } = req.body;
-    const authHeader = req.headers.authorization; // Get auth header for user service
+    try {
+        const { invoiceNo, addedBy, status, startDate, endDate, teamId } = req.body;
+        const authHeader = req.headers.authorization; // Get auth header for user service
 
-    let teamUserIds = [];
-    if (teamId) {
-      const teamUsers = await getTeamUsers(teamId, req.headers['authorization']);
-      teamUserIds = teamUsers.map(user => user.id);
+        let teamUserIds = [];
+        if (teamId) {
+            const teamUsers = await getTeamUsers(teamId, req.headers['authorization']);
+            teamUserIds = teamUsers.map(user => user.id);
+            
+            if (teamUserIds.length === 0) {
+                return res.json([]);
+            }
+        }
+        const whereClause = buildWhereClause(
+            req.body,
+            teamUserIds,
+            req.user && req.user.role ? req.user.role.power : null,
+            req.user ? req.user.id : null
+        );
+        
+        // Fetch invoices
+        const invoices = await PerformaInvoice.findAll({
+            where: whereClause,
+            include: [
+                { model: Company, as: 'suppliers' }, 
+                { model: Company, as: 'customers' }
+            ],
+            order: [['createdAt', 'DESC']],
+            raw: true, // Get raw data for easier manipulation
+            nest: true // Nest the results properly
+        });
 
-      if (teamUserIds.length === 0) {
-        return res.json([]);
-      }
+        // Extract all unique user IDs from invoices
+        const userIds = new Set();
+        invoices.forEach(invoice => {
+            if (invoice.addedById) userIds.add(invoice.addedById);
+            if (invoice.salesPersonId) userIds.add(invoice.salesPersonId);
+            if (invoice.kamId) userIds.add(invoice.kamId);
+            if (invoice.amId) userIds.add(invoice.amId);
+            if (invoice.accountantId) userIds.add(invoice.accountantId);
+        });
+
+        // Fetch user details from external service
+        const usersMap = await findUsersByIds(Array.from(userIds), authHeader);
+
+        // Attach user details to each invoice
+        const enrichedInvoices = invoices.map(invoice => {
+            const enriched = { ...invoice };
+            
+            // Attach addedBy user
+            if (invoice.addedById && usersMap[invoice.addedById]) {
+                enriched.addedBy = usersMap[invoice.addedById];
+            } else if (invoice.addedById) {
+                enriched.addedBy = {
+                    id: invoice.addedById,
+                    name: 'Unknown User',
+                    email: null,
+                    isActive: false
+                };
+            }
+
+            // Attach salesPerson user
+            if (invoice.salesPersonId && usersMap[invoice.salesPersonId]) {
+                enriched.salesPerson = usersMap[invoice.salesPersonId];
+            } else if (invoice.salesPersonId) {
+                enriched.salesPerson = {
+                    id: invoice.salesPersonId,
+                    name: 'Unknown User',
+                    email: null,
+                    isActive: false
+                };
+            }
+
+            // Attach kam user
+            if (invoice.kamId && usersMap[invoice.kamId]) {
+                enriched.kam = usersMap[invoice.kamId];
+            } else if (invoice.kamId) {
+                enriched.kam = {
+                    id: invoice.kamId,
+                    name: 'Unknown User',
+                    email: null,
+                    isActive: false
+                };
+            }
+
+            // Attach am user
+            if (invoice.amId && usersMap[invoice.amId]) {
+                enriched.am = usersMap[invoice.amId];
+            } else if (invoice.amId) {
+                enriched.am = {
+                    id: invoice.amId,
+                    name: 'Unknown User',
+                    email: null,
+                    isActive: false
+                };
+            }
+
+            // Attach accountant user
+            if (invoice.accountantId && usersMap[invoice.accountantId]) {
+                enriched.accountant = usersMap[invoice.accountantId];
+            } else if (invoice.accountantId) {
+                enriched.accountant = {
+                    id: invoice.accountantId,
+                    name: 'Unknown User',
+                    email: null,
+                    isActive: false
+                };
+            }
+
+            return enriched;
+        });
+
+        res.json(enrichedInvoices);
+    } catch (error) {
+        console.error('Error fetching invoices:', error);
+        res.status(500).json({ 
+            error: 'Internal Server Error',
+            message: error.message 
+        });
     }
-    const whereClause = buildWhereClause(
-      req.body,
-      teamUserIds,
-      req.user && req.user.role ? req.user.role.power : null,
-      req.user ? req.user.id : null
-    );
-
-    // Fetch invoices
-    const invoices = await PerformaInvoice.findAll({
-      where: whereClause,
-      include: [
-        { model: Company, as: 'suppliers' },
-        { model: Company, as: 'customers' }
-      ],
-      order: [['createdAt', 'DESC']],
-      raw: true, // Get raw data for easier manipulation
-      nest: true // Nest the results properly
-    });
-
-    // Extract all unique user IDs from invoices
-    const userIds = new Set();
-    invoices.forEach(invoice => {
-      if (invoice.addedById) userIds.add(invoice.addedById);
-      if (invoice.salesPersonId) userIds.add(invoice.salesPersonId);
-      if (invoice.kamId) userIds.add(invoice.kamId);
-      if (invoice.amId) userIds.add(invoice.amId);
-      if (invoice.accountantId) userIds.add(invoice.accountantId);
-    });
-
-    // Fetch user details from external service
-    const usersMap = await findUsersByIds(Array.from(userIds), authHeader);
-
-    // Attach user details to each invoice
-    const enrichedInvoices = invoices.map(invoice => {
-      const enriched = { ...invoice };
-
-      // Attach addedBy user
-      if (invoice.addedById && usersMap[invoice.addedById]) {
-        enriched.addedBy = usersMap[invoice.addedById];
-      } else if (invoice.addedById) {
-        enriched.addedBy = {
-          id: invoice.addedById,
-          name: 'Unknown User',
-          email: null,
-          isActive: false
-        };
-      }
-
-      // Attach salesPerson user
-      if (invoice.salesPersonId && usersMap[invoice.salesPersonId]) {
-        enriched.salesPerson = usersMap[invoice.salesPersonId];
-      } else if (invoice.salesPersonId) {
-        enriched.salesPerson = {
-          id: invoice.salesPersonId,
-          name: 'Unknown User',
-          email: null,
-          isActive: false
-        };
-      }
-
-      // Attach kam user
-      if (invoice.kamId && usersMap[invoice.kamId]) {
-        enriched.kam = usersMap[invoice.kamId];
-      } else if (invoice.kamId) {
-        enriched.kam = {
-          id: invoice.kamId,
-          name: 'Unknown User',
-          email: null,
-          isActive: false
-        };
-      }
-
-      // Attach am user
-      if (invoice.amId && usersMap[invoice.amId]) {
-        enriched.am = usersMap[invoice.amId];
-      } else if (invoice.amId) {
-        enriched.am = {
-          id: invoice.amId,
-          name: 'Unknown User',
-          email: null,
-          isActive: false
-        };
-      }
-
-      // Attach accountant user
-      if (invoice.accountantId && usersMap[invoice.accountantId]) {
-        enriched.accountant = usersMap[invoice.accountantId];
-      } else if (invoice.accountantId) {
-        enriched.accountant = {
-          id: invoice.accountantId,
-          name: 'Unknown User',
-          email: null,
-          isActive: false
-        };
-      }
-
-      return enriched;
-    });
-
-    res.json(enrichedInvoices);
-  } catch (error) {
-    console.error('Error fetching invoices:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: error.message
-    });
-  }
 };
 
 // Helper function to build where clause
@@ -3362,21 +3210,21 @@ function buildWhereClause(filters, teamUserIds = [], rolePower = null, userId = 
 }
 
 function getStatusFilter(status) {
-  const statusGroups = {
-    'GENERATED': ['GENERATED', 'INITIATED'],
-    'AM VERIFIED': ['AM VERIFIED', 'AM APPROVED'],
-    'BANK SLIP ISSUED': ['BANK SLIP ISSUED', 'CARD PAYMENT SUCCESS']
-  };
+    const statusGroups = {
+        'GENERATED': ['GENERATED', 'INITIATED'],
+        'AM VERIFIED': ['AM VERIFIED', 'AM APPROVED'],
+        'BANK SLIP ISSUED': ['BANK SLIP ISSUED', 'CARD PAYMENT SUCCESS']
+    };
 
-  return statusGroups[status]
-    ? { [Op.in]: statusGroups[status] }
-    : status;
+    return statusGroups[status] 
+        ? { [Op.in]: statusGroups[status] }
+        : status;
 }
 // const findPIByIdWithExternalUsers = async (req, res) => {
 //   try {
 //     const { id } = req.params;
 //     const authHeader = req.headers['authorization'];
-
+    
 //     // 1️⃣ Fetch the PI with all includes (except user models from other DB)
 //     const pi = await PerformaInvoice.findByPk(id, {
 //       include: [
@@ -3393,7 +3241,7 @@ function getStatusFilter(status) {
 
 //     // 2️⃣ Prepare response object
 //     const response = pi.toJSON();
-
+    
 //     // 3️⃣ Add user details from external service
 //     const userFields = [
 //       { field: 'salesPersonId', key: 'salesPerson' },
@@ -3407,13 +3255,13 @@ function getStatusFilter(status) {
 //     const userIds = userFields
 //       .map(field => response[field.field])
 //       .filter(id => id !== null && id !== undefined);
-
+    
 //     const uniqueUserIds = [...new Set(userIds)];
-
+    
 //     if (uniqueUserIds.length > 0) {
 //       try {
 //         const usersMap = await findUsersByIds(uniqueUserIds, authHeader);
-
+        
 //         // Assign user details to response
 //         userFields.forEach(({ field, key }) => {
 //           const userId = response[field];
@@ -3435,7 +3283,7 @@ function getStatusFilter(status) {
 //     }
 
 //     res.json(response);
-
+    
 //   } catch (error) {
 //     console.error('Error fetching PI:', error);
 //     res.status(500).json({ error: 'Failed to fetch Proforma Invoice' });
@@ -3443,173 +3291,173 @@ function getStatusFilter(status) {
 // };
 
 exports.updateKAM = async (req, res) => {
-  try {
-    const { kamId } = req.body;
-    // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
+    try {
+        const { kamId } = req.body;
+        // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
 
-    if (!kamId) {
-      return res.send('Please select Key Account Manager and proceed');
+        if (!kamId) {
+            return res.send('Please select Key Account Manager and proceed');
+        }
+
+        // Legacy UserPosition lookup removed in favour of auth-service user API
+
+        // if (!kam?.projectMailId) {
+        //     return res.send("KAM project email is missing. Please inform the admin to add it.");
+        // }
+
+            const kam = await getUserById(
+                kamId,
+                req.headers.authorization
+            );
+
+            recipientEmail = kam.user ? kam.user.email : null;
+            notificationRecipientId = kamId;
+
+        const pi = await PerformaInvoice.findByPk(req.params.id, {
+            include: [
+                { model: Company, as: 'customers', attributes: ['companyName'] },
+                { model: Company, as: 'suppliers', attributes: ['companyName'] },
+            ]
+        });
+
+        if (!pi) return res.send('Proforma Invoice not found.');
+
+        pi.kamId = kamId;
+
+        // const attachments = await getEmailAttachmentsFromS3(pi.url);
+
+        // await sendEmail({
+        //     to: recipientEmail,
+        //     subject: `Proforma Invoice Updated - ${pi.piNo}`,
+        //     attachments,
+        //     html: `
+        //         <p>Proforma Invoice updated by <strong>${req.user.name}</strong></p>
+        //         <p>${pi.kam.name} is unavailable, so KAM changed to <strong>${kam.user.name}</strong></p>
+        //         <p><strong>Entry Number:</strong> ${pi.piNo}</p>
+        //         <p><strong>Supplier:</strong> ${pi.suppliers.companyName}</p>
+        //         <p><strong>Status:</strong> ${pi.status}</p>
+        //         <p><strong>Payment Mode:</strong> ${pi.paymentMode}</p>
+        //         <p><strong>Notes:</strong> ${pi.notes}</p>
+        //         ${emailSignature}
+        //     `
+        // });
+
+        // await Notification.create({
+        //     userId: kamId,
+        //     message: `Payment Request Updated ${pi.piNo} / ${pi.supplierPoNo}`,
+        //     isRead: false,
+        // });
+
+        await pi.save();
+
+        await emailService.sendUpdatedPIEmail({
+          piNo: pi.piNo,
+          supplierName: pi.supplierName,
+          supplierPoNo: pi.supplierPoNo,
+          supplierSoNo: pi.supplierSoNo,
+          supplierPrice: pi.supplierPrice,
+          supplierCurrency: pi.supplierCurrency,
+          status: pi.status,
+          paymentMode: pi.paymentMode,
+          purpose: pi.purpose,
+          customerName: pi.customerName,
+          customerPoNo: pi.customerPoNo,
+          customerSoNo: pi.customerSoNo,
+          customerCurrency: pi.customerCurrency,
+          poValue: pi.poValue,
+          notes: pi.notes,
+          updatedBy: req.user.name,
+          updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+          toEmail: recipientEmail,
+          attachments: await emailService.getAttachmentsFromS3(pi.url),
+          action: 'KAM Changed'
+        });
+
+        res.json({
+            piNo: pi.piNo,
+            message: 'Proforma Invoice updated successfully',
+        });
+
+    } catch (error) {
+        res.send(error.message);
     }
-
-    // Legacy UserPosition lookup removed in favour of auth-service user API
-
-    // if (!kam?.projectMailId) {
-    //     return res.send("KAM project email is missing. Please inform the admin to add it.");
-    // }
-
-    const kam = await getUserById(
-      kamId,
-      req.headers.authorization
-    );
-
-    recipientEmail = kam.user ? kam.user.email : null;
-    notificationRecipientId = kamId;
-
-    const pi = await PerformaInvoice.findByPk(req.params.id, {
-      include: [
-        { model: Company, as: 'customers', attributes: ['companyName'] },
-        { model: Company, as: 'suppliers', attributes: ['companyName'] },
-      ]
-    });
-
-    if (!pi) return res.send('Proforma Invoice not found.');
-
-    pi.kamId = kamId;
-
-    // const attachments = await getEmailAttachmentsFromS3(pi.url);
-
-    // await sendEmail({
-    //     to: recipientEmail,
-    //     subject: `Proforma Invoice Updated - ${pi.piNo}`,
-    //     attachments,
-    //     html: `
-    //         <p>Proforma Invoice updated by <strong>${req.user.name}</strong></p>
-    //         <p>${pi.kam.name} is unavailable, so KAM changed to <strong>${kam.user.name}</strong></p>
-    //         <p><strong>Entry Number:</strong> ${pi.piNo}</p>
-    //         <p><strong>Supplier:</strong> ${pi.suppliers.companyName}</p>
-    //         <p><strong>Status:</strong> ${pi.status}</p>
-    //         <p><strong>Payment Mode:</strong> ${pi.paymentMode}</p>
-    //         <p><strong>Notes:</strong> ${pi.notes}</p>
-    //         ${emailSignature}
-    //     `
-    // });
-
-    // await Notification.create({
-    //     userId: kamId,
-    //     message: `Payment Request Updated ${pi.piNo} / ${pi.supplierPoNo}`,
-    //     isRead: false,
-    // });
-
-    await pi.save();
-
-    await emailService.sendUpdatedPIEmail({
-      piNo: pi.piNo,
-      supplierName: pi.supplierName,
-      supplierPoNo: pi.supplierPoNo,
-      supplierSoNo: pi.supplierSoNo,
-      supplierPrice: pi.supplierPrice,
-      supplierCurrency: pi.supplierCurrency,
-      status: pi.status,
-      paymentMode: pi.paymentMode,
-      purpose: pi.purpose,
-      customerName: pi.customerName,
-      customerPoNo: pi.customerPoNo,
-      customerSoNo: pi.customerSoNo,
-      customerCurrency: pi.customerCurrency,
-      poValue: pi.poValue,
-      notes: pi.notes,
-      updatedBy: req.user.name,
-      updatedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-      toEmail: recipientEmail,
-      attachments: await emailService.getAttachmentsFromS3(pi.url),
-      action: 'KAM Changed'
-    });
-
-    res.json({
-      piNo: pi.piNo,
-      message: 'Proforma Invoice updated successfully',
-    });
-
-  } catch (error) {
-    res.send(error.message);
-  }
 };
 
 exports.downloadExcel = async (req, res) => {
   const data = req.body.invoices;
   const { startDate, endDate, status, addedBy, invoiceNo } = req.body;
-
+  
   // Validate required data
   if (!data || !Array.isArray(data)) {
-    return res.status(400).json({
-      error: 'Invalid data format. Expected an array of invoices.'
+    return res.status(400).json({ 
+      error: 'Invalid data format. Expected an array of invoices.' 
     });
   }
 
   if (data.length === 0) {
-    return res.status(400).json({
-      error: 'No data available to export. Please select invoices to export.'
+    return res.status(400).json({ 
+      error: 'No data available to export. Please select invoices to export.' 
     });
   }
 
   try {
     const workbook = new ExcelJS.Workbook();
-
+    
     // Add metadata
     workbook.creator = 'AeroAssist FinTech System';
     workbook.created = new Date();
     workbook.modified = new Date();
-
+    
     const worksheet = workbook.addWorksheet('Proforma Report');
 
     // ========== ADD TITLE AND HEADER ROWS ==========
-
+    
     // Title row
     const titleRow = worksheet.addRow(['PROFORMA INVOICES REPORT']);
-    titleRow.font = {
-      bold: true,
-      size: 16,
-      color: { argb: '1F4E78' }
+    titleRow.font = { 
+      bold: true, 
+      size: 16, 
+      color: { argb: '1F4E78' } 
     };
-    titleRow.alignment = {
+    titleRow.alignment = { 
       horizontal: 'center',
       vertical: 'middle'
     };
     worksheet.mergeCells('A1:V1');
-
+    
     // Subtitle with date range
     let subtitleText = 'All Proforma Invoices';
     if (startDate && endDate) {
       subtitleText = `Date Range: ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
     }
-
+    
     const subtitleRow = worksheet.addRow([subtitleText]);
-    subtitleRow.font = {
-      italic: true,
+    subtitleRow.font = { 
+      italic: true, 
       size: 11,
       color: { argb: '666666' }
     };
-    subtitleRow.alignment = {
+    subtitleRow.alignment = { 
       horizontal: 'center',
       vertical: 'middle'
     };
     worksheet.mergeCells('A2:V2');
-
+    
     // Generated info row
     const generatedRow = worksheet.addRow([`Generated on: ${new Date().toLocaleString()} by AeroAssist System`]);
-    generatedRow.font = {
+    generatedRow.font = { 
       size: 10,
       color: { argb: '999999' }
     };
-    generatedRow.alignment = {
+    generatedRow.alignment = { 
       horizontal: 'center',
       vertical: 'middle'
     };
     worksheet.mergeCells('A3:V3');
-
+    
     // Empty row for spacing
     worksheet.addRow([]);
-
+    
     // ========== DEFINE COLUMNS ==========
     const columns = [
       { header: 'PI NO', key: 'piNo', width: 12 },
@@ -3635,14 +3483,14 @@ exports.downloadExcel = async (req, res) => {
       { header: 'Wire Slip', key: 'bankSlip', width: 30 },
       { header: 'Notes', key: 'notes', width: 40 }
     ];
-
+    
     // Add column headers at row 5
     const headerRow = worksheet.addRow(columns.map(col => col.header));
-
+    
     // Style header row
     headerRow.eachCell((cell, colNumber) => {
-      cell.font = {
-        bold: true,
+      cell.font = { 
+        bold: true, 
         color: { argb: 'FFFFFF' },
         size: 11
       };
@@ -3651,8 +3499,8 @@ exports.downloadExcel = async (req, res) => {
         pattern: 'solid',
         fgColor: { argb: '2E7D32' } // Green color matching your theme
       };
-      cell.alignment = {
-        vertical: 'middle',
+      cell.alignment = { 
+        vertical: 'middle', 
         horizontal: 'center',
         wrapText: true
       };
@@ -3663,7 +3511,7 @@ exports.downloadExcel = async (req, res) => {
         right: { style: 'thin', color: { argb: '1B5E20' } }
       };
     });
-
+    
     // ========== ADD DATA ROWS ==========
     let rowIndex = 0;
     data.forEach((item) => {
@@ -3691,10 +3539,10 @@ exports.downloadExcel = async (req, res) => {
         item.bankSlip || 'No slip',
         item.notes || 'No notes'
       ];
-
+      
       const row = worksheet.addRow(rowData);
       rowIndex++;
-
+      
       // Add borders to all cells
       row.eachCell((cell) => {
         cell.border = {
@@ -3708,7 +3556,7 @@ exports.downloadExcel = async (req, res) => {
           wrapText: true
         };
       });
-
+      
       // Alternate row colors for better readability
       if (rowIndex % 2 === 0) {
         row.fill = {
@@ -3717,10 +3565,10 @@ exports.downloadExcel = async (req, res) => {
           fgColor: { argb: 'F8F9FA' }
         };
       }
-
+      
       // Color code status column (column L)
       const statusCell = row.getCell(12); // Column L (12th column)
-      switch ((item.status || '').toLowerCase()) {
+      switch((item.status || '').toLowerCase()) {
         case 'approved':
         case 'completed':
           statusCell.font = { color: { argb: '2E7D32' }, bold: true }; // Green
@@ -3735,7 +3583,7 @@ exports.downloadExcel = async (req, res) => {
           break;
       }
     });
-
+    
     // ========== AUTO-FIT COLUMNS ==========
     worksheet.columns.forEach((column, index) => {
       let maxLength = 0;
@@ -3745,20 +3593,20 @@ exports.downloadExcel = async (req, res) => {
           maxLength = columnLength;
         }
       });
-
+      
       // Set column width with minimum and maximum limits
       const calculatedWidth = Math.min(maxLength + 2, 50);
       column.width = Math.max(calculatedWidth, columns[index]?.width || 10);
     });
-
+    
     // ========== ADD SUMMARY SECTION ==========
     worksheet.addRow([]); // Empty row
-
+    
     const totalRow = worksheet.addRow([`Total Records Exported: ${data.length}`]);
     totalRow.font = { bold: true, size: 12 };
     totalRow.alignment = { horizontal: 'right' };
     worksheet.mergeCells(`A${totalRow.number}:V${totalRow.number}`);
-
+    
     // ========== FREEZE PANES (Header row) ==========
     worksheet.views = [
       {
@@ -3769,9 +3617,9 @@ exports.downloadExcel = async (req, res) => {
         showGridLines: true
       }
     ];
-
+    
     // ========== GENERATE AND SEND FILE ==========
-
+    
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const filename = `Proforma_Report_${timestamp}.xlsx`;
@@ -3779,7 +3627,7 @@ exports.downloadExcel = async (req, res) => {
     // Set response headers
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
+    
     // Optional: Set cache control headers
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
@@ -3787,15 +3635,15 @@ exports.downloadExcel = async (req, res) => {
 
     // Write workbook to buffer and send as response
     const buffer = await workbook.xlsx.writeBuffer();
-
+    
     // Send the file
     res.send(buffer);
 
   } catch (error) {
     console.error('Error generating Excel report:', error);
-
+    
     // Send JSON error (not binary)
-    res.status(500).json({
+    res.status(500).json({ 
       error: 'Failed to generate Excel report',
       message: error.message,
       timestamp: new Date().toISOString()

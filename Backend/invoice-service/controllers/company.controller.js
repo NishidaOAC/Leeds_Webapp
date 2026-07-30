@@ -2,39 +2,43 @@ const Company = require("../models/company");
 const { Op, sequelize } = require('sequelize');
 const axios = require('axios');
 
-
 exports.getSuppliersWithQualification = async (req, res) => {
   try {
-    const companies = await Company.findAll({ where: { supplier: true }, raw: true });
-    
-    let qualified = [];
-    try {
-      const url = `${process.env.SUPPLIER_SERVICE_URL || 'http://localhost:3000'}/api/supplier/qualified-list`;
-      const response = await axios.get(url, { timeout: 5000 });
-      qualified = response.data?.data || response.data || [];
-    } catch (err) {
-      console.error('Supplier Service unreachable:', err.message);
-    }
+    const supplierServiceUrl = process.env.SUPPLIER_SERVICE_URL || 'http://localhost:3000';
+    const url = `${supplierServiceUrl}/api/supplier/qualified-list`;
 
-    const mapped = companies.map((c) => {
-      const match = qualified.find((s) => 
-        (s.email && c.email && s.email.toLowerCase() === c.email.toLowerCase()) ||
-        (s.name && c.companyName && s.name.toLowerCase() === c.companyName.toLowerCase())
-      );
-
-      return {
-        ...c,
-        supplierProfileId: match?.id || null,
-        hasQualityCert: !!match?.hasQualityCert,
-        expiryDate: match?.expiryDate || null,
-        isSupplierQualified: !!match,
-        isNotQualified: !match
-      };
+    // Fetch suppliers directly from Supplier Microservice
+    const response = await axios.get(url, {
+      timeout: 5000,
+      headers: {
+        Authorization: req.headers.authorization || ''
+      }
     });
 
-    return res.json(mapped);
+    const suppliers = response.data?.data || response.data || [];
+
+    // Map suppliers so they directly expose supplierProfileId (UUID)
+    const formattedSuppliers = suppliers.map((supplier) => ({
+      supplierProfileId: supplier.id || supplier.supplierProfileId,
+      supplierCompanyId: supplier.companyId || null,
+      companyName: supplier.companyName || supplier.name,
+      email: supplier.email,
+      hasQualityCert: !!supplier.hasQualityCert,
+      expiryDate: supplier.expiryDate || null,
+      isSupplierQualified: supplier.isQualified ?? true
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: formattedSuppliers
+    });
+
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    console.error('Supplier Service Fetch Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.response?.data?.message || 'Failed to fetch suppliers from Supplier Service'
+    });
   }
 };
 

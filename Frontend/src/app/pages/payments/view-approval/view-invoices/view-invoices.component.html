@@ -53,7 +53,7 @@
           <div class="info-card-content">
             <div class="info-row">
               <span class="info-label">Company Name:</span>
-              <span class="info-value">{{ pi.suppliers.companyName }}</span>
+             <span class="info-value">{{ pi.suppliers?.companyName || pi.supplierName || 'N/A' }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">PO Number:</span>

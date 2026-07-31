@@ -21,12 +21,17 @@ exports.getSuppliersWithQualification = async (req, res) => {
     const formattedSuppliers = suppliers.map((supplier) => ({
       supplierProfileId: supplier.id || supplier.supplierProfileId,
       supplierCompanyId: supplier.companyId || null,
-      companyName: supplier.companyName || supplier.name,
+      companyName: supplier.companyName || supplier.name || '',
       email: supplier.email,
       hasQualityCert: !!supplier.hasQualityCert,
       expiryDate: supplier.expiryDate || null,
       isSupplierQualified: supplier.isQualified ?? true
     }));
+
+    // Sort alphabetically by companyName
+    formattedSuppliers.sort((a, b) => 
+      a.companyName.localeCompare(b.companyName, undefined, { sensitivity: 'base' })
+    );
 
     return res.status(200).json({
       success: true,

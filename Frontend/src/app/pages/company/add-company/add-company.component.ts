@@ -72,7 +72,7 @@ export class AddCompanyComponent {
       zipcode: [''],
       linkedIn: [''],
       remarks: [''],
-      customer: [false],
+      customer: [true],
       supplier: [false],
     });
   }
@@ -92,9 +92,12 @@ export class AddCompanyComponent {
     if (changes['company'] && this.company) {
       // Patch base company data
       this.companyForm.patchValue(this.company);
+    // } else if (!this.company) {
+    //   this.companyForm.reset();
+    // }
     } else if (!this.company) {
-      this.companyForm.reset();
-    }
+  this.companyForm.reset({ customer: true, supplier: false });
+}
     // this.getDesignations();
     // this.getCompanies();
   }
@@ -129,7 +132,7 @@ export class AddCompanyComponent {
             this.isLoading = false;
             this.companyForm.reset();
             this.formSaved.emit();
-            this.snackBar.open('Company updated succesfully', 'Close', { duration: 3000 });
+            this.snackBar.open('Customer updated succesfully', 'Close', { duration: 3000 });
           }, 2000);
         });
       }else{
@@ -142,7 +145,7 @@ export class AddCompanyComponent {
               this.isLoading = false;
               this.companyForm.reset();
               this.formSaved.emit();
-              this.snackBar.open('Company added succesfully', 'Close', { duration: 3000 });
+              this.snackBar.open('Customer added succesfully', 'Close', { duration: 3000 });
               
             }, 2000);
           },error: (err) => {

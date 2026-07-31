@@ -17,7 +17,7 @@ const Company = sequelize.define('company',{
     zipcode:{type : DataTypes.STRING},
     linkedIn:{type : DataTypes.STRING},
     remarks:{type : DataTypes.STRING},
-    customer: { type: DataTypes.BOOLEAN },
+    customer: { type: DataTypes.BOOLEAN,defaultValue: true },
     supplier:{type:DataTypes.BOOLEAN}, 
   
 },

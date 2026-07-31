@@ -12,20 +12,20 @@
       <div class="form-grid">
         <!-- Company Name -->
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Company Name</mat-label>
-          <input matInput formControlName="companyName" placeholder="Enter company name" required>
+          <mat-label>Customer Name</mat-label>
+          <input matInput formControlName="companyName" placeholder="Enter customer name" required>
           <mat-icon matPrefix>business</mat-icon>
           <mat-error>
             @if (companyForm.controls['companyName'].hasError('required')) {
-              Company name is required
+              Customer name is required
             }
           </mat-error>
         </mat-form-field>
 
         <!-- Company Code -->
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Company Code</mat-label>
-          <input matInput formControlName="code" placeholder="Enter company code">
+          <mat-label>Customer Code</mat-label>
+          <input matInput formControlName="code" placeholder="Enter customer code">
           <mat-icon matPrefix>tag</mat-icon>
         </mat-form-field>
 
@@ -65,8 +65,9 @@
 
       
       <!-- Company Type Checkboxes -->
-      <div class="company-type-section">
+      <!-- <div class="company-type-section">
         <div class="checkbox-header">
+          <span class="checkbox-description">This record is a customer</span>
           <mat-icon>category</mat-icon>
           <span>Company Type</span>
         </div>
@@ -87,7 +88,7 @@
             </div>
           </mat-checkbox>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Address Information Section -->

@@ -88,11 +88,13 @@
             </div>
           </div>
 
-          <div class="card-footer">
+          <div class="card-footer">             
             <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)">
               Preview
             </button>
+               @if (isQualityAdmin) {
             <button class="btn-icon-delete" title="Delete Document" (click)="deleteDocument(doc.id)">🗑️</button>
+               }
           </div>
         </div>
       </div>

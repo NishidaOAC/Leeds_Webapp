@@ -79,15 +79,27 @@ export class AddApprovalComponent {
   public customerCompanies: Company[] = [];
   public filteredOptions: Company[] = [];
   public getSuppliers(): void {
-    this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
-      this.supplierCompanies = suppliers;
-      this.filteredOptions = this.supplierCompanies
+    this.companyService.getqualifiedSuppliers().subscribe((res: any) => {
+    console.log(res);
+      
+     this.supplierCompanies = res.data || [];
+    this.filteredOptions = this.supplierCompanies;
     });
+    // this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
+    //   this.supplierCompanies = suppliers;
+    //   this.filteredOptions = this.supplierCompanies
+    // });
   }
+
+displayFn(item: any): string {
+  if (!item) return '';
+  return typeof item === 'string' ? item : (item.companyName || '');
+}
+
 
   filterValue!: string;
   filteredCustomers: Company[] = [];
-  search(event: Event, type: string) {
+  searchold(event: Event, type: string) {
     if(type === 'sup'){
       this.filterValue = (event.target as HTMLInputElement).value.trim().replace(/\s+/g, '').toLowerCase();
       this.filteredOptions = this.supplierCompanies.filter(option =>
@@ -103,11 +115,48 @@ export class AddApprovalComponent {
     }
   }
 
-  patch(selectedSuggestion: Company, type: string) {
+  search(event: Event, type: string) {
+  const inputVal = (event.target as HTMLInputElement).value || '';
+  this.filterValue = inputVal.trim().replace(/\s+/g, '').toLowerCase();
+
+  if (type === 'sup') {
+    this.filteredOptions = this.supplierCompanies.filter(option => {
+      const companyName = (option?.companyName || '').replace(/\s+/g, '').toLowerCase();
+      const code = (option?.code?.toString() || '').replace(/\s+/g, '').toLowerCase();
+
+      return companyName.includes(this.filterValue) || code.includes(this.filterValue);
+    });
+  } else if (type === 'cust') {
+    this.filteredCustomers = this.customerCompanies.filter(option => {
+      const companyName = (option?.companyName || '').replace(/\s+/g, '').toLowerCase();
+      const code = (option?.code?.toString() || '').replace(/\s+/g, '').toLowerCase();
+
+      return companyName.includes(this.filterValue) || code.includes(this.filterValue);
+    });
+  }
+}
+
+  patchold(selectedSuggestion: Company, type: string) {
     if(type === 'sup') this.piForm.patchValue({ supplierId: selectedSuggestion.id, supplierName: selectedSuggestion.companyName });
     else if(type === 'cust')  this.piForm.patchValue({ customerId: selectedSuggestion.id, customerName: selectedSuggestion.companyName});
   }
 
+patch(selectedSuggestion: any, type: string) {
+  if (selectedSuggestion === 'add') return;
+
+  if (type === 'sup') {
+    this.piForm.patchValue({
+      // Saves the UUID string directly (e.g. "12077164-8130-4203-b7d9-3f5fe42a8c11")
+      supplierProfileId: selectedSuggestion.supplierProfileId,
+      supplierName: selectedSuggestion
+    });
+  } else if (type === 'cust') {
+    this.piForm.patchValue({
+      customerId: selectedSuggestion.id,
+      customerName: selectedSuggestion
+    });
+  }
+}
   add(type: string){
     const name = this.filterValue;
     const dialogRef = this.dialog.open(AddCompanyComponent, {
@@ -178,7 +227,8 @@ export class AddApprovalComponent {
     kamId: <any>[],
     amId:  <any>[],
     accountantId:  <any>[],
-    supplierId: <any>['', Validators.required],
+    supplierProfileId: ['', Validators.required],
+    supplierId: <any>[''],
     supplierName: [''],
     supplierPoNo: ['', Validators.required],
     supplierSoNo:[''],
@@ -381,7 +431,54 @@ export class AddApprovalComponent {
 
   submit! : Subscription
   submitted: boolean = false;
+
   onSubmit() {
+  this.submitted = true;
+
+  const rawValues = this.piForm.getRawValue();
+
+  const payload = {
+    ...rawValues,
+    // Ensure the UUID is explicitly passed
+    supplierProfileId: rawValues.supplierProfileId || null, 
+    // Set old integer field to null to avoid SQL type errors
+    supplierId: null, 
+    customerId: rawValues.customerId || null,
+    kamId: rawValues.kamId || null,
+    amId: rawValues.amId || null,
+    accountantId: rawValues.accountantId || null,
+  };
+
+  let submitMethod;
+  if (this.roleName === 'SalesExecutive') {
+    submitMethod = this.invoiceService.addPI(payload);
+  } else if (this.roleName === 'KAM') {
+    submitMethod = this.invoiceService.addPIByKAM(payload);
+  } else if (this.roleName === 'Manager') {
+    submitMethod = this.invoiceService.addPIByAM(payload);
+  }
+
+  if (submitMethod) {
+    this.submit = submitMethod.subscribe({
+      next: (invoice: any) => {
+        const piNo = invoice?.pi?.piNo || invoice?.piNo;
+        if (piNo) {
+          this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, "", { duration: 3000 });
+          this.submitted = false;
+          this.router.navigateByUrl('dashboard/payments');
+        } else {
+          this.snackBar.open('Failed to upload the invoice. Please try again.', "", { duration: 3000 });
+        }
+      },
+      error: (err: any) => {
+        const errorMessage = err?.error?.message || err?.error?.text || 'An error occurred while uploading the invoice.';
+        this.submitted = false;
+        alert(`Error: ${errorMessage}`);
+      }
+    });
+  }
+}
+  onSubmitold() {
     this.submitted = true;
     let submitMethod;
     if (this.roleName === 'SalesExecutive') {

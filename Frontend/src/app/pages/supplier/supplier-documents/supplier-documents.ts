@@ -23,6 +23,25 @@ export interface Document {
   styleUrl: './supplier-documents.scss',
 })
 export class SupplierDocuments implements OnInit {
+  role: string = '';
+    ngOnInit(): void {
+       const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.loadSupplierDetails(id);
+    }
+  
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      this.role = user.power; // Corresponds to Sequelize ENUM: 'QualityAdmin', 'Admin', etc.
+    }
+  }
+
+  // Only users with power === 'QualityAdmin' get full edit/delete privileges
+  get isQualityAdmin(): boolean {
+    return this.role === 'QualityAdmin';
+  }
+
   supplierData: any = null; 
   documents: Document[] = [];
   loading: boolean = true;
@@ -37,12 +56,7 @@ export class SupplierDocuments implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadSupplierDetails(id);
-    }
-  }
+
 
   loadSupplierDetails(id: string): void {
     this.loading = true;

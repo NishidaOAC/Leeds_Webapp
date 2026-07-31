@@ -81,18 +81,25 @@
               <!-- Management Actions -->
               <td class="text-right">
                 <div class="action-stack">
+                  @if (isQualityAdmin) {
                   <button class="btn-erp email" (click)="sendReminder(s)" title="Send Renewal Email">
                     <i class="bi bi-envelope-check"></i>
                   </button>
+                }
+                  @if (isQualityAdmin) {}
                   <button class="btn-erp view" (click)="viewDocuments(s.id)" title="View Documents">
                     <i class="bi bi-eye"></i>
                   </button>
+                   @if (isQualityAdmin) {
                   <button class="btn-erp edit" (click)="editSupplier(s)" title="Edit Supplier">
                     <i class="bi bi-pencil-square"></i>
                   </button>
+                }
+                   @if (isQualityAdmin) {
                   <button class="btn-erp delete" (click)="onDelete(s.id, s.name)" title="Delete Supplier">
                     <i class="bi bi-trash3"></i>
                   </button>
+                }
                 </div>
               </td>
             </tr>

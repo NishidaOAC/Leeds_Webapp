@@ -55,9 +55,22 @@ export class SupplierList implements OnInit {
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
 
+
+
+  role: string = '';
+
   ngOnInit(): void {
-    this.loadSuppliers();
-    // this.loadCurrentMonthExpiries();
+       this.loadSuppliers();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      this.role = user.power; // Corresponds to Sequelize ENUM: 'QualityAdmin', 'Admin', etc.
+    }
+  }
+
+  // Only users with power === 'QualityAdmin' get full edit/delete privileges
+  get isQualityAdmin(): boolean {
+    return this.role === 'QualityAdmin';
   }
 
 onPageChange(event: PageEvent): void {

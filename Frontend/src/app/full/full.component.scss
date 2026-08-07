@@ -83,17 +83,21 @@ app-nav-item {
 
 /* Sidebar Logo Block */
 /* Sidebar Logo Block */
+/* Sidebar Logo Block */
+/* Sidebar Logo Block - Increased Height for Prominent Logo */
+/* Sidebar Logo Block - Edge-to-Edge Snug Fit */
 .sidebar-header {
-  height: 54px;
-  min-height: 54px;
-  padding: 8px 12px;
+  height: 52px; /* Matches top navbar height */
+  min-height: 52px;
+  padding: 0 !important; /* Removes internal padding for maximum size */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   border-bottom: 1px solid #e2e8f0;
   box-sizing: border-box;
-  background-color: #ffffff;
+  background-color: #1e4f8a; /* Matches blue logo background perfectly */
   width: 100%;
+  overflow: hidden;
 
   .logodark {
     display: flex !important;
@@ -104,15 +108,17 @@ app-nav-item {
 
     img {
       display: block !important;
-      max-width: 140px !important;
-      max-height: 36px !important;
-      width: auto !important;
-      height: auto !important;
-      object-fit: contain !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important; /* Fills the entire header box seamlessly */
     }
   }
 }
 
+/* Scrollbar adjustment to keep layout aligned */
+::ng-deep ng-scrollbar.sidebar-scroll {
+  height: calc(100vh - 52px) !important;
+}
 /* ==========================================================================
    3. FIXED Top Navigation Bar Layout (Prevents Vertical Stacking)
    ========================================================================== */

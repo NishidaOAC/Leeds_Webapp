@@ -323,4 +323,17 @@ viewDocuments(supplierId: string): void {
   // Absolute version based on your image_a31da2.jpg and image_a31dd8.jpg:
   this.router.navigate(['/dashboard/supplier/managedocuments', supplierId]);
 }
+// getPathClass(supplier: any): string {
+//   const code = supplier?.OnboardingStatus?.code || '';
+  
+//   if (code === 'LONG_TERM' || code === 'LONG_TIME') {
+//     return 'long-term';
+//   } else if (code === 'ONE_TIME') {
+//     return 'one-time';
+//   } else if (code === 'CONDITIONAL') {
+//     return 'conditional';
+//   }
+  
+//   return '';
+// }
 }

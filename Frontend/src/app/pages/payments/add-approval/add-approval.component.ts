@@ -141,19 +141,19 @@ displayFn(item: any): string {
     else if(type === 'cust')  this.piForm.patchValue({ customerId: selectedSuggestion.id, customerName: selectedSuggestion.companyName});
   }
 
+// ✅ FIXED: Pass the string property companyName
 patch(selectedSuggestion: any, type: string) {
   if (selectedSuggestion === 'add') return;
 
   if (type === 'sup') {
     this.piForm.patchValue({
-      // Saves the UUID string directly (e.g. "12077164-8130-4203-b7d9-3f5fe42a8c11")
       supplierProfileId: selectedSuggestion.supplierProfileId,
-      supplierName: selectedSuggestion
+      supplierName: selectedSuggestion.companyName || selectedSuggestion
     });
   } else if (type === 'cust') {
     this.piForm.patchValue({
       customerId: selectedSuggestion.id,
-      customerName: selectedSuggestion
+      customerName: selectedSuggestion.companyName || selectedSuggestion
     });
   }
 }
@@ -432,13 +432,15 @@ patch(selectedSuggestion: any, type: string) {
   submit! : Subscription
   submitted: boolean = false;
 
-  onSubmit() {
+onSubmit() {
   this.submitted = true;
 
   const rawValues = this.piForm.getRawValue();
 
   const payload = {
     ...rawValues,
+    supplierName: (rawValues.supplierName as any)?.companyName || rawValues.supplierName,
+    customerName: (rawValues.customerName as any)?.companyName || rawValues.customerName,
     // Ensure the UUID is explicitly passed
     supplierProfileId: rawValues.supplierProfileId || null, 
     // Set old integer field to null to avoid SQL type errors
@@ -449,34 +451,28 @@ patch(selectedSuggestion: any, type: string) {
     accountantId: rawValues.accountantId || null,
   };
 
-  let submitMethod;
-  if (this.roleName === 'SalesExecutive') {
-    submitMethod = this.invoiceService.addPI(payload);
-  } else if (this.roleName === 'KAM') {
-    submitMethod = this.invoiceService.addPIByKAM(payload);
-  } else if (this.roleName === 'Manager') {
-    submitMethod = this.invoiceService.addPIByAM(payload);
-  }
+  // Set default method, then override by role
+  let submitMethod = this.invoiceService.addPI(payload);
+  if (this.roleName === 'KAM') submitMethod = this.invoiceService.addPIByKAM(payload);
+  if (this.roleName === 'Manager') submitMethod = this.invoiceService.addPIByAM(payload);
 
-  if (submitMethod) {
-    this.submit = submitMethod.subscribe({
-      next: (invoice: any) => {
-        const piNo = invoice?.pi?.piNo || invoice?.piNo;
-        if (piNo) {
-          this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, "", { duration: 3000 });
-          this.submitted = false;
-          this.router.navigateByUrl('dashboard/payments');
-        } else {
-          this.snackBar.open('Failed to upload the invoice. Please try again.', "", { duration: 3000 });
-        }
-      },
-      error: (err: any) => {
-        const errorMessage = err?.error?.message || err?.error?.text || 'An error occurred while uploading the invoice.';
-        this.submitted = false;
-        alert(`Error: ${errorMessage}`);
+  this.submit = submitMethod.subscribe({
+    next: (invoice: any) => {
+      this.submitted = false;
+      const piNo = invoice?.pi?.piNo || invoice?.piNo;
+      if (piNo) {
+        this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, "", { duration: 3000 });
+        this.router.navigateByUrl('dashboard/payments');
+      } else {
+        this.snackBar.open('Failed to upload the invoice. Please try again.', "", { duration: 3000 });
       }
-    });
-  }
+    },
+    error: (err: any) => {
+      this.submitted = false;
+      const errorMessage = err?.error?.message || err?.error?.text || 'An error occurred while uploading the invoice.';
+      alert(`Error: ${errorMessage}`);
+    }
+  });
 }
   onSubmitold() {
     this.submitted = true;

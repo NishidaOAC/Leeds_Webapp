@@ -472,8 +472,10 @@ onSubmit() {
       const errorMessage = err?.error?.message || err?.error?.text || 'An error occurred while uploading the invoice.';
       alert(`Error: ${errorMessage}`);
     }
-  });
-}
+    });
+  }
+  
+
   onSubmitold() {
     this.submitted = true;
     let submitMethod;

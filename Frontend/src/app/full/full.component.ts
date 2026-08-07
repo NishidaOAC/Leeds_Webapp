@@ -13,6 +13,7 @@ import { MatListModule } from "@angular/material/list";
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Notification } from '../pages/common/notification/notification';
 
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -31,7 +32,8 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     MatSidenav,
     MatListModule,
     MatIconModule,
-    MatToolbarModule
+    MatToolbarModule,
+    Notification
 ],
   templateUrl: './full.component.html',
   styleUrls: ['./full.component.scss'],
@@ -52,6 +54,12 @@ export class FullComponent implements OnInit {
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
+
+  isNotificationOpen = false;
+
+  toggleNotifications(): void {
+    this.isNotificationOpen = !this.isNotificationOpen;
+  }
 
   get isOver(): boolean {
     return this.isMobileScreen;

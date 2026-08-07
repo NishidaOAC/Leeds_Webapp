@@ -1,17 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
-
-export interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-}
+import { NotificationService, BackendNotification } from './notification.service';
 
 @Component({
   selector: 'app-notification',
@@ -28,50 +22,94 @@ export interface NotificationItem {
   styleUrl: './notification.scss',
 })
 export class Notification implements OnInit {
-  notifications: NotificationItem[] = [];
+  private notificationService = inject(NotificationService);
+  private router = inject(Router);
+
+  notifications: BackendNotification[] = [];
   unreadCount = 0;
+  currentUserId: number | null = null;
 
   ngOnInit(): void {
-    this.fetchNotifications();
+    // 1. Fetch logged in user ID dynamically from localStorage
+    const storedUser = localStorage.getItem('user'); // or 'userId' depending on how you store it
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        this.currentUserId = parsed.id || parsed.userId || Number(localStorage.getItem('userId'));
+      } catch {
+        this.currentUserId = Number(localStorage.getItem('userId'));
+      }
+    } else {
+      const idFromStorage = localStorage.getItem('userId');
+      this.currentUserId = idFromStorage ? Number(idFromStorage) : null;
+    }
+
+    // 2. Fetch notifications if user ID is available
+    if (this.currentUserId) {
+      this.loadNotifications();
+      this.loadUnreadCount();
+    } else {
+      console.warn('NotificationComponent: No logged-in user ID found.');
+    }
   }
 
-  fetchNotifications(): void {
-    // Replace this with your actual Backend API service call
-    this.notifications = [
-      {
-        id: '1',
-        title: 'New Message',
-        message: 'You have received a new message from Support.',
-        timestamp: new Date(),
-        read: false,
+  loadNotifications(): void {
+    if (!this.currentUserId) return;
+
+    this.notificationService.getUserNotifications(this.currentUserId).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.notifications = res.data;
+        }
       },
-      {
-        id: '2',
-        title: 'System Update',
-        message: 'System maintenance scheduled for tonight at 12 AM.',
-        timestamp: new Date(Date.now() - 3600000),
-        read: true,
+      error: (err) => console.error('Error fetching notifications:', err),
+    });
+  }
+
+  loadUnreadCount(): void {
+    if (!this.currentUserId) return;
+
+    this.notificationService.getUnreadCount(this.currentUserId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.unreadCount = res.count;
+        }
       },
-    ];
-
-    this.updateUnreadCount();
+      error: (err) => console.error('Error fetching unread count:', err),
+    });
   }
 
-  updateUnreadCount(): void {
-    this.unreadCount = this.notifications.filter((n) => !n.read).length;
-  }
+  onNotificationClick(notification: BackendNotification): void {
+    // 1. Mark as read on backend if currently unread
+    if (!notification.isRead) {
+      this.notificationService.markAsRead(notification.id).subscribe({
+        next: (res) => {
+          if (res.success) {
+            notification.isRead = true;
+            this.unreadCount = Math.max(0, this.unreadCount - 1);
+          }
+        },
+        error: (err) => console.error('Error marking notification as read:', err),
+      });
+    }
 
-  markAsRead(notification: NotificationItem): void {
-    if (!notification.read) {
-      notification.read = true;
-      this.updateUnreadCount();
-      // TODO: Call backend service to update single notification status
+    // 2. Navigate to route if present in DB
+    if (notification.route) {
+      this.router.navigateByUrl(notification.route);
     }
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach((n) => (n.read = true));
-    this.updateUnreadCount();
-    // TODO: Call backend service to mark all notifications as read
+    if (!this.currentUserId) return;
+
+    this.notificationService.markAllAsRead(this.currentUserId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.notifications.forEach((n) => (n.isRead = true));
+          this.unreadCount = 0;
+        }
+      },
+      error: (err) => console.error('Error marking all as read:', err),
+    });
   }
 }

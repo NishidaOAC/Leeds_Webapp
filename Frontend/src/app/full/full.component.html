@@ -6,12 +6,12 @@
 
     <div class="flex-layout">
 
- <div class="sidebar-header">
-  <a href="/" class="logodark">
-    <!-- 🟢 Added leading slash '/' before assets -->
-    <img src="/assets/images/logos/fintech_logo.jpeg" alt="AeroAssist Logo" />
-  </a>
-</div>
+      <div class="sidebar-header">
+        <a href="/" class="logodark">
+          <!-- 🟢 Added leading slash '/' before assets -->
+          <img src="/assets/images/logos/fintech_logo.jpeg" alt="AeroAssist Logo" />
+        </a>
+      </div>
 
       <!-- Properly set height scrollbar -->
       <ng-scrollbar class="sidebar-scroll" style="height: calc(100vh - 44px)">
@@ -38,12 +38,19 @@
 
       <div class="header-right">
         <!-- Notification Bell -->
-        <div class="notification-box">
-          <button mat-icon-button class="icon-btn" aria-label="Notifications">
+        <!-- <div class="notification-box">
+          <button mat-icon-button class="icon-btn" aria-label="Notifications" (click)="toggleNotifications()">
             <mat-icon>notifications</mat-icon>
+            <span class="badge">1</span>
           </button>
-          <span class="badge">1</span>
-        </div>
+          @if (isNotificationOpen) {
+          <div class="dropdown-wrapper">
+            <app-notification />
+          </div>
+          }
+        </div> -->
+
+        <app-notification></app-notification>
 
         <!-- Compact User Profile -->
         <div class="user-profile-nav">

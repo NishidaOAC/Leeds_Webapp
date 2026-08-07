@@ -1,0 +1,52 @@
+<div class="header-right">
+  <!-- Notification Bell -->
+  <div class="notification-box">
+    <button 
+      mat-icon-button 
+      class="icon-btn" 
+      aria-label="Notifications"
+      [matMenuTriggerFor]="notificationMenu">
+      <mat-icon 
+        [matBadge]="unreadCount" 
+        [matBadgeHidden]="unreadCount === 0" 
+        matBadgeColor="warn" 
+        matBadgeSize="small">
+        notifications
+      </mat-icon>
+    </button>
+  </div>
+
+  <!-- Dropdown Menu -->
+  <mat-menu #notificationMenu="matMenu" class="notification-dropdown" xPosition="before">
+    <div class="notification-header" (click)="$event.stopPropagation()">
+      <h3>Notifications</h3>
+      @if (unreadCount > 0) {
+        <button mat-button color="primary" (click)="markAllAsRead()">
+          Mark all as read
+        </button>
+      }
+    </div>
+
+    <div class="notification-list" (click)="$event.stopPropagation()">
+      @for (notification of notifications; track notification.id) {
+        <div 
+          class="notification-item" 
+          [class.unread]="!notification.read"
+          (click)="markAsRead(notification)">
+          <div class="item-content">
+            <span class="title">{{ notification.title }}</span>
+            <p class="message">{{ notification.message }}</p>
+            <span class="time">{{ notification.timestamp | date:'shortTime' }}</span>
+          </div>
+          @if (!notification.read) {
+            <span class="unread-dot"></span>
+          }
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <p>No notifications</p>
+        </div>
+      }
+    </div>
+  </mat-menu>
+</div>

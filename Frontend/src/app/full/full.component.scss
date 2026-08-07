@@ -244,3 +244,17 @@ app-nav-item {
 .content-container {
   margin-top: 0;
 }
+
+
+
+.notification-box {
+  position: relative;
+  display: inline-block;
+
+  .dropdown-wrapper {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+  }
+}

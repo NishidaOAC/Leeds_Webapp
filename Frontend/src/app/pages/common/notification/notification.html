@@ -1,5 +1,5 @@
 <div class="header-right">
-  <!-- Notification Bell -->
+  <!-- Bell Trigger -->
   <div class="notification-box">
     <button 
       mat-icon-button 
@@ -16,35 +16,69 @@
     </button>
   </div>
 
-  <!-- Dropdown Menu -->
+  <!-- Dropdown Panel -->
   <mat-menu #notificationMenu="matMenu" class="notification-dropdown" xPosition="before">
     <div class="notification-header" (click)="$event.stopPropagation()">
-      <h3>Notifications</h3>
+      <div class="title-area">
+        <h3>Notifications</h3>
+        @if (totalNotifications > 0) {
+          <span class="total-badge">Total: {{ totalNotifications }}</span>
+        }
+      </div>
       @if (unreadCount > 0) {
-        <button mat-button color="primary" (click)="markAllAsRead()">
+        <button mat-button color="primary" class="mark-all-btn" (click)="markAllAsRead()">
           Mark all as read
         </button>
       }
     </div>
 
+    <!-- Notification Item List -->
     <div class="notification-list" (click)="$event.stopPropagation()">
       @for (notification of notifications; track notification.id) {
         <div 
           class="notification-item" 
-          [class.unread]="!notification.read"
-          (click)="markAsRead(notification)">
-          <div class="item-content">
-            <span class="title">{{ notification.title }}</span>
-            <p class="message">{{ notification.message }}</p>
-            <span class="time">{{ notification.timestamp | date:'shortTime' }}</span>
+          [class.unread]="!notification.isRead"
+          (click)="onNotificationClick(notification)">
+          
+          <div class="item-main">
+            <mat-icon 
+              class="status-icon" 
+              [class.read-icon]="notification.isRead">
+              {{ notification.isRead ? 'done_all' : 'mark_chat_unread' }}
+            </mat-icon>
+            <p class="message-text">{{ notification.message }}</p>
           </div>
-          @if (!notification.read) {
-            <span class="unread-dot"></span>
-          }
+
+          <div class="item-meta">
+            <span class="time-text">
+              {{ notification.createdAt | date:'shortDate' }} • {{ notification.createdAt | date:'shortTime' }}
+            </span>
+          </div>
+
         </div>
       } @empty {
-        <div class="empty-state">
-          <p>No notifications</p>
+        @if (!isLoading) {
+          <div class="empty-state">
+            <p>No notifications available</p>
+          </div>
+        }
+      }
+
+      <!-- Pagination Load More -->
+      @if (currentPage < totalPages) {
+        <div class="load-more-container">
+          <button 
+            mat-stroked-button 
+            color="primary" 
+            class="load-more-btn"
+            [disabled]="isLoading" 
+            (click)="loadMore($event)">
+            @if (isLoading) {
+              <span>Loading...</span>
+            } @else {
+              <span>Load More ({{ currentPage }}/{{ totalPages }})</span>
+            }
+          </button>
         </div>
       }
     </div>

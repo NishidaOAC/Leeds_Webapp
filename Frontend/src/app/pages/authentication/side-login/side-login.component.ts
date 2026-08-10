@@ -50,6 +50,12 @@ export class AppSideLoginComponent {
   }
   
 
+  hidePassword = true; 
+
+
+  togglePasswordVisibility(): void {
+    this.hidePassword = !this.hidePassword;
+  }
 
   submit() {
     if (this.loginForm.invalid) {

@@ -6,12 +6,8 @@
           <!-- Logo Section -->
           <div class="auth-header text-center mb-40">
             <a [routerLink]="['/dashboard']" class="logo-link">
-              <img 
-                src="../../../../assets/images/logos/fintech_logo.jpeg" 
-                class="auth-logo align-middle" 
-                alt="AeroAssist Fintech Logo" 
-                width="350"
-              />
+              <img src="../../../../assets/images/logos/fintech_logo.jpeg" class="auth-logo align-middle"
+                alt="AeroAssist Fintech Logo" width="350" />
             </a>
           </div>
 
@@ -23,18 +19,13 @@
                 Username
               </mat-label>
               <mat-form-field appearance="outline" class="w-100">
-                <input 
-                  matInput 
-                  formControlName="empNo" 
-                  placeholder="Enter your username"
-                  aria-label="Username"
-                />
+                <input matInput formControlName="empNo" placeholder="Enter your username" aria-label="Username" />
                 <mat-icon matSuffix class="text-muted">person</mat-icon>
                 @if(loginForm.get('userName')?.hasError('required') && loginForm.get('userName')?.touched){
-                  <mat-error class="error-message">
-                    <mat-icon class="error-icon">error</mat-icon>
-                    Username is required
-                  </mat-error>
+                <mat-error class="error-message">
+                  <mat-icon class="error-icon">error</mat-icon>
+                  Username is required
+                </mat-error>
                 }
               </mat-form-field>
             </div>
@@ -45,19 +36,22 @@
                 Password
               </mat-label>
               <mat-form-field appearance="outline" class="w-100" color="primary">
-                <input 
-                  matInput 
-                  type="password" 
-                  formControlName="password" 
-                  placeholder="Enter your password"
-                  aria-label="Password"
-                />
-                <mat-icon matSuffix class="text-muted">lock</mat-icon>
+                <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+                  placeholder="Enter your password" aria-label="Password" />
+
+                <!-- Interactive show/hide toggle button -->
+                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
+                  [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword">
+                  <mat-icon class="text-muted">
+                    {{ hidePassword ? 'visibility_off' : 'visibility' }}
+                  </mat-icon>
+                </button>
+
                 @if(loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched){
-                  <mat-error class="error-message">
-                    <mat-icon class="error-icon">error</mat-icon>
-                    Password is required
-                  </mat-error>
+                <mat-error class="error-message">
+                  <mat-icon class="error-icon">error</mat-icon>
+                  Password is required
+                </mat-error>
                 }
               </mat-form-field>
             </div>
@@ -67,28 +61,21 @@
               <mat-checkbox color="primary" class="remember-checkbox" formControlName="rememberMe">
                 <span class="checkbox-label f-s-14" style="color: #567da4;">Remember Me</span>
               </mat-checkbox>
-              <a (click)="openForgotPasswordDialog()"
-                class="forgot-password-link text-decoration-none f-s-14" style="color: #567da4;"
-                aria-label="Forgot Password"
-              >
+              <a (click)="openForgotPasswordDialog()" class="forgot-password-link text-decoration-none f-s-14"
+                style="color: #567da4;" aria-label="Forgot Password">
                 Forgot Password?
               </a>
             </div>
 
             <!-- Submit Button -->
-            <button style="background-color: #567da4;"
-              mat-flat-button 
-              class="submit-btn w-100" 
-              type="submit"
-              [disabled]="loginForm.invalid"
-              aria-label="Sign In"
-            >
+            <button style="background-color: #567da4;" mat-flat-button class="submit-btn w-100" type="submit"
+              [disabled]="loginForm.invalid" aria-label="Sign In">
               <span class="btn-text f-w-500">Sign In</span>
             </button>
           </form>
 
           <!-- Optional: Registration Link (Commented) -->
-          
+
           <!-- <div class="auth-footer text-center m-t-32">
             <span class="footer-text text-white f-w-400 f-s-14">
               New to Spike?
@@ -100,7 +87,7 @@
               </a>
             </span>
           </div> -->
-        
+
         </mat-card-content>
       </mat-card>
     </div>

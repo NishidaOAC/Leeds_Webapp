@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { NotificationService, BackendNotification } from './notification.service';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-notification',
@@ -17,6 +18,7 @@ import { NotificationService, BackendNotification } from './notification.service
     MatButtonModule,
     MatMenuModule,
     MatBadgeModule,
+    MatPaginatorModule
   ],
   templateUrl: './notification.html',
   styleUrl: './notification.scss',
@@ -24,6 +26,7 @@ import { NotificationService, BackendNotification } from './notification.service
 export class Notification implements OnInit {
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+   // Default items per page
 
   notifications: BackendNotification[] = [];
   unreadCount = 0;
@@ -31,7 +34,7 @@ export class Notification implements OnInit {
 
   // Pagination State
   currentPage = 1;
-  limit = 10;
+  limit = 5;
   totalPages = 1;
   totalNotifications = 0;
   isLoading = false;
@@ -45,6 +48,13 @@ export class Notification implements OnInit {
     }
   }
 
+
+  onPageChange(event: PageEvent): void {
+    this.limit = event.pageSize;
+    this.currentPage = event.pageIndex + 1; // Convert 0-based mat-paginator index to 1-based backend page
+    this.loadNotifications(this.currentPage);
+  }
+  
   private extractUserId(): void {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {

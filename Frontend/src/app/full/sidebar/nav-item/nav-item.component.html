@@ -5,13 +5,9 @@
       disabled: item.disabled
     }" class="menu-list-item">
     
-    <!-- Left Icon -->
     <mat-icon class="routeIcon">{{ item.iconName || 'grid_view' }}</mat-icon>
-    
-    <!-- Link Text with ellipsis truncation -->
     <span class="hide-menu">{{ item.displayName }}</span>
 
-    <!-- Arrow Icon for Children -->
     @if(item.children && item.children.length) {
       <span class="arrow-icon">
         <mat-icon [@indicatorRotate]="expanded ? 'expanded' : 'collapsed'">
@@ -20,4 +16,13 @@
       </span>
     }
   </a>
+
+  <!-- Ensure children container ONLY renders when expanded -->
+  @if (expanded && item.children && item.children.length) {
+    <div class="children-container">
+      @for (child of item.children; track child) {
+        <app-nav-item [item]="child" [depth]="depth + 1"></app-nav-item>
+      }
+    </div>
+  }
 }

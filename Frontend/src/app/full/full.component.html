@@ -63,9 +63,18 @@
             <span class="nav-user-role">{{ role || 'superadmin' }}</span>
           </div>
 
-          <button mat-icon-button class="logout-icon" (click)="logout()" title="Logout" aria-label="Logout">
+          <!-- <button mat-icon-button class="logout-icon" (click)="logout()" title="Logout" aria-label="Logout">
             <mat-icon>logout</mat-icon>
-          </button>
+          </button> -->
+<button 
+  mat-button 
+  class="logout-btn-full" 
+  (click)="logout()" 
+  aria-label="Sign Out">
+  <mat-icon>logout</mat-icon>
+  <span>Sign Out</span>
+</button>
+
         </div>
       </div>
     </header>

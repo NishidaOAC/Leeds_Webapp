@@ -42,44 +42,46 @@ class NotificationController {
     }
 
     // Get all notifications for a user
-    async getUserNotifications(req, res) {
-        try {
-            const { userId } = req.params;
-            const { page = 1, limit = 20, unreadOnly = false } = req.query;
+// 2. Get paginated notifications for a user
+  async getUserNotifications(req, res) {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 10, unreadOnly = false } = req.query;
 
-            const whereCondition = { userId };
-            if (unreadOnly === 'true') {
-                whereCondition.isRead = false;
-            }
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+      const offset = (pageNum - 1) * limitNum;
 
-            const offset = (page - 1) * limit;
+      const whereCondition = { userId };
+      if (unreadOnly === 'true' || unreadOnly === true) {
+        whereCondition.isRead = false;
+      }
 
-            const { count, rows: notifications } = await Notification.findAndCountAll({
-                where: whereCondition,
-                order: [['createdAt', 'DESC']],
-                limit: parseInt(limit),
-                offset: parseInt(offset)
-            });
+      const { count, rows: notifications } = await Notification.findAndCountAll({
+        where: whereCondition,
+        order: [['createdAt', 'DESC']],
+        limit: limitNum,
+        offset: offset,
+      });
 
-            res.json({
-                success: true,
-                data: notifications,
-                pagination: {
-                    total: count,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    totalPages: Math.ceil(count / limit)
-                }
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-                error: error.message
-            });
-        }
+      return res.json({
+        success: true,
+        data: notifications,
+        pagination: {
+          total: count,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: count === 0 ? 0 : Math.ceil(count / limitNum),
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error.message,
+      });
     }
-
+  }
     // Mark notification as read
     async markAsRead(req, res) {
         try {

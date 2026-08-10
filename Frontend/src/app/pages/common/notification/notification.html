@@ -1,5 +1,5 @@
 <div class="header-right">
-  <!-- Notification Trigger Button -->
+  <!-- Bell Trigger -->
   <div class="notification-box">
     <button 
       mat-icon-button 
@@ -16,17 +16,23 @@
     </button>
   </div>
 
-  <!-- Notification Dropdown Menu -->
+  <!-- Dropdown Panel -->
   <mat-menu #notificationMenu="matMenu" class="notification-dropdown" xPosition="before">
     <div class="notification-header" (click)="$event.stopPropagation()">
-      <h3>Notifications</h3>
+      <div class="title-area">
+        <h3>Notifications</h3>
+        @if (totalNotifications > 0) {
+          <span class="total-badge">Total: {{ totalNotifications }}</span>
+        }
+      </div>
       @if (unreadCount > 0) {
-        <button mat-button color="primary" (click)="markAllAsRead()">
+        <button mat-button color="primary" class="mark-all-btn" (click)="markAllAsRead()">
           Mark all as read
         </button>
       }
     </div>
 
+    <!-- Notification Item List -->
     <div class="notification-list" (click)="$event.stopPropagation()">
       @for (notification of notifications; track notification.id) {
         <div 
@@ -51,8 +57,28 @@
 
         </div>
       } @empty {
-        <div class="empty-state">
-          <p>No notifications available</p>
+        @if (!isLoading) {
+          <div class="empty-state">
+            <p>No notifications available</p>
+          </div>
+        }
+      }
+
+      <!-- Pagination Load More -->
+      @if (currentPage < totalPages) {
+        <div class="load-more-container">
+          <button 
+            mat-stroked-button 
+            color="primary" 
+            class="load-more-btn"
+            [disabled]="isLoading" 
+            (click)="loadMore($event)">
+            @if (isLoading) {
+              <span>Loading...</span>
+            } @else {
+              <span>Load More ({{ currentPage }}/{{ totalPages }})</span>
+            }
+          </button>
         </div>
       }
     </div>

@@ -29,9 +29,24 @@ export class Notification implements OnInit {
   unreadCount = 0;
   currentUserId: number | null = null;
 
+  // Pagination State
+  currentPage = 1;
+  limit = 10;
+  totalPages = 1;
+  totalNotifications = 0;
+  isLoading = false;
+
   ngOnInit(): void {
-    // 1. Fetch logged in user ID dynamically from localStorage
-    const storedUser = localStorage.getItem('user'); // or 'userId' depending on how you store it
+    this.extractUserId();
+
+    if (this.currentUserId) {
+      this.loadNotifications(1);
+      this.loadUnreadCount();
+    }
+  }
+
+  private extractUserId(): void {
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
@@ -43,27 +58,42 @@ export class Notification implements OnInit {
       const idFromStorage = localStorage.getItem('userId');
       this.currentUserId = idFromStorage ? Number(idFromStorage) : null;
     }
-
-    // 2. Fetch notifications if user ID is available
-    if (this.currentUserId) {
-      this.loadNotifications();
-      this.loadUnreadCount();
-    } else {
-      console.warn('NotificationComponent: No logged-in user ID found.');
-    }
   }
 
-  loadNotifications(): void {
-    if (!this.currentUserId) return;
+  loadNotifications(page: number = 1): void {
+    if (!this.currentUserId || this.isLoading) return;
 
-    this.notificationService.getUserNotifications(this.currentUserId).subscribe({
+    this.isLoading = true;
+
+    this.notificationService.getUserNotifications(this.currentUserId, page, this.limit).subscribe({
       next: (res) => {
         if (res.success && res.data) {
-          this.notifications = res.data;
+          if (page === 1) {
+            this.notifications = res.data;
+          } else {
+            this.notifications = [...this.notifications, ...res.data];
+          }
+
+          if (res.pagination) {
+            this.currentPage = res.pagination.page;
+            this.totalPages = res.pagination.totalPages;
+            this.totalNotifications = res.pagination.total;
+          }
         }
+        this.isLoading = false;
       },
-      error: (err) => console.error('Error fetching notifications:', err),
+      error: (err) => {
+        console.error('Error loading notifications:', err);
+        this.isLoading = false;
+      },
     });
+  }
+
+  loadMore(event: Event): void {
+    event.stopPropagation();
+    if (this.currentPage < this.totalPages) {
+      this.loadNotifications(this.currentPage + 1);
+    }
   }
 
   loadUnreadCount(): void {
@@ -75,12 +105,11 @@ export class Notification implements OnInit {
           this.unreadCount = res.count;
         }
       },
-      error: (err) => console.error('Error fetching unread count:', err),
+      error: (err) => console.error('Error getting unread count:', err),
     });
   }
 
   onNotificationClick(notification: BackendNotification): void {
-    // 1. Mark as read on backend if currently unread
     if (!notification.isRead) {
       this.notificationService.markAsRead(notification.id).subscribe({
         next: (res) => {
@@ -89,18 +118,16 @@ export class Notification implements OnInit {
             this.unreadCount = Math.max(0, this.unreadCount - 1);
           }
         },
-        error: (err) => console.error('Error marking notification as read:', err),
       });
     }
 
-    // 2. Navigate to route if present in DB
     if (notification.route) {
       this.router.navigateByUrl(notification.route);
     }
   }
 
   markAllAsRead(): void {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId || this.unreadCount === 0) return;
 
     this.notificationService.markAllAsRead(this.currentUserId).subscribe({
       next: (res) => {
@@ -109,7 +136,6 @@ export class Notification implements OnInit {
           this.unreadCount = 0;
         }
       },
-      error: (err) => console.error('Error marking all as read:', err),
     });
   }
 }

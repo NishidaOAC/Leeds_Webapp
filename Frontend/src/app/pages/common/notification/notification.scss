@@ -1,7 +1,7 @@
 ::ng-deep .notification-dropdown.mat-mdc-menu-panel {
-  max-width: 340px !important;
-  min-width: 310px !important;
-  border-radius: 8px !important;
+  max-width: 360px !important;
+  min-width: 320px !important;
+  border-radius: 10px !important;
 }
 
 ::ng-deep .notification-dropdown .mat-mdc-menu-content {
@@ -16,21 +16,38 @@
   border-bottom: 1px solid #e5e7eb;
   background-color: #ffffff;
 
-  h3 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1f2937;
+  .title-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .total-badge {
+      font-size: 11px;
+      background: #f3f4f6;
+      color: #4b5563;
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
   }
 
-  button {
+  .mark-all-btn {
     font-size: 12px;
-    padding: 0;
+    padding: 0 8px;
+    height: 28px;
+    line-height: 28px;
   }
 }
 
 .notification-list {
-  max-height: 360px;
+  max-height: 380px;
   overflow-y: auto;
   background-color: #ffffff;
 }
@@ -49,7 +66,7 @@
   }
 
   &.unread {
-    background-color: #eff6ff; // Light blue for unread
+    background-color: #eff6ff;
   }
 
   .item-main {
@@ -61,12 +78,12 @@
       font-size: 18px;
       width: 18px;
       height: 18px;
-      color: #3b82f6; // Blue for unread
+      color: #3b82f6;
       flex-shrink: 0;
       margin-top: 1px;
 
       &.read-icon {
-        color: #10b981; // Green for read
+        color: #10b981;
       }
     }
 
@@ -90,8 +107,20 @@
   }
 }
 
+.load-more-container {
+  padding: 10px;
+  text-align: center;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+
+  .load-more-btn {
+    width: 100%;
+    font-size: 12px;
+  }
+}
+
 .empty-state {
-  padding: 24px;
+  padding: 28px;
   text-align: center;
   color: #9ca3af;
   font-size: 13px;

@@ -10,6 +10,7 @@
 mat-sidenav-container {
   width: 100%;
   height: 100%;
+  background-color: #f8fafc; /* Subtle light background for main area */
 }
 
 /* Ensure child components stretch completely */
@@ -20,16 +21,17 @@ app-nav-item {
 }
 
 /* ==========================================================================
-   2. Compact Sidenav Drawer (170px Snug Fit - Removes White Gap)
+   2. Modern Dark/Vibrant Sidenav Drawer (180px Compact Fit)
    ========================================================================== */
 ::ng-deep {
   mat-sidenav.sidebarNav,
   .mat-drawer.sidebarNav {
-    width: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    background-color: #ffffff !important;
-    border-right: 1px solid #e2e8f0 !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    background-color: #1e293b !important; /* Professional Dark Slate Sidebar */
+    border-right: none !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05) !important;
 
     .mat-drawer-inner-container {
       width: 100% !important;
@@ -39,37 +41,79 @@ app-nav-item {
     }
   }
 
-  mat-nav-list.sidebar-list,
-  .mat-mdc-nav-list {
-    padding: 6px 4px !important;
-    margin: 0 !important;
-  }
+/* Zero out default Angular Material list item paddings and gaps */
+mat-nav-list.sidebar-list,
+.mat-mdc-nav-list,
+.mat-mdc-list-item {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
 
-  /* Nav Item Styling (Fixes Text Truncation & Spacing) */
+  /* Nav Item Styling (Pill hover effect & bright text) */
   .menu-list-item {
-    padding: 0 8px !important;
-    height: 36px !important;
-    min-height: 36px !important;
+    padding: 0 10px !important;
+    height: 38px !important;
+    min-height: 38px !important;
     display: flex !important;
     align-items: center !important;
+    border-radius: 8px !important;
+    margin-bottom: 4px !important;
+    color: #94a3b8 !important;
+    transition: all 0.2s ease-in-out !important;
 
     .routeIcon,
     mat-icon {
-      font-size: 16px !important;
-      width: 16px !important;
-      height: 16px !important;
-      margin-right: 6px !important;
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+      margin-right: 10px !important;
+      color: #38bdf8 !important; /* Vibrant Cyan/Blue Icons */
       flex-shrink: 0 !important;
+      transition: transform 0.2s ease;
     }
 
     .hide-menu,
     span {
-      font-size: 11.5px !important; /* Scaled font so labels fit cleanly */
+      font-size: 12px !important;
       font-weight: 500 !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
       flex-grow: 1 !important;
+      color: #cbd5e1 !important;
+    }
+
+    /* Hover State */
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      color: #ffffff !important;
+
+      span {
+        color: #ffffff !important;
+      }
+
+      mat-icon {
+        transform: scale(1.1);
+        color: #60a5fa !important;
+      }
+    }
+
+    /* Active Nav Link Styling */
+    &.active,
+    &.active-link {
+      background-color: #2563eb !important; /* Royal Blue highlight */
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+
+      span {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+      }
+
+      mat-icon {
+        color: #ffffff !important;
+      }
     }
   }
 }
@@ -82,20 +126,16 @@ app-nav-item {
 }
 
 /* Sidebar Logo Block */
-/* Sidebar Logo Block */
-/* Sidebar Logo Block */
-/* Sidebar Logo Block - Increased Height for Prominent Logo */
-/* Sidebar Logo Block - Edge-to-Edge Snug Fit */
 .sidebar-header {
-  height: 52px; /* Matches top navbar height */
+  height: 52px;
   min-height: 52px;
-  padding: 0 !important; /* Removes internal padding for maximum size */
+  padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-sizing: border-box;
-  background-color: #1e4f8a; /* Matches blue logo background perfectly */
+  background-color: #1e4f8a;
   width: 100%;
   overflow: hidden;
 
@@ -110,17 +150,17 @@ app-nav-item {
       display: block !important;
       width: 100% !important;
       height: 100% !important;
-      object-fit: cover !important; /* Fills the entire header box seamlessly */
+      object-fit: cover !important;
     }
   }
 }
 
-/* Scrollbar adjustment to keep layout aligned */
 ::ng-deep ng-scrollbar.sidebar-scroll {
   height: calc(100vh - 52px) !important;
 }
+
 /* ==========================================================================
-   3. FIXED Top Navigation Bar Layout (Prevents Vertical Stacking)
+   3. Top Navigation Bar Styling
    ========================================================================== */
 .top-nav-header {
   display: flex !important;
@@ -128,9 +168,10 @@ app-nav-item {
   align-items: center !important;
   justify-content: space-between !important;
   height: 52px;
-  padding: 0 16px;
+  padding: 0 20px;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   position: sticky;
   top: 0;
   z-index: 99;
@@ -145,6 +186,11 @@ app-nav-item {
 
   .toggle-btn {
     color: #475569;
+    
+    &:hover {
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
   }
 }
 
@@ -158,27 +204,16 @@ app-nav-item {
   flex-shrink: 0;
 }
 
-/* Notification Bell */
-.notification-box {
-  position: relative;
-  display: inline-flex !important;
-  align-items: center !important;
-
-  .badge {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background-color: #2563eb;
-    color: #ffffff;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 10px;
-    min-width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #ffffff;
+/* Notification Bell Styling */
+app-notification {
+  display: flex;
+  align-items: center;
+  
+  mat-icon {
+    color: #64748b;
+    &:hover {
+      color: #2563eb;
+    }
   }
 }
 
@@ -187,21 +222,26 @@ app-nav-item {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
 }
 
 .user-avatar-circle {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #eff6ff;
-  color: #2563eb;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #bfdbfe;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
   flex-shrink: 0;
 }
 
@@ -219,25 +259,30 @@ app-nav-item {
 }
 
 .nav-user-role {
-  font-size: 10px;
+  font-size: 9.5px;
+  font-weight: 600;
   color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   line-height: 1;
   white-space: nowrap;
 }
 
 .logout-icon {
-  color: #64748b;
+  color: #94a3b8;
+  transition: all 0.2s;
 
   &:hover {
     color: #ef4444;
+    background-color: #fef2f2;
   }
 }
 
 /* ==========================================================================
-   4. Main Page Content Padding Fix
+   4. Main Content Container Styling
    ========================================================================== */
 .pageWrapper {
-  padding: 16px;
+  padding: 20px;
   box-sizing: border-box;
 }
 
@@ -245,16 +290,47 @@ app-nav-item {
   margin-top: 0;
 }
 
+.logout-btn {
+  color: #64748b;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
 
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
 
-.notification-box {
-  position: relative;
-  display: inline-block;
+  /* Red highlight on hover for danger/action confirmation */
+  &:hover {
+    color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+  }
+}
 
-  .dropdown-wrapper {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 1000;
+.logout-btn-full {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  padding: 0 10px !important;
+  height: 32px !important;
+  min-width: auto !important;
+
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+  }
+
+  &:hover {
+    color: #ef4444 !important;
+    background-color: #fef2f2 !important;
   }
 }

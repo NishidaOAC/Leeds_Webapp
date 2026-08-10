@@ -117,15 +117,27 @@
 }
 
 /* Paginator stays fixed at bottom */
+
 .paginator-container {
   flex-shrink: 0;
   border-top: 1px solid #e5e7eb;
   background: #ffffff;
 
   ::ng-deep .mat-mdc-paginator-container {
-    padding: 0 8px;
-    min-height: 44px;
-    justify-content: space-between;
+    padding: 0 8px !important;
+    min-height: 44px !important;
+    justify-content: flex-end !important; /* Aligns all controls to the right */
+    gap: 8px !important;
+  }
+
+  /* Compact dropdown & label spacing */
+  ::ng-deep .mat-mdc-paginator-page-size {
+    margin-right: 8px !important;
+  }
+
+  /* Hide extra padding around navigation buttons */
+  ::ng-deep .mat-mdc-paginator-range-actions {
+    gap: 4px !important;
   }
 }
 

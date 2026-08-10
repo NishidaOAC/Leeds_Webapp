@@ -64,23 +64,17 @@
         }
       }
 
-      <!-- Pagination Load More -->
-      @if (currentPage < totalPages) {
-        <div class="load-more-container">
-          <button 
-            mat-stroked-button 
-            color="primary" 
-            class="load-more-btn"
-            [disabled]="isLoading" 
-            (click)="loadMore($event)">
-            @if (isLoading) {
-              <span>Loading...</span>
-            } @else {
-              <span>Load More ({{ currentPage }}/{{ totalPages }})</span>
-            }
-          </button>
-        </div>
-      }
+  
+    </div>
+    <div class="paginator-container" (click)="$event.stopPropagation()">
+      <mat-paginator
+        [length]="totalNotifications"
+        [pageSize]="limit"
+        [pageSizeOptions]="[5, 10, 20]"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event)"
+        aria-label="Select notification page">
+      </mat-paginator>
     </div>
   </mat-menu>
 </div>

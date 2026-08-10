@@ -1,14 +1,21 @@
+/* 1. Prevent the outer menu panel from creating its own scrollbar */
 ::ng-deep .notification-dropdown.mat-mdc-menu-panel {
-  max-width: 360px !important;
+  max-width: 380px !important;
   min-width: 320px !important;
   border-radius: 10px !important;
+  overflow: hidden !important; /* Hide outer scrollbar */
 }
 
+/* 2. Turn the menu content into a vertical flex container */
 ::ng-deep .notification-dropdown .mat-mdc-menu-content {
   padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
+/* Header stays fixed at top */
 .notification-header {
+  flex-shrink: 0; 
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -46,9 +53,11 @@
   }
 }
 
+/* 3. ONLY the notification list scrolls */
 .notification-list {
-  max-height: 380px;
-  overflow-y: auto;
+  flex: 1 1 auto;
+  max-height: 300px; /* Adjust height for notification items */
+  overflow-y: auto;  /* Single active scrollbar */
   background-color: #ffffff;
 }
 
@@ -107,15 +116,16 @@
   }
 }
 
-.load-more-container {
-  padding: 10px;
-  text-align: center;
-  border-top: 1px solid #f3f4f6;
-  background: #fafafa;
+/* Paginator stays fixed at bottom */
+.paginator-container {
+  flex-shrink: 0;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
 
-  .load-more-btn {
-    width: 100%;
-    font-size: 12px;
+  ::ng-deep .mat-mdc-paginator-container {
+    padding: 0 8px;
+    min-height: 44px;
+    justify-content: space-between;
   }
 }
 

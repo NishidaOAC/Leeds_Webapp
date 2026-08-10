@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface BackendNotification {
   id: number;
@@ -33,7 +34,9 @@ export class NotificationService {
   private http = inject(HttpClient);
 
   // Gateway URL pointing to Auth Microservice singular '/notification' route
-  private apiUrl = 'http://localhost:3000/api/auth/notification';
+  // private apiUrl = 'http://localhost:3000/api/auth/notification';
+private apiUrl = `${environment.apiUrl}/auth/notification`;
+ 
 
   getUserNotifications(
     userId: number | string,

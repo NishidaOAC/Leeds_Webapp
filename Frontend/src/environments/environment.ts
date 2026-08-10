@@ -7,7 +7,7 @@ export const environment = {
   // apiUrl: 'https://test-leeds-webapp-api.aeroassist.in/api',
   //  apiUrl: 'https://leeds-api.aeroassist.in/api',
   // loginUrl: 'https://test.leedsaerospace.com/login.html',
-   apiUrl:'http://localhost:3000/api',
+    apiUrl:'http://localhost:3000/api',
 };
 
 // apiUrl:'http://3.111.134.199:8000',

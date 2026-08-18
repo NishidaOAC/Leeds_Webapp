@@ -1,23 +1,57 @@
 <div class="manage-container">
+  <!-- Top Navigation & Title Bar -->
   <header class="header-bar">
     <div class="header-left">
       <button class="back-link" routerLink="/dashboard/supplier/supplierlist">
-        <span class="icon">←</span> Back to List
+        <span class="icon">←</span> Back to Supplier Directory
       </button>
       <div class="title-group">
-        <h1>Manage Documents</h1>
-        <div class="customer-info" *ngIf="supplierData">
-          <span class="customer-name">{{ supplierData.name }}</span>
-          <span class="divider">|</span>
-          <span class="customer-type">{{ supplierData.internalSupplierNumber }}</span>
-        </div>
+        <h1>Supplier Master Management</h1>
+        <p class="subtitle">Review compliance records, trade assessments, and purchase metadata</p>
       </div>
     </div>
-    
-    <!-- <button class="btn-upload" (click)="openUploadModal()">
-      <span class="plus">+</span> Upload New Document
-    </button> -->
   </header>
+
+  <!-- Corporate Header Card / Summary Panel -->
+  <div class="erp-summary-panel" *ngIf="supplierData">
+    <div class="entity-identity">
+      <div class="avatar-badge">{{ supplierData.name.charAt(0) | uppercase }}</div>
+      <div class="identity-details">
+        <h2 class="supplier-title">{{ supplierData.name }}</h2>
+        <span class="supplier-code">{{ supplierData.internalSupplierNumber }}</span>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+<ng-container *ngIf="!supplierData?.hasQualityCert">
+    <div class="metric-item">
+      <span class="metric-label">PURCHASE ORDER</span>
+      <span class="metric-value">{{ supplierData?.poNumber || 'N/A' }}</span>
+    </div>
+
+    <div class="metric-item">
+      <span class="metric-label">PO DATE</span>
+      <span class="metric-value">
+        {{ supplierData?.poDate ? (supplierData.poDate | date:'dd MMM yyyy') : '—' }}
+      </span>
+    </div>
+  </ng-container>
+
+      <div class="metric-item">
+        <span class="metric-label">EXPIRY DATE</span>
+        <span class="metric-value" [class.text-danger]="isNearExpiry(supplierData.expiryDate)">
+          {{ supplierData.expiryDate ? (supplierData.expiryDate | date:'dd MMM yyyy') : '—' }}
+        </span>
+      </div>
+
+      <div class="metric-item">
+        <span class="metric-label">REVIEW STATUS</span>
+        <span class="status-pill" [ngClass]="supplierData.status?.toLowerCase()">
+          {{ supplierData.status || 'PENDING' }}
+        </span>
+      </div>
+    </div>
+  </div>
 
   <div class="content-card">
     <div class="loader" *ngIf="loading">
@@ -26,6 +60,7 @@
     </div>
 
     <ng-container *ngIf="!loading">
+      <!-- Trade References Section -->
       <div class="trade-refs-section-wrapper" *ngIf="supplierData?.tradeReferences?.length > 0">
         <div class="section-header-group">
           <h3 class="section-subtitle">Trade References</h3>
@@ -35,7 +70,7 @@
         <div class="aero-refs-grid">
           <div *ngFor="let ref of supplierData.tradeReferences; let i = index" class="reference-card-view">
             <h4 class="ref-number">Reference #{{ i + 1 }}</h4>
-            
+
             <div class="ref-content-split">
               <div class="ref-column">
                 <label class="column-label">COMPANY IDENTITY</label>
@@ -58,24 +93,21 @@
         <hr class="section-divider">
       </div>
 
+      <!-- Compliance Documents -->
       <h3 class="section-subtitle px-3 mb-3" *ngIf="documents.length > 0">Compliance Documents</h3>
       <div class="doc-grid" *ngIf="documents.length > 0">
         <div class="doc-card" *ngFor="let doc of documents">
           <div class="card-header">
             <div class="icon-wrapper">
-              <!-- {{ doc.fileName?.endsWith('.pdf') ? '📕' : '🖼️' }} -->
-                {{ doc.fileName.endsWith('.pdf') ? '📕' : '🖼️' }}
+              {{ doc.fileName.endsWith('.pdf') ? '📕' : '🖼️' }}
             </div>
-            <!-- <div class="status-badge" [ngClass]="doc.status?.toLowerCase()">
-              {{ doc.status }}
-            </div> -->
             <div class="status-badge" [ngClass]="doc.status.toLowerCase()"></div>
           </div>
 
           <div class="card-body">
             <h3 class="doc-type">{{ doc.documentType }}</h3>
             <p class="file-name" [title]="doc.fileName">{{ doc.fileName }}</p>
-            
+
             <div class="file-meta">
               <span>{{ formatFileSize(doc.fileSize) }}</span>
               <span class="separator">•</span>
@@ -88,13 +120,13 @@
             </div>
           </div>
 
-          <div class="card-footer">             
+          <div class="card-footer">
             <button class="btn-preview" (click)="previewDoc(doc.id, doc.fileName)">
               Preview
             </button>
-               @if (isQualityAdmin) {
+            @if (isQualityAdmin) {
             <button class="btn-icon-delete" title="Delete Document" (click)="deleteDocument(doc.id)">🗑️</button>
-               }
+            }
           </div>
         </div>
       </div>

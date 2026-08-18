@@ -9,8 +9,15 @@ const { sequelize, testConnection } = require('./config/database');
 const { publishEvent } = require('./utils/eventPublisher');
 const supplierRoutes = require('./routes/supplier.routes');
 
+// 🟢 FIXED CODE: Keep only this single import at the top of index.js
+const { initExpiryJob, checkExpiringSuppliers } = require('./controllers/expiryNotifier.job');
+
+// 🔴 REMOVE THIS LINE completely from index.js:
+// require('./controllers/expiryNotifier.job');
 // IMPORT YOUR MODEL HERE
 const OnboardingStatus = require('./models/OnboardingStatus'); 
+
+
 
 // Initialize logger
 const logger = winston.createLogger({
@@ -96,6 +103,8 @@ async function startServer() {
     app.listen(PORT, () => {
       logger.info(`Supplier service running on port ${PORT}`);
     });
+
+    initExpiryJob();
 
   } catch (error) {
     logger.error('Failed to start server:', error);

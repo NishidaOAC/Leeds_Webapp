@@ -3,6 +3,8 @@ const router = express.Router();
 const supplierCtrl = require('../controllers/supplier.controller');
 const upload = require('../middlewares/multerConfig'); 
 const emailController = require('../controllers/email.controller');
+const { authenticateToken } = require('../middlewares/authToken');
+
 
 // UPDATED: Changed qualityDoc to qualityDocs and increased maxCount
 const cpUpload = upload.fields([
@@ -11,7 +13,16 @@ const cpUpload = upload.fields([
   { name: 'supportDocs', maxCount: 10 } // Allow up to 10 certifications
 ]);
 
+const runExpiryJob = require('../controllers/expiryNotifier.job');
 
+router.get('/trigger-expiry-job', async (req, res) => {
+    try {
+        await runExpiryJob();
+        res.json({ message: "Expiry job executed successfully. Check your terminal logs." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Individual compliance document removal endpoint
 router.delete('/documents/:documentId', supplierCtrl.deleteSupplierDocument);
@@ -20,7 +31,7 @@ router.post('/email-preview', emailController.getEmailPreview);
 
 // Registration and List
 router.post('/send-reminder', emailController.sendRenewalEmail);
-router.post('/register', cpUpload, supplierCtrl.onboardSupplier);
+router.post('/register',authenticateToken, cpUpload, supplierCtrl.onboardSupplier);
 
 router.get('/', supplierCtrl.getAllSuppliers);
 router.get('/paginated', supplierCtrl.getPaginatedAllSuppliers);

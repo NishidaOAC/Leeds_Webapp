@@ -21,6 +21,7 @@
     "@aws-sdk/client-s3": "^3.991.0",
     "@aws-sdk/s3-request-presigner": "^3.991.0",
     "amqplib": "^0.10.9",
+    "axios": "^1.19.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express-async-errors": "^3.1.1",

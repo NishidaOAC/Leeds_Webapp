@@ -5,13 +5,7 @@ const { Supplier, SupplierDocument } = require('../models/index');
 const OnboardingStatus = require('../models/OnboardingStatus.js');
 const moment = require('moment');
 const { Op } = require('sequelize');
-// 🟢 FIXED CODE: Keep only this single import at the top of index.js
 const { initExpiryJob, checkExpiringSuppliers } = require('./expiryNotifier.job');
-
-// 🔴 REMOVE THIS LINE completely from index.js:
-// require('./controllers/expiryNotifier.job');
-
-
 
 
 
@@ -32,9 +26,12 @@ exports.onboardSupplier = async (req, res) => {
         const {
             name, email, hasQualityCert, hasSefAndTradeRef,
             expiryDate, poNumber, poDate, tradeReferences,
-            qualityDocNames, supportDocDescriptions, // 👈 Added support doc descriptions array
+            qualityDocNames, supportDocDescriptions,
             onboardingStatusId
         } = req.body;
+
+        const parsedPoDate = (poDate && !isNaN(Date.parse(poDate))) ? poDate : null;
+        const parsedExpiryDate = (expiryDate && !isNaN(Date.parse(expiryDate))) ? expiryDate : null;
 
         // 1. PRE-CHECK FOR DUPLICATE EMAIL
         const existingEmail = await Supplier.findOne({ where: { email } });
@@ -159,9 +156,11 @@ exports.onboardSupplier = async (req, res) => {
             currentReviewer: initialReviewer,
             status: 'PENDING',
             onboardingStatusId: statusRecord ? statusRecord.id : null,
-            expiryDate: expiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
-            poNumber: !isCertified ? poNumber : null,
-            poDate: !isCertified ? poDate : null,
+            // Safely fallback to 1 year ahead only if certified and no valid expiry was given
+            expiryDate: parsedExpiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
+
+            poNumber: (!isCertified && poNumber) ? poNumber : null,
+            poDate: !isCertified ? parsedPoDate : null, // Uses sanitized Date or null
 
             tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null,
             addedBy
@@ -175,7 +174,7 @@ exports.onboardSupplier = async (req, res) => {
 
         await transaction.commit();
 
-        checkExpiringSuppliers().catch(err => 
+        checkExpiringSuppliers().catch(err =>
             console.error("[ONBOARD SUPPLIER] Expiry check error:", err.message)
         );
 
@@ -237,6 +236,19 @@ exports.updateSupplier = async (req, res) => {
             supportDocDescriptions, existingSupportDocs, // 👈 Added fields for keeping support documents up to date
             onboardingStatusId
         } = req.body;
+
+
+        // --- 0. Date Sanitization Helper ---
+        const parseValidDate = (dateVal) => {
+            if (!dateVal || dateVal === 'Invalid date' || dateVal === '') return null;
+            const parsed = Date.parse(dateVal);
+            return !isNaN(parsed) ? new Date(parsed) : null;
+        };
+
+        const sanitizedExpiryDate = parseValidDate(expiryDate);
+        const sanitizedPoDate = parseValidDate(poDate);
+
+
 
         const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
         const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
@@ -377,9 +389,9 @@ exports.updateSupplier = async (req, res) => {
             hasSefAndTradeRef: hasRefs,
             currentReviewer: initialReviewer,
             onboardingStatusId: statusRecord ? statusRecord.id : currentSupplier.onboardingStatusId,
-            expiryDate,
-            poNumber: !isCertified ? poNumber : null,
-            poDate: !isCertified ? poDate : null,
+            expiryDate: sanitizedExpiryDate || currentSupplier.expiryDate,
+            poNumber: (!isCertified && poNumber) ? poNumber : null,
+            poDate: !isCertified ? sanitizedPoDate : null,
             tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null,
             status: 'PENDING'
         }, { where: { id }, transaction });
@@ -391,11 +403,11 @@ exports.updateSupplier = async (req, res) => {
         await transaction.commit();
 
         // 2. Trigger notification check asynchronously (won't delay HTTP response)
-    // checkExpiringSuppliers().catch(err => 
-    //     console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
-    // );
+        // checkExpiringSuppliers().catch(err => 
+        //     console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
+        // );
 
-            checkExpiringSuppliers(id).catch(err => 
+        checkExpiringSuppliers(id).catch(err =>
             console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
         );
 

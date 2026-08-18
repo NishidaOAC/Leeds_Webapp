@@ -1,157 +1,281 @@
 .manage-container {
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   background: #f8fafc;
   min-height: 100vh;
 
   .header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #edf2f7;
+    margin-bottom: 16px;
 
     .header-left {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 6px;
 
       .back-link {
-        background: none; border: none; color: #718096; font-size: 14px;
-        cursor: pointer; display: flex; align-items: center; gap: 5px;
+        background: none;
+        border: none;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0;
+        width: fit-content;
         &:hover { color: #2563eb; }
       }
 
       .title-group {
-        h1 { margin: 0; font-size: 28px; font-weight: 700; color: #1a202c; }
-        .customer-info {
-          display: flex; align-items: center; gap: 8px; margin-top: 4px;
-          .customer-name { font-weight: 600; color: #4a5568; }
-          .divider { color: #cbd5e0; }
-          .customer-type {
-            color: #718096; text-transform: uppercase; font-size: 11px;
-            background: #f1f5f9; padding: 2px 8px; border-radius: 4px;
-          }
+        h1 { margin: 0; font-size: 22px; font-weight: 700; color: #0f172a; }
+        .subtitle { margin: 2px 0 0; font-size: 12px; color: #64748b; }
+      }
+    }
+  }
+
+  /* --- ERP Summary Header Card --- */
+  .erp-summary-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    .entity-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .avatar-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 18px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dbeafe;
+      }
+
+      .identity-details {
+        .supplier-title { margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; }
+        .supplier-code {
+          display: inline-block;
+          margin-top: 2px;
+          background: #f1f5f9;
+          color: #475569;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
         }
       }
     }
 
-    .btn-upload {
-      background: #2563eb; color: white; border: none;
-      padding: 10px 20px; border-radius: 8px; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
-      &:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .metrics-grid {
+      display: flex;
+      gap: 28px;
+      align-items: center;
+
+      .metric-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .metric-label {
+          font-size: 10px;
+          font-weight: 800;
+          color: #94a3b8;
+          letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+          font-size: 13px;
+          font-weight: 600;
+          color: #1e293b;
+          &.text-danger { color: #dc2626; }
+        }
+
+        .status-pill {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 2px 8px;
+          border-radius: 10px;
+          text-transform: uppercase;
+          background: #fef3c7;
+          color: #92400e;
+          width: fit-content;
+        }
+      }
     }
   }
 
   .content-card {
-    background: white; border-radius: 12px; padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: white; 
+    border-radius: 10px; 
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 }
 
-// Trade References Styling (Initial Style)
+/* --- Fixed Trade Reference Alignment --- */
 .trade-refs-section-wrapper {
-  padding: 0 10px;
+  margin-bottom: 24px;
   
   .section-header-group {
-    margin-bottom: 20px;
-    .section-subtitle { font-weight: 700; color: #1e293b; margin-bottom: 4px; }
-    .section-hint { font-size: 0.85rem; color: #64748b; }
+    margin-bottom: 16px;
+    .section-subtitle { font-weight: 700; color: #1e293b; font-size: 16px; margin: 0 0 4px 0; }
+    .section-hint { font-size: 13px; color: #64748b; margin: 0; }
   }
 
-  .section-divider { border: 0; border-top: 1px solid #e2e8f0; margin: 40px 0; }
+  .section-divider { border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0; }
+}
+
+.aero-refs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .reference-card-view {
   background: #ffffff;
-  border: 1px solid #f1f5f9;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
 
-  .ref-number { font-size: 0.9rem; font-weight: 700; color: #64748b; margin-bottom: 15px; }
+  .ref-number { font-size: 13px; font-weight: 700; color: #475569; margin: 0 0 12px 0; }
 
   .ref-content-split {
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    gap: 30px;
+    gap: 20px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
   }
 
   .column-label {
     display: block;
-    font-size: 0.7rem;
+    font-size: 10px;
     font-weight: 800;
-    color: #4b49ff; // Blue from your screenshot
-    margin-bottom: 12px;
+    color: #2563eb;
+    margin-bottom: 6px;
     letter-spacing: 0.5px;
   }
 
   .ref-data-display {
     background: #f8fafc;
-    border-radius: 8px;
-    padding: 15px;
-    .data-item { font-size: 0.9rem; color: #334155; margin-bottom: 5px; }
+    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid #f1f5f9;
+    .data-item { font-size: 13px; color: #334155; margin-bottom: 4px; &:last-child { margin-bottom: 0; } }
   }
 
   .aero-view-textarea {
     background: #f8fafc;
-    border-radius: 8px;
-    padding: 15px;
-    font-size: 0.85rem;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 13px;
     color: #475569;
-    line-height: 1.5;
-    min-height: 100px;
-    font-style: italic;
+    border: 1px solid #f1f5f9;
+    min-height: 80px;
   }
 }
 
-// Document Grid Styling
+/* --- Fixed Compliance Documents Grid Alignment --- */
 .doc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .doc-card {
-  border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;
-  display: flex; flex-direction: column; transition: 0.3s;
+  border: 1px solid #e2e8f0; 
+  border-radius: 8px; 
+  padding: 16px;
+  background: #ffffff;
+  display: flex; 
+  flex-direction: column; 
   
-  &:hover { border-color: #cbd5e0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+  &:hover { border-color: #cbd5e0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
 
   .card-header {
-    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 12px;
+
     .icon-wrapper { 
-      font-size: 24px; background: #f1f5f9; width: 45px; height: 45px;
-      display: flex; align-items: center; justify-content: center; border-radius: 10px;
+      font-size: 20px; 
+      background: #f1f5f9; 
+      width: 36px; 
+      height: 36px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      border-radius: 6px;
+    }
+
+    .status-badge {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
     }
   }
 
-  .status-badge {
-    font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px;
-    text-transform: uppercase;
-    &.active { background: #dcfce7; color: #166534; }
-  }
-
   .card-body {
-    .doc-type { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 5px 0; }
-    .file-name { font-size: 13px; color: #64748b; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .file-meta { font-size: 11px; color: #94a3b8; margin-bottom: 12px; .separator { margin: 0 4px; } }
+    .doc-type { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; }
+    .file-name { font-size: 12px; color: #64748b; margin: 0 0 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-meta { font-size: 11px; color: #94a3b8; margin-bottom: 8px; .separator { margin: 0 4px; } }
     
     .expiry-box {
-      background: #fef2f2; padding: 10px; border-radius: 8px;
-      label { display: block; font-size: 10px; color: #991b1b; font-weight: 700; text-transform: uppercase; }
-      span { font-size: 13px; color: #991b1b; font-weight: 700; }
+      background: #fef2f2; 
+      padding: 6px 10px; 
+      border-radius: 6px;
+      margin-top: 6px;
+      label { display: block; font-size: 9px; color: #991b1b; font-weight: 700; text-transform: uppercase; }
+      span { font-size: 12px; color: #991b1b; font-weight: 700; }
     }
   }
 
   .card-footer {
-    margin-top: auto; padding-top: 1.5rem; display: flex; gap: 8px;
+    margin-top: auto; 
+    padding-top: 12px; 
+    display: flex; 
+    gap: 8px;
+
     .btn-preview {
-      flex: 1; background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0;
-      padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer;
+      flex: 1; 
+      background: #f1f5f9; 
+      color: #1e293b; 
+      border: 1px solid #e2e8f0;
+      padding: 6px 12px; 
+      border-radius: 6px; 
+      font-size: 12px;
+      font-weight: 600; 
+      cursor: pointer;
       &:hover { background: #e2e8f0; }
     }
-    .btn-icon-delete { background: #fee2e2; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    
+    .btn-icon-delete { 
+      background: #fee2e2; 
+      border: none; 
+      padding: 6px 10px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 12px;
+    }
   }
 }

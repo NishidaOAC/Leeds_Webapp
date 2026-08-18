@@ -66,7 +66,11 @@ const Supplier = sequelize.define('Supplier', {
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
-  }
+  },
+  addedBy: {
+  type: DataTypes.INTEGER,
+  allowNull: true
+},
 }, {
   tableName: 'suppliers',
   timestamps: true,

@@ -5,6 +5,11 @@ const { Supplier, SupplierDocument } = require('../models/index');
 const OnboardingStatus = require('../models/OnboardingStatus.js');
 const moment = require('moment');
 const { Op } = require('sequelize');
+// 🟢 FIXED CODE: Keep only this single import at the top of index.js
+const { initExpiryJob, checkExpiringSuppliers } = require('./expiryNotifier.job');
+
+// 🔴 REMOVE THIS LINE completely from index.js:
+// require('./controllers/expiryNotifier.job');
 
 
 
@@ -13,11 +18,22 @@ const { Op } = require('sequelize');
 exports.onboardSupplier = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
+        console.log("DECED TOKEN PAYLOAD (req.user):", req.user);
+        // controllers/supplierController.js
+        const addedBy = req.user?.id || req.user?.userId || req.user?.sub || req.user?.user?.id;
+
+        if (!addedBy) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: User ID not found in authorization token."
+            });
+        }
+
         const {
             name, email, hasQualityCert, hasSefAndTradeRef,
             expiryDate, poNumber, poDate, tradeReferences,
             qualityDocNames, supportDocDescriptions, // 👈 Added support doc descriptions array
-            onboardingStatusId 
+            onboardingStatusId
         } = req.body;
 
         // 1. PRE-CHECK FOR DUPLICATE EMAIL
@@ -146,7 +162,9 @@ exports.onboardSupplier = async (req, res) => {
             expiryDate: expiryDate || (isCertified ? moment().add(1, 'year').toDate() : null),
             poNumber: !isCertified ? poNumber : null,
             poDate: !isCertified ? poDate : null,
-            tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null
+
+            tradeReferences: tradeReferences ? (typeof tradeReferences === 'string' ? JSON.parse(tradeReferences) : tradeReferences) : null,
+            addedBy
         }, { transaction });
 
         // 5. Link documents to created Supplier
@@ -156,6 +174,11 @@ exports.onboardSupplier = async (req, res) => {
         }
 
         await transaction.commit();
+
+        checkExpiringSuppliers().catch(err => 
+            console.error("[ONBOARD SUPPLIER] Expiry check error:", err.message)
+        );
+
 
         res.status(201).json({
             success: true,
@@ -177,29 +200,29 @@ exports.onboardSupplier = async (req, res) => {
 };
 
 exports.getQualifiedSuppliers = async (req, res) => {
-  try {
-    const today = new Date();
+    try {
+        const today = new Date();
 
-    const qualifiedSuppliers = await Supplier.findAll({
-      where: {
-        isActive: true,
-        // CHECK WITH DATE ONLY: Either expiryDate is NULL OR expiryDate >= Today
-        [Op.or]: [
-          { expiryDate: null },
-          { expiryDate: { [Op.gte]: today } }
-        ]
-      },
-      attributes: ['id', 'name', 'email', 'internalSupplierNumber', 'expiryDate', 'hasQualityCert']
-    });
+        const qualifiedSuppliers = await Supplier.findAll({
+            where: {
+                isActive: true,
+                // CHECK WITH DATE ONLY: Either expiryDate is NULL OR expiryDate >= Today
+                [Op.or]: [
+                    { expiryDate: null },
+                    { expiryDate: { [Op.gte]: today } }
+                ]
+            },
+            attributes: ['id', 'name', 'email', 'internalSupplierNumber', 'expiryDate', 'hasQualityCert']
+        });
 
-    res.status(200).json({
-      success: true,
-      data: qualifiedSuppliers
-    });
-  } catch (error) {
-    console.error('Error fetching qualified suppliers:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
+        res.status(200).json({
+            success: true,
+            data: qualifiedSuppliers
+        });
+    } catch (error) {
+        console.error('Error fetching qualified suppliers:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
 
 exports.updateSupplier = async (req, res) => {
@@ -212,12 +235,12 @@ exports.updateSupplier = async (req, res) => {
             expiryDate, poNumber, poDate, tradeReferences,
             qualityDocNames, existingCerts,
             supportDocDescriptions, existingSupportDocs, // 👈 Added fields for keeping support documents up to date
-            onboardingStatusId 
+            onboardingStatusId
         } = req.body;
 
         const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
         const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
-        
+
         const currentSupplier = await Supplier.findByPk(id, { transaction });
         if (!currentSupplier) {
             await transaction.rollback();
@@ -251,7 +274,7 @@ exports.updateSupplier = async (req, res) => {
         }
 
         const newDocumentRecords = [];
-        const newCertsJson = [...keptCerts]; 
+        const newCertsJson = [...keptCerts];
         const newSupportDocsJson = [...keptSupportDocs]; // 👈 Start with support docs kept in UI
 
         // --- 3. Handle NEW Quality Certificate Uploads ---
@@ -336,7 +359,7 @@ exports.updateSupplier = async (req, res) => {
         if (onboardingStatusId) {
             statusRecord = await OnboardingStatus.findByPk(onboardingStatusId, { transaction });
         }
-        
+
         if (!statusRecord) {
             let statusCode = isCertified ? 'LONG_TERM' : (hasRefs ? 'ONE_TIME' : 'CONDITIONAL');
             statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode }, transaction });
@@ -366,8 +389,18 @@ exports.updateSupplier = async (req, res) => {
         }
 
         await transaction.commit();
-        res.json({ 
-            success: true, 
+
+        // 2. Trigger notification check asynchronously (won't delay HTTP response)
+    // checkExpiringSuppliers().catch(err => 
+    //     console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
+    // );
+
+            checkExpiringSuppliers(id).catch(err => 
+            console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
+        );
+
+        res.json({
+            success: true,
             message: "Sync successful. Old files removed and status updated.",
             assignedStatus: statusRecord ? statusRecord.code : 'UNKNOWN'
         });
@@ -410,7 +443,7 @@ exports.deleteSupplierDocument = async (req, res) => {
                 const updatedCerts = currentCerts.filter(cert => cert.s3Key !== s3KeyToDelete);
                 await Supplier.update({ certifications: updatedCerts }, { where: { id: supplierId }, transaction });
             }
-        } 
+        }
         // 👇 New logic added to clean up the support documents array inside the Supplier row
         else if (document.documentType === 'SUPPORT_DOC') {
             const supplier = await Supplier.findByPk(supplierId);
@@ -478,11 +511,11 @@ exports.getUpcomingExpiries = async (req, res) => {
 exports.getAllSuppliersExpiryinCurrentmonth = async (req, res) => {
     try {
         const now = new Date();
-        
+
         // 💡 Get the last millisecond of the current month explicitly
         const year = now.getFullYear();
         const month = now.getMonth(); // 0-indexed (e.g., July = 6)
-        
+
         // Setting day to 0 of the NEXT month (month + 1) gives the last day of the CURRENT month
         const endOfCurrentMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
@@ -670,14 +703,14 @@ exports.updateSupplierOLD = async (req, res) => {
         const {
             name, email, hasQualityCert, hasSefAndTradeRef,
             expiryDate, poNumber, poDate, tradeReferences,
-            qualityDocNames, 
+            qualityDocNames,
             existingCerts,
             onboardingStatusId // Extract if sent by frontend
         } = req.body;
 
         const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
         const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
-        
+
         const currentSupplier = await Supplier.findByPk(id, { transaction });
         if (!currentSupplier) {
             await transaction.rollback();
@@ -701,7 +734,7 @@ exports.updateSupplierOLD = async (req, res) => {
 
         // 3. Handle NEW Quality Certificate Uploads
         const newDocumentRecords = [];
-        const newCertsJson = [...keptCerts]; 
+        const newCertsJson = [...keptCerts];
 
         if (isCertified && req.files && req.files.qualityDocs) {
             const files = req.files.qualityDocs;
@@ -757,7 +790,7 @@ exports.updateSupplierOLD = async (req, res) => {
         if (onboardingStatusId) {
             statusRecord = await OnboardingStatus.findByPk(onboardingStatusId, { transaction });
         }
-        
+
         if (!statusRecord) {
             // Recalculates dynamically based on updated fields
             let statusCode = isCertified ? 'LONG_TERM' : (hasRefs ? 'ONE_TIME' : 'CONDITIONAL');
@@ -772,7 +805,7 @@ exports.updateSupplierOLD = async (req, res) => {
             name,
             email,
             hasQualityCert: isCertified,
-            certifications: newCertsJson, 
+            certifications: newCertsJson,
             hasSefAndTradeRef: hasRefs,
             currentReviewer: initialReviewer, // Updates reviewer role structure
             onboardingStatusId: statusRecord ? statusRecord.id : currentSupplier.onboardingStatusId, // Dynamically links to LONG_TERM id
@@ -788,8 +821,8 @@ exports.updateSupplierOLD = async (req, res) => {
         }
 
         await transaction.commit();
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: "Sync successful. Old files removed and status updated.",
             assignedStatus: statusRecord ? statusRecord.code : 'UNKNOWN'
         });

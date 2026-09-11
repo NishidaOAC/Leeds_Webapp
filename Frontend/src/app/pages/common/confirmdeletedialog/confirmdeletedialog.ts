@@ -1,15 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-confirmdeletedialog',
   standalone: true,
-  // 1. Remove templateUrl and styleUrl if you are using the inline template below
   template: `
     <h2 mat-dialog-title>Confirm Delete</h2>
     <mat-dialog-content>
-      <p>Are you sure you want to delete <b>{{data.name}}</b>? This action cannot be undone.</p>
+      <p>Are you sure you want to delete <b>{{ data.name }}</b>? This action cannot be undone.</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button [mat-dialog-close]="false">Cancel</button>
@@ -19,6 +18,5 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
   imports: [MatDialogModule, MatButtonModule],
 })
 export class Confirmdeletedialog {
-  // Inject the data passed from the open() call
-  data = inject(MAT_DIALOG_DATA);
+  data = inject<{ name: string }>(MAT_DIALOG_DATA);
 }

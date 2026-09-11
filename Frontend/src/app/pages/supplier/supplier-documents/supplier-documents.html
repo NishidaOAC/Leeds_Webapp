@@ -18,30 +18,47 @@
       <div class="avatar-badge">{{ supplierData.name.charAt(0) | uppercase }}</div>
       <div class="identity-details">
         <h2 class="supplier-title">{{ supplierData.name }}</h2>
-        <span class="supplier-code">{{ supplierData.internalSupplierNumber }}</span>
+        <div class="sub-identity">
+          <span class="supplier-code">{{ supplierData.internalSupplierNumber || 'N/A' }}</span>
+          <span class="supplier-email" *ngIf="supplierData.email">✉️ {{ supplierData.email }}</span>
+        </div>
       </div>
     </div>
 
     <div class="metrics-grid">
-<ng-container *ngIf="!supplierData?.hasQualityCert">
-    <div class="metric-item">
-      <span class="metric-label">PURCHASE ORDER</span>
-      <span class="metric-value">{{ supplierData?.poNumber || 'N/A' }}</span>
-    </div>
+      <!-- ONBOARDING STATUS BADGE -->
+      <div class="metric-item">
+        <span class="metric-label">ONBOARDING TYPE</span>
+        <span class="badge-pill onboard-badge">
+          {{ supplierData.OnboardingStatus?.label || supplierData.OnboardingStatus?.code || '—' }}
+        </span>
+      </div>
 
-    <div class="metric-item">
-      <span class="metric-label">PO DATE</span>
-      <span class="metric-value">
-        {{ supplierData?.poDate ? (supplierData.poDate | date:'dd MMM yyyy') : '—' }}
-      </span>
-    </div>
-  </ng-container>
+      <!-- PURCHASE ORDER METRICS -->
+      <ng-container *ngIf="!supplierData?.hasQualityCert">
+        <div class="metric-item">
+          <span class="metric-label">PURCHASE ORDER</span>
+          <span class="metric-value">{{ supplierData?.poNumber || 'N/A' }}</span>
+        </div>
+
+        <div class="metric-item">
+          <span class="metric-label">PO DATE</span>
+          <span class="metric-value">
+            {{ supplierData?.poDate ? (supplierData.poDate | date:'dd MMM yyyy') : '—' }}
+          </span>
+        </div>
+      </ng-container>
 
       <div class="metric-item">
         <span class="metric-label">EXPIRY DATE</span>
         <span class="metric-value" [class.text-danger]="isNearExpiry(supplierData.expiryDate)">
           {{ supplierData.expiryDate ? (supplierData.expiryDate | date:'dd MMM yyyy') : '—' }}
         </span>
+      </div>
+
+      <div class="metric-item">
+        <span class="metric-label">CURRENT REVIEWER</span>
+        <span class="metric-value">{{ supplierData.currentReviewer || '—' }}</span>
       </div>
 
       <div class="metric-item">
@@ -60,6 +77,20 @@
     </div>
 
     <ng-container *ngIf="!loading">
+      <!-- Certifications Section -->
+      <div class="certifications-section" *ngIf="supplierData?.certifications?.length > 0">
+        <div class="section-header-group">
+          <h3 class="section-subtitle">Accreditations & Certifications</h3>
+          <p class="section-hint">Active certifications assigned to this supplier account.</p>
+        </div>
+        <div class="cert-chips">
+          <span class="cert-chip" *ngFor="let cert of supplierData.certifications">
+            🏷️ {{ cert.type || cert }}
+          </span>
+        </div>
+        <hr class="section-divider">
+      </div>
+
       <!-- Trade References Section -->
       <div class="trade-refs-section-wrapper" *ngIf="supplierData?.tradeReferences?.length > 0">
         <div class="section-header-group">

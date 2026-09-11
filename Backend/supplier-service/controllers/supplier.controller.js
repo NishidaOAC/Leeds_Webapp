@@ -224,6 +224,30 @@ exports.getQualifiedSuppliers = async (req, res) => {
     }
 };
 
+
+
+
+// Fetch single supplier by ID (including Documents and OnboardStatus)
+exports.getSupplierById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const supplier = await Supplier.findByPk(id, {
+            include: [
+                { model: SupplierDocument, as: 'Documents' },
+                { model: OnboardingStatus, as: 'OnboardingStatus' }
+            ]
+        });
+
+        if (!supplier) {
+            return res.status(404).json({ message: "Supplier not found" });
+        }
+
+        return res.status(200).json(supplier);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
 exports.updateSupplier = async (req, res) => {
     const { id } = req.params;
     const transaction = await sequelize.transaction();

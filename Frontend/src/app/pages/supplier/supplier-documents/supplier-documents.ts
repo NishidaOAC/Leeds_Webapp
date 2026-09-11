@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SupplierService } from '../services/supplier.service';
+import { MatDialog } from '@angular/material/dialog';
+import { Confirmdeletedialog } from '../../common/confirmdeletedialog/confirmdeletedialog';
 
 export interface Document {
   id: string;
@@ -124,30 +126,37 @@ previewDoc(documentId: string, fileName: string) {
   });
 }
 
-
+private dialog = inject(MatDialog);
 deleteDocument(docId: number | string): void {
-    // 1. Ask the user for confirmation
-    const confirmDelete = confirm('Are you sure you want to delete this document? This action cannot be undone.');
-    
-    if (confirmDelete) {
-      this.loading = true; // Show loading spinner while deleting
+    // Find document name for the dialog text display
+    const docToDelete = this.documents.find(doc => doc.id === docId);
+    const fileName = docToDelete ? docToDelete.fileName : 'this document';
 
-      this.supplierService.deleteSupplierDocument(docId).subscribe({
-        next: (response) => {
-          // 2. Remove the deleted document from the local array UI display list instantly
-          this.documents = this.documents.filter(doc => doc.id !== docId);
-          this.loading = false;
-          alert('Document deleted successfully.');
-        },
-        error: (error) => {
-          this.loading = false;
-          console.error('Error deleting document:', error);
-          alert('Failed to delete document. Please try again.');
-        }
-      });
-    }
+    // 1. Open Material Dialog
+    const dialogRef = this.dialog.open(Confirmdeletedialog, {
+      width: '400px',
+      data: { name: fileName }
+    });
+
+    // 2. Listen to user response
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.loading = true;
+
+        this.supplierService.deleteSupplierDocument(docId).subscribe({
+          next: () => {
+            // Remove deleted item from local array
+            this.documents = this.documents.filter(doc => doc.id !== docId);
+            this.loading = false;
+          },
+          error: (error) => {
+            this.loading = false;
+            console.error('Error deleting document:', error);
+          }
+        });
+      }
+    });
   }
-
   
   previewDocy(docId: string, fileName: string): void {
     this.supplierService.viewDocument(docId).subscribe({

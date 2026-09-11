@@ -43,6 +43,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
     .entity-identity {
@@ -51,12 +53,12 @@
       gap: 12px;
 
       .avatar-badge {
-        width: 42px;
-        height: 42px;
+        width: 46px;
+        height: 46px;
         border-radius: 8px;
         background: #eff6ff;
         color: #2563eb;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 800;
         display: flex;
         align-items: center;
@@ -66,24 +68,37 @@
 
       .identity-details {
         .supplier-title { margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; }
-        .supplier-code {
-          display: inline-block;
-          margin-top: 2px;
-          background: #f1f5f9;
-          color: #475569;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 1px 6px;
-          border-radius: 4px;
-          border: 1px solid #e2e8f0;
+        
+        .sub-identity {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 3px;
+
+          .supplier-code {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+          }
+
+          .supplier-email {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+          }
         }
       }
     }
 
     .metrics-grid {
       display: flex;
-      gap: 28px;
+      gap: 24px;
       align-items: center;
+      flex-wrap: wrap;
 
       .metric-item {
         display: flex;
@@ -102,6 +117,16 @@
           font-weight: 600;
           color: #1e293b;
           &.text-danger { color: #dc2626; }
+        }
+
+        .badge-pill.onboard-badge {
+          font-size: 11px;
+          font-weight: 700;
+          padding: 2px 10px;
+          border-radius: 12px;
+          background: #e0f2fe;
+          color: #0369a1;
+          border: 1px solid #bae6fd;
         }
 
         .status-pill {
@@ -127,7 +152,27 @@
   }
 }
 
-/* --- Fixed Trade Reference Alignment --- */
+/* --- Certifications Styling --- */
+.certifications-section {
+  margin-bottom: 20px;
+  .cert-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    .cert-chip {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+  }
+}
+
+/* --- Trade References Alignment --- */
 .trade-refs-section-wrapper {
   margin-bottom: 24px;
   
@@ -192,7 +237,7 @@
   }
 }
 
-/* --- Fixed Compliance Documents Grid Alignment --- */
+/* --- Compliance Documents Grid Alignment --- */
 .doc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

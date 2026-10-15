@@ -1,8 +1,8 @@
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { HttpInterceptorFn } from "@angular/common/http";
+import { inject } from "@angular/core";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { Router } from "@angular/router";
+import { catchError, throwError } from "rxjs";
 
 export const TokenInterceptor: HttpInterceptorFn = (req, next) => {
   const snackBar = inject(MatSnackBar);
@@ -21,18 +21,18 @@ export const TokenInterceptor: HttpInterceptorFn = (req, next) => {
           ? 'Server is unreachable'
           : `Error ${error.status}: ${error.statusText}`);
 
-          snackBar.open(message, 'Close', {
-            duration: 4000,
-            horizontalPosition: 'center', // ✅ center horizontally
-            verticalPosition: 'top', // we'll override this via CSS
-            panelClass: ['snackbar-error', 'snackbar-center'], // ✅ add new class
-          });
+      snackBar.open(message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-error', 'snackbar-center'],
+      });
 
-
-      // if (error.status === 401) {
-      //   localStorage.clear();
-      //   router.navigate(['/login']);
-      // }
+      // Handle Token Expiry & Unauthorized Access Automatically
+      if (error.status === 401) {
+        localStorage.clear();
+        router.navigate(['/login']);
+      }
 
       return throwError(() => error);
     })

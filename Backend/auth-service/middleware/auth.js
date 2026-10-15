@@ -1,9 +1,12 @@
 const jwt = require('jsonwebtoken');
+// Session ടെബിൾ പ്രശ്നം ഒഴിവാക്കാൻ User മാത്രം ഇമ്പോർട്ട് ചെയ്യുന്നു
 const { User } = require('../models');
+
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+
     if (!token) {
       return res.status(401).json({ 
         success: false, 
@@ -11,15 +14,17 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Check if user exists and is active
+    // 1. Strict Algorithm Validation (Token Tampering & Alg NONE Guard)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+
+    // 2. Check if user exists and is active
     const user = await User.findOne({
       where: { 
         id: decoded.id, 
         isActive: true 
       }
     });
+
     if (!user) {
       return res.status(401).json({ 
         success: false, 
@@ -27,7 +32,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Attach user to request
+    // Attach user payload safely
     req.user = {
       id: user.id,
       email: user.email,
@@ -56,9 +61,7 @@ const authenticateToken = async (req, res, next) => {
       message: error.message || 'Authentication failed'
     });
   }
-
 };
-
 
 const authorizeRole = (...roles) => {
   return (req, res, next) => {

@@ -6,8 +6,12 @@ const OnboardingStatus = require('../models/OnboardingStatus.js');
 const moment = require('moment');
 const { Op } = require('sequelize');
 const { initExpiryJob, checkExpiringSuppliers } = require('./expiryNotifier.job');
+const path = require('path');
 
 
+
+// Ensure 'path' module is imported at the top of supplierController.js
+// const path = require('path');
 
 exports.onboardSupplier = async (req, res) => {
     const transaction = await sequelize.transaction();
@@ -80,11 +84,15 @@ exports.onboardSupplier = async (req, res) => {
         // --- 1. Evaluation Document (SAF) ---
         if (req.files && req.files.evaluationDoc) {
             const file = req.files.evaluationDoc[0];
+
+            // SECURITY FIX: Strip path traversal characters (../) and illegal symbols
+            const sanitizedFileName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '');
+
             const uploadResult = await s3Service.uploadToS3(file, internalNo);
 
             documentRecords.push({
                 documentType: 'SAF',
-                fileName: file.originalname,
+                fileName: sanitizedFileName, // Saved with sanitized filename
                 fileUrl: uploadResult.s3Key,
                 s3Key: uploadResult.s3Key,
                 status: 'ACTIVE'
@@ -99,6 +107,10 @@ exports.onboardSupplier = async (req, res) => {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 const customName = names[i] || `Cert_${i + 1}`;
+
+                // SECURITY FIX: Sanitize original filename for each quality document
+                const sanitizedFileName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '');
+
                 const uploadResult = await s3Service.uploadToS3(file, internalNo);
 
                 documentRecords.push({
@@ -111,7 +123,7 @@ exports.onboardSupplier = async (req, res) => {
 
                 certsJsonData.push({
                     type: customName,
-                    fileName: file.originalname,
+                    fileName: sanitizedFileName, // Saved with sanitized filename
                     s3Key: uploadResult.s3Key
                 });
             }
@@ -125,6 +137,10 @@ exports.onboardSupplier = async (req, res) => {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 const customDescription = descriptions[i] || `Support_Doc_${i + 1}`;
+
+                // SECURITY FIX: Sanitize original filename for each support document
+                const sanitizedFileName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '');
+
                 const uploadResult = await s3Service.uploadToS3(file, internalNo);
 
                 documentRecords.push({
@@ -137,7 +153,7 @@ exports.onboardSupplier = async (req, res) => {
 
                 supportDocsJsonData.push({
                     description: customDescription,
-                    fileName: file.originalname,
+                    fileName: sanitizedFileName, // Saved with sanitized filename
                     s3Key: uploadResult.s3Key,
                     uploadedAt: new Date()
                 });
@@ -231,6 +247,9 @@ exports.getQualifiedSuppliers = async (req, res) => {
 exports.getSupplierById = async (req, res) => {
     try {
         const { id } = req.params;
+        const currentUserId = req.user?.id;
+        const currentUserPower = req.user?.power; 
+
         const supplier = await Supplier.findByPk(id, {
             include: [
                 { model: SupplierDocument, as: 'Documents' },
@@ -240,6 +259,20 @@ exports.getSupplierById = async (req, res) => {
 
         if (!supplier) {
             return res.status(404).json({ message: "Supplier not found" });
+        }
+
+        
+        const isAuthorizedAdmin = ['QualityAdmin', 'Admin', 'SuperAdmin'].includes(currentUserPower);
+
+        
+        const isOwner = supplier.userId === currentUserId || supplier.addedBy === currentUserId;
+
+       
+        if (!isAuthorizedAdmin && !isOwner) {
+            return res.status(403).json({
+                success: false,
+                message: "Security Alert: Access Denied. You do not have permission to view this supplier's data."
+            });
         }
 
         return res.status(200).json(supplier);

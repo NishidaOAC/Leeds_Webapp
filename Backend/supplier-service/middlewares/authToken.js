@@ -1,3 +1,4 @@
+// supplier-service/middlewares/authToken.js
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 
@@ -13,9 +14,9 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Option A: Verify locally and fetch user from auth service
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+    // Verify locally first
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+
     // Call auth service to get user details
     const response = await axios.get(`${process.env.AUTH_SERVICE_URL}/validate`, {
       headers: {
@@ -30,29 +31,30 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    req.user = response.data.user;
+    const fetchedUser = response.data.user;
+
+    // 👈 HIGHLIGHTED FIX: Extract power from response OR fall back to decoded token
+    req.user = {
+      ...fetchedUser,
+      power: fetchedUser.power || (fetchedUser.Role ? fetchedUser.Role.power : decoded.power) || 'QualityAdmin',
+      roleName: fetchedUser.role || fetchedUser.roleName || (fetchedUser.Role ? fetchedUser.Role.roleName : decoded.roleName)
+    };
+
     next();
 
   } catch (error) {
     console.error('Auth Middleware Error:', error);
 
     if (error.response) {
-      // Auth service returned an error
       return res.status(error.response.status).json(error.response.data);
     }
 
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token expired'
-      });
+      return res.status(401).json({ success: false, message: 'Token expired' });
     }
 
     if (error.name === 'JsonWebTokenError') {
-      return res.status(403).json({
-        success: false,
-        message: 'Invalid token'
-      });
+      return res.status(403).json({ success: false, message: 'Invalid token' });
     }
 
     return res.status(500).json({

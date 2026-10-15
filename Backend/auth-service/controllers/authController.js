@@ -196,120 +196,111 @@ class AuthController {
   }
 
   // Login user
-  static async login(req, res) {
-    try {
-      const { isValid, errors, data } = authValidation.validate(
-        authValidation.loginValidation,
-        req.body
-      );
-      if (!isValid) {
-        return res.status(400).json({
-          success: false,
-          errors
-        });
-      }
-      console.log(data, "1111111111111");
+ static async login(req, res) {
+  try {
+    const { isValid, errors, data } = authValidation.validate(
+      authValidation.loginValidation,
+      req.body
+    );
+    if (!isValid) {
+      return res.status(400).json({ success: false, errors });
+    }
 
-      // Find user
-      const user = await User.findOne({
-        where: { empNo: data.empNo },
-        include: [{ model: Role, as: 'Role' }] // Ensure 'Role' matches your association alias
-      });
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid username'
-        });
-      }
-      console.log(user);
+    // 1. Find user with associated Role
+    const user = await User.findOne({
+      where: { empNo: data.empNo },
+      include: [{ model: Role, as: 'Role' }]
+    });
 
-      // Check if account is locked
-      if (user.failedLoginAttempts >= (process.env.PASSWORD_MAX_ATTEMPTS || 5)) {
-        const lockoutTime = parseInt(process.env.PASSWORD_LOCKOUT_TIME) || 900000;
-        const timeSinceLastAttempt = new Date() - user.updatedAt;
-
-        if (timeSinceLastAttempt < lockoutTime) {
-          return res.status(423).json({
-            success: false,
-            message: 'Account is locked. Try again later.'
-          });
-        } else {
-          // Reset failed attempts after lockout period
-          await user.update({ failedLoginAttempts: 0 });
-        }
-      }
-
-      // Check password
-      const isPasswordValid = await user.comparePassword(data.password);
-
-      if (!isPasswordValid) {
-        // Increment failed attempts
-        await user.increment('failedLoginAttempts');
-
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid password'
-        });
-      }
-
-      // Reset failed attempts on successful login
-      await user.update({
-        failedLoginAttempts: 0,
-        lastLogin: new Date()
-      });
-
-      // Generate tokens
-      const token = user.generateToken();
-
-      const refreshToken = user.generateRefreshToken();
-
-      // Create session
-      // await Session.create({
-      //   userId: user.id,
-      //   token,
-      //   refreshToken,
-      //   expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      //   deviceInfo: req.headers['user-agent'],
-      //   ipAddress: req.ip
-      // });
-
-      // Get user role
-      const role = await Role.findByPk(user.roleId);
-
-      // Remove password from response
-      const userResponse = user.toJSON();
-      delete userResponse.password;
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: {
-            ...userResponse,
-            role: role ? role.roleName : 'User',
-            power: role ? role.power : 'Admin'
-          },
-          token,
-          refreshToken
-        }
-      });
-
-    } catch (error) {
-      res.status(500).json({
+    if (!user) {
+      return res.status(401).json({
         success: false,
-        message: 'Login failed',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: 'Invalid employee number or password'
       });
     }
-  }
 
-  // Logout user
-  static async logout(req, res) {
+    // 2. Check if account is locked using lockoutUntil
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      const remainingMinutes = Math.ceil((user.lockoutUntil - new Date()) / 60000);
+      return res.status(423).json({
+        success: false,
+        message: `Account is temporarily locked. Please try again in ${remainingMinutes} minute(s).`
+      });
+    }
+
+    // 3. Compare Password
+    const isPasswordValid = await user.comparePassword(data.password);
+
+    if (!isPasswordValid) {
+      const maxAttempts = parseInt(process.env.PASSWORD_MAX_ATTEMPTS) || 5;
+      const lockoutDurationMs = parseInt(process.env.PASSWORD_LOCKOUT_TIME) || 900000; 
+
+      const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+      let updateData = { failedLoginAttempts: newFailedAttempts };
+
+      // Set lockout window if threshold reached
+      if (newFailedAttempts >= maxAttempts) {
+        updateData.lockoutUntil = new Date(Date.now() + lockoutDurationMs);
+      }
+
+      await user.update(updateData);
+
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid employee number or password'
+      });
+    }
+
+    // 4. Reset lockout state on successful login
+    await user.update({
+      failedLoginAttempts: 0,
+      lockoutUntil: null,
+      lastLogin: new Date()
+    });
+
+    // 5. Generate tokens
+    const token = user.generateToken();
+    const refreshToken = user.generateRefreshToken();
+
+    // 6. Role and Power handling (Matching Frontend Expectations)
+    const role = user.Role || await Role.findByPk(user.roleId);
+
+    const userResponse = user.toJSON();
+    delete userResponse.password;
+
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          ...userResponse,
+          Role: role, // Keep full Role object for frontend permission checks
+          role: role ? role.roleName : 'User',
+          power: role ? role.power : 'Admin' // Restore power property for Sidenav rendering
+        },
+        token,
+        refreshToken
+      }
+    });
+
+  } catch (error) {
+    console.error('Login Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+}
+
+  
+
+static async logout(req, res) {
     try {
       const token = req.headers['authorization']?.split(' ')[1];
 
       if (token) {
-        // Invalidate session
+        // Invalidate session in DB
         await Session.update(
           { isActive: false },
           { where: { token } }

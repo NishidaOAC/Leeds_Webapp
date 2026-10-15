@@ -3,20 +3,19 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { jwtDecode } from 'jwt-decode'; // <--- Add this line at the top
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private url =`${environment.apiUrl}/auth`; // API Gateway URL
-  // private url ='http://localhost:3001'
-  
+  private url = `${environment.apiUrl}/auth`; // API Gateway URL
+
   constructor(private http: HttpClient) {}
 
   login(credentials: any): Observable<any> {
     return this.http.post<any>(`${this.url}/login`, credentials).pipe(
-      catchError(err => {
+      catchError((err) => {
         this.showError(err.error?.message || 'Login failed');
         return throwError(() => err);
       })
@@ -25,22 +24,20 @@ export class AuthService {
 
   requestPasswordReset(identifier: string): Observable<any> {
     return this.http.post<any>(`${this.url}/forgot-password`, { empNo: identifier }).pipe(
-      catchError(err => {
+      catchError((err) => {
         this.showError(err.error?.message || 'Password reset request failed');
         return throwError(() => err);
       })
     );
   }
 
-  // Alternative method if you want to keep userName parameter
   loginWithUsername(username: string, password: string): Observable<any> {
-    // Check if username is an email
     const isEmail = this.isValidEmail(username);
-    
-    const credentials = isEmail 
+
+    const credentials = isEmail
       ? { email: username, password }
-      : { username: username, password }; // If you want to support username login
-    
+      : { username: username, password };
+
     return this.login(credentials);
   }
 
@@ -56,23 +53,32 @@ export class AuthService {
   }
 
   private showError(message: string) {
-    alert(message); // Or use a toast service
+    alert(message);
   }
 
-  // Other methods...
   register(userData: any): Observable<any> {
     return this.http.post(`${this.url}/register`, userData).pipe(
-      catchError(err => {
+      catchError((err) => {
         this.showError(err.error?.message || 'Registration failed');
         return throwError(() => err);
       })
     );
   }
 
+  // 👈 HIGHLIGHTED CHANGE 1: Complete Client & Server Session Destruction on Logout
   logout(): void {
-    // localStorage.removeItem('token');
-    // localStorage.removeItem('refreshToken');
-    // localStorage.removeItem('user');
+    // Dispatch session invalidation request to backend API
+    this.http.post(`${this.url}/logout`, {}).subscribe({
+      next: () => this.clearLocalStorage(),
+      error: () => this.clearLocalStorage() // Clear local tokens even if network fails
+    });
+  }
+
+  // 👈 HIGHLIGHTED CHANGE 2: Helper method to safely clear local credentials
+  clearLocalStorage(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
   }
 
   getToken(): string | null {
@@ -88,12 +94,11 @@ export class AuthService {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   }
-  
+
   getUserPower(): string | null {
     const user = this.getCurrentUser();
     return user && user.power ? user.power : null;
   }
-
 
   getUser(): any {
     const token = localStorage.getItem('token');
@@ -104,22 +109,18 @@ export class AuthService {
     }
   }
 
-  // Gets user object saved during login
   getStoredUser(): any {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   }
 
   getRole(): string {
-    // 1. Try getting roleName from JWT Token
     const tokenUser = this.getUser();
     if (tokenUser?.roleName) {
       return tokenUser.roleName;
     }
 
-    // 2. Fallback: Read role from saved user object in LocalStorage
     const storedUser = this.getStoredUser();
     return storedUser?.role || storedUser?.roleName || '';
   }
-
 }

@@ -23,6 +23,7 @@ SET row_security = off;
 
 CREATE TYPE public.enum_roles_power AS ENUM (
     'Admin',
+    'QualityAdmin',
     'SalesExecutive',
     'KAM',
     'Manager',
@@ -787,7 +788,8 @@ CREATE TABLE public.users (
     "resetPasswordToken" character varying(255),
     "resetPasswordExpires" timestamp with time zone,
     "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL
+    "updatedAt" timestamp with time zone NOT NULL,
+    "lockoutUntil" timestamp with time zone
 );
 
 
@@ -954,6 +956,7 @@ COPY public."Promotions" (id, "userId", "oldDesignationId", "designationId", "pr
 --
 
 COPY public."Team" (id, "teamName", "createdAt", "updatedAt") FROM stdin;
+1	AFRICA	2026-07-22 15:46:56.639+05:30	2026-07-22 15:46:56.639+05:30
 \.
 
 
@@ -962,6 +965,7 @@ COPY public."Team" (id, "teamName", "createdAt", "updatedAt") FROM stdin;
 --
 
 COPY public."TeamLeader" (id, "teamId", "userId", "createdAt", "updatedAt") FROM stdin;
+1	1	10	2026-07-22 15:46:56.66+05:30	2026-07-22 15:46:56.66+05:30
 \.
 
 
@@ -970,6 +974,7 @@ COPY public."TeamLeader" (id, "teamId", "userId", "createdAt", "updatedAt") FROM
 --
 
 COPY public."TeamMember" (id, "teamId", "userId", "createdAt", "updatedAt") FROM stdin;
+1	1	7	2026-07-22 15:46:56.67+05:30	2026-07-22 15:46:56.67+05:30
 \.
 
 
@@ -998,6 +1003,80 @@ COPY public."leaveType" (id, "leaveTypeName", "createdAt", "updatedAt") FROM std
 --
 
 COPY public.notification (id, "userId", message, "isRead", "createdAt", route) FROM stdin;
+1	6	New Payment Request Generated E-007 / po90	t	2026-07-29 16:38:04.737+05:30	\N
+2	6	New Payment Request Generated E-008 / p2	t	2026-07-29 17:45:35.841+05:30	\N
+3	6	New Payment Request Generated E-009 / 9o	t	2026-07-29 17:50:03.578+05:30	\N
+4	6	New Payment Request Generated E-010 / po	t	2026-07-31 13:24:40.963+05:30	\N
+5	6	New Payment Request Generated E-011 / po9	t	2026-07-31 13:52:49.864+05:30	\N
+6	6	New Payment Request Generated E-012 / PO12	t	2026-07-31 14:42:23.2+05:30	\N
+7	6	New Payment Request Generated E-013 / PO12	t	2026-07-31 15:07:37.204+05:30	\N
+8	6	New Payment Request Generated E-014 / po1	t	2026-08-07 10:12:58.051+05:30	\N
+9	6	New Payment Request Generated E-015 / PO12	t	2026-08-07 14:34:28.359+05:30	\N
+14	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	t	2026-08-18 13:07:09.512+05:30	\N
+10	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	t	2026-08-18 12:46:14.395+05:30	\N
+11	4	Supplier 'ttyyy' (LAD/AS/14) is expiring on 20-08-2026.	t	2026-08-18 12:46:14.42+05:30	\N
+20	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	t	2026-08-18 13:14:39.62+05:30	\N
+21	4	Supplier 'ttyyyhjj' (LAD/AS/14) is expiring on 20-08-2026.	t	2026-08-18 13:14:39.648+05:30	\N
+22	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	t	2026-08-18 13:14:39.667+05:30	\N
+23	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	t	2026-08-18 13:15:19.587+05:30	\N
+24	4	Supplier 'ttyyyhjj' (LAD/AS/14) is expiring on 20-08-2026.	t	2026-08-18 13:15:19.611+05:30	\N
+25	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	t	2026-08-18 13:15:19.632+05:30	\N
+26	4	Supplier 'dsfjkkk' (LAD/AS/13) is expiring on 22-08-2026.	t	2026-08-18 13:15:19.657+05:30	\N
+27	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	t	2026-08-18 13:16:19.063+05:30	\N
+28	4	Supplier 'ttyyyhjj' (LAD/AS/14) is expiring on 20-08-2026.	t	2026-08-18 13:16:19.082+05:30	\N
+29	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	t	2026-08-18 13:16:19.099+05:30	\N
+30	4	Supplier 'dsfjkkk' (LAD/AS/13) is expiring on 22-08-2026.	t	2026-08-18 13:16:19.12+05:30	\N
+31	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	t	2026-08-18 13:16:59.986+05:30	\N
+32	4	Supplier 'ttyyyhjj' (LAD/AS/14) is expiring on 20-08-2026.	t	2026-08-18 13:17:00.005+05:30	\N
+33	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	t	2026-08-18 13:17:00.031+05:30	\N
+34	4	Supplier 'dsfjkkk' (LAD/AS/13) is expiring on 21-08-2026.	t	2026-08-18 13:17:00.051+05:30	\N
+35	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	t	2026-08-18 13:23:47.894+05:30	\N
+36	4	Supplier 'ttyyyhjj' (LAD/AS/14) is expiring on 20-08-2026.	t	2026-08-18 13:23:47.919+05:30	\N
+37	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	t	2026-08-18 13:23:47.948+05:30	\N
+38	4	Supplier 'dsfjkkk' (LAD/AS/13) is expiring on 21-08-2026.	t	2026-08-18 13:23:47.978+05:30	\N
+39	4	Supplier 'czkl' (LAD/AS/12) is expiring on 20-08-2026.	t	2026-08-18 16:18:04.741+05:30	\N
+40	4	Supplier 'ytuuuu' (LAD/AS/15) is expiring on 19-08-2026.	f	2026-08-18 16:52:39.617+05:30	\N
+41	4	Supplier 'ttyyyhjj' (LAD/AS/14) is expiring on 20-08-2026.	f	2026-08-18 16:52:39.636+05:30	\N
+42	4	Supplier 'hjnmnm' (SUP-26-0002) has expired on 21-04-2026.	f	2026-08-18 16:52:39.653+05:30	\N
+43	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) is expiring on 20-08-2026.	f	2026-08-18 16:52:39.678+05:30	\N
+44	4	Supplier 'gcfbcxv' (LAD/AS/11) has expired on 17-06-2026.	f	2026-08-18 16:52:39.703+05:30	\N
+45	4	Supplier 'yuuuiokkm' (SUP-26-0001) has expired on 30-07-2026.	f	2026-08-18 16:52:39.723+05:30	\N
+46	4	Supplier 'sujkkj' (SUP-26-0007) has expired on 18-05-2026.	f	2026-08-18 16:52:39.751+05:30	\N
+47	4	Supplier 'dsfjkkk' (LAD/AS/13) is expiring on 21-08-2026.	f	2026-08-18 16:52:39.778+05:30	\N
+48	4	Supplier 'czkl' (LAD/AS/12) is expiring on 20-08-2026.	f	2026-08-18 16:52:39.808+05:30	\N
+49	4	Supplier 'fgfhfh' (LAD/AS/17) is expiring on 18-08-2027.	f	2026-08-18 17:15:25.911+05:30	\N
+50	4	Supplier 'fgfhfh' (LAD/AS/17) is expiring on 20-10-2026.	f	2026-10-12 11:16:18.234+05:30	\N
+51	4	Supplier 'fgfhfh' (LAD/AS/17) is expiring on 15-10-2026.	f	2026-10-12 11:16:52.54+05:30	\N
+52	4	Supplier 'ytuuuu' (LAD/AS/15) has expired on 19-08-2026.	f	2026-10-14 12:33:42.196+05:30	\N
+53	4	Supplier 'ttyyyhjj' (LAD/AS/14) has expired on 20-08-2026.	f	2026-10-14 12:33:42.231+05:30	\N
+54	4	Supplier 'hjnmnm' (SUP-26-0002) has expired on 21-04-2026.	f	2026-10-14 12:33:42.257+05:30	\N
+55	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) has expired on 20-08-2026.	f	2026-10-14 12:33:42.277+05:30	\N
+56	4	Supplier 'gcfbcxv' (LAD/AS/11) has expired on 17-06-2026.	f	2026-10-14 12:33:42.298+05:30	\N
+57	4	Supplier 'yuuuiokkm' (SUP-26-0001) has expired on 30-07-2026.	f	2026-10-14 12:33:42.317+05:30	\N
+58	4	Supplier 'sujkkj' (SUP-26-0007) has expired on 18-05-2026.	f	2026-10-14 12:33:42.338+05:30	\N
+59	4	Supplier 'czkl' (LAD/AS/12) has expired on 20-08-2026.	f	2026-10-14 12:33:42.36+05:30	\N
+60	4	Supplier 'dsfjkkk' (LAD/AS/13) has expired on 21-08-2026.	f	2026-10-14 12:33:42.384+05:30	\N
+61	4	Supplier 'fgfhfh' (LAD/AS/17) is expiring on 15-10-2026.	f	2026-10-14 12:33:42.408+05:30	\N
+62	4	Supplier 'ytuuuu' (LAD/AS/15) has expired on 19-08-2026.	f	2026-10-14 12:35:51.078+05:30	\N
+63	4	Supplier 'ttyyyhjj' (LAD/AS/14) has expired on 20-08-2026.	f	2026-10-14 12:35:51.096+05:30	\N
+64	4	Supplier 'hjnmnm' (SUP-26-0002) has expired on 21-04-2026.	f	2026-10-14 12:35:51.115+05:30	\N
+65	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) has expired on 20-08-2026.	f	2026-10-14 12:35:51.139+05:30	\N
+66	4	Supplier 'gcfbcxv' (LAD/AS/11) has expired on 17-06-2026.	f	2026-10-14 12:35:51.163+05:30	\N
+67	4	Supplier 'yuuuiokkm' (SUP-26-0001) has expired on 30-07-2026.	f	2026-10-14 12:35:51.187+05:30	\N
+68	4	Supplier 'sujkkj' (SUP-26-0007) has expired on 18-05-2026.	f	2026-10-14 12:35:51.211+05:30	\N
+69	4	Supplier 'czkl' (LAD/AS/12) has expired on 20-08-2026.	f	2026-10-14 12:35:51.238+05:30	\N
+70	4	Supplier 'dsfjkkk' (LAD/AS/13) has expired on 21-08-2026.	f	2026-10-14 12:35:51.275+05:30	\N
+71	4	Supplier 'fgfhfh' (LAD/AS/17) is expiring on 15-10-2026.	f	2026-10-14 12:35:51.307+05:30	\N
+72	4	Supplier 'ytuuuu' (LAD/AS/15) has expired on 19-08-2026.	f	2026-10-15 00:00:00.132+05:30	\N
+73	4	Supplier 'ttyyyhjj' (LAD/AS/14) has expired on 20-08-2026.	f	2026-10-15 00:00:00.163+05:30	\N
+74	4	Supplier 'hjnmnm' (SUP-26-0002) has expired on 21-04-2026.	f	2026-10-15 00:00:00.191+05:30	\N
+75	4	Supplier 'ddddddddddddddwws' (LAD/AS/16) has expired on 20-08-2026.	f	2026-10-15 00:00:00.217+05:30	\N
+76	4	Supplier 'gcfbcxv' (LAD/AS/11) has expired on 17-06-2026.	f	2026-10-15 00:00:00.238+05:30	\N
+77	4	Supplier 'yuuuiokkm' (SUP-26-0001) has expired on 30-07-2026.	f	2026-10-15 00:00:00.262+05:30	\N
+78	4	Supplier 'sujkkj' (SUP-26-0007) has expired on 18-05-2026.	f	2026-10-15 00:00:00.284+05:30	\N
+79	4	Supplier 'czkl' (LAD/AS/12) has expired on 20-08-2026.	f	2026-10-15 00:00:00.305+05:30	\N
+80	4	Supplier 'dsfjkkk' (LAD/AS/13) has expired on 21-08-2026.	f	2026-10-15 00:00:00.326+05:30	\N
+81	4	Supplier 'fgfhfh' (LAD/AS/17) is expiring on 15-10-2026.	f	2026-10-15 00:00:00.347+05:30	\N
 \.
 
 
@@ -1017,7 +1096,12 @@ COPY public.role (id, "roleName", abbreviation, status, department) FROM stdin;
 
 COPY public.roles (id, "roleName", abbreviation, power, description, permissions, "isActive", created_at, updated_at) FROM stdin;
 1	Super Administrator	SA	Admin	Has all permissions	["*"]	t	2026-03-09 12:28:07.873+05:30	2026-03-09 12:28:07.873+05:30
-2	Quality Super Administrator	QSA	Admin	Full access to quality and compliance modules	["QUALITY_ALL", "DOC_APPROVE", "AUDIT_ALL"]	t	2026-03-11 14:17:58.468+05:30	2026-03-11 14:17:58.468+05:30
+3	KEY ACCOUNT MANAGER	KAM	KAM	\N	[]	t	2026-07-22 15:35:13.39+05:30	2026-07-22 15:35:13.39+05:30
+4	TEAM LEAD	TL	SalesExecutive	\N	[]	t	2026-07-22 15:38:49.891+05:30	2026-07-22 15:38:49.891+05:30
+5	SALES ASSOCIATE	SE	SalesExecutive	\N	[]	t	2026-07-22 15:39:26.746+05:30	2026-07-22 15:39:26.746+05:30
+6	OPERATIONS MANAGER	AM	Manager	\N	[]	t	2026-07-22 15:39:58.08+05:30	2026-07-22 15:39:58.08+05:30
+7	FINANCE MANAGER	FM	Accountant	\N	[]	t	2026-07-22 15:40:32.602+05:30	2026-07-22 15:40:32.602+05:30
+2	Quality Super Administrator	QSA	QualityAdmin	Full access to quality and compliance modules	["QUALITY_ALL", "DOC_APPROVE", "AUDIT_ALL"]	t	2026-03-11 14:17:58.468+05:30	2026-07-22 15:56:56.284+05:30
 \.
 
 
@@ -1089,9 +1173,15 @@ COPY public.userdocument (id, "userId", "docName", "docUrl") FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: oac_softwares
 --
 
-COPY public.users (id, email, "personalEmail", password, name, "empNo", "roleId", "isActive", status, "approvedBy", "approvedAt", "lastLogin", "failedLoginAttempts", "passwordChangedAt", "resetPasswordToken", "resetPasswordExpires", "createdAt", "updatedAt") FROM stdin;
-3	superadmin@leedsaerospace.com	\N	$2b$10$1LFkT57NF4Q3zIpR.l6AmeWviej7pOd.YLd.SYp5dZZmdYudvQo0K	System Super Administrator	SA001	1	t	approved	\N	\N	\N	0	\N	\N	\N	2026-03-11 14:23:11.911+05:30	2026-03-11 14:23:11.911+05:30
-4	qualityadmin@leedsaerospace.com	\N	$2b$10$fzMLDlD.zQekR3hTyjP4seMnBZQve1uXypGm2PG/x4D3cPnvaOnA.	Quality Super Administrator	QSA001	2	t	approved	\N	\N	2026-06-22 11:32:34.745+05:30	0	\N	\N	\N	2026-03-11 14:23:11.925+05:30	2026-06-22 11:32:34.75+05:30
+COPY public.users (id, email, "personalEmail", password, name, "empNo", "roleId", "isActive", status, "approvedBy", "approvedAt", "lastLogin", "failedLoginAttempts", "passwordChangedAt", "resetPasswordToken", "resetPasswordExpires", "createdAt", "updatedAt", "lockoutUntil") FROM stdin;
+8	opemdummy@gmail.com	opemdummy@gmail.com	$2b$10$plCEvEmf67gMeL55Cq/Q4edqggWLYEEXeJ3EuE2YvMkuaDiNatyTa	OMempl	EMP003	6	t	approved	\N	\N	\N	0	2026-07-22 15:43:45.381+05:30	\N	\N	2026-07-22 15:43:45.382+05:30	2026-07-22 15:43:45.382+05:30	\N
+9	financeemail@gmail.com	financeemail@gmail.com	$2b$10$JiMNh5Y4p9oaWhhUNa29heUke23NlHksINvy6QeDk731I3S3Vba92	Finanaceemployee	EMP004	7	t	approved	\N	\N	\N	0	2026-07-22 15:44:47.09+05:30	\N	\N	2026-07-22 15:44:47.09+05:30	2026-07-22 15:44:47.09+05:30	\N
+10	tlemploye@gmail.com	tlemploye@gmail.com	$2b$10$8YK6imzS3MXyVCqiQ5fmpeFnERnJMSjaFoU2X1crotnIploob0JbW	TL employee	EMP005	4	t	approved	\N	\N	\N	0	2026-07-22 15:46:18.199+05:30	\N	\N	2026-07-22 15:46:18.201+05:30	2026-07-22 15:46:18.201+05:30	\N
+7	salesexecutivedummy@gmail.com	salesexecutivedummy@gmail.com	$2b$10$m63qSnZopcWK1YeGtCnfZeWp/7EHmQx4GGPoQq13Lj9AvsASLjYgS	Saleseexecutive	EMP002	5	t	approved	\N	\N	2026-08-07 14:48:53.879+05:30	0	2026-07-28 16:40:59.59+05:30	\N	\N	2026-07-22 15:42:02.649+05:30	2026-08-07 14:48:53.879+05:30	\N
+3	superadmin@leedsaerospace.com	\N	$2b$10$1LFkT57NF4Q3zIpR.l6AmeWviej7pOd.YLd.SYp5dZZmdYudvQo0K	System Super Administrator	SA001	1	t	approved	\N	\N	2026-08-07 14:49:29.589+05:30	0	\N	\N	\N	2026-03-11 14:23:11.911+05:30	2026-08-07 14:49:29.589+05:30	\N
+6	kamtestdummy@gmail.com	kamtestdummy@gmail.com	$2b$10$7X5JCzL0HjEaLB0GpCkNjetNxZu6a3fBP0wi0O/yTmwsHAHqOdRTq	KAM emplyee	EMP001	3	t	approved	\N	\N	2026-08-10 16:26:00.299+05:30	0	2026-07-22 15:36:54.233+05:30	\N	\N	2026-07-22 15:36:54.234+05:30	2026-08-10 16:26:00.299+05:30	\N
+5	empa@gmail.com	empa@gmail.com	$2b$10$ft2G0MhJ9C/98Ml2eYjNn.qb404rz/.t83pGFIMEHpaUwUYI0yO/q	empa	EMP01	1	t	approved	\N	\N	\N	0	2026-07-21 17:49:11.994+05:30	\N	\N	2026-07-21 17:49:11.995+05:30	2026-07-21 17:49:11.995+05:30	\N
+4	qualityadmin@leedsaerospace.com	\N	$2b$10$fzMLDlD.zQekR3hTyjP4seMnBZQve1uXypGm2PG/x4D3cPnvaOnA.	Quality Super Administrator	QSA001	2	t	approved	\N	\N	2026-10-14 15:16:06.491+05:30	0	\N	\N	\N	2026-03-11 14:23:11.925+05:30	2026-10-14 15:16:06.493+05:30	\N
 \.
 
 
@@ -1106,21 +1196,21 @@ SELECT pg_catalog.setval('public."Promotions_id_seq"', 1, false);
 -- Name: TeamLeader_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public."TeamLeader_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."TeamLeader_id_seq"', 1, true);
 
 
 --
 -- Name: TeamMember_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public."TeamMember_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."TeamMember_id_seq"', 1, true);
 
 
 --
 -- Name: Team_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public."Team_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."Team_id_seq"', 1, true);
 
 
 --
@@ -1141,7 +1231,7 @@ SELECT pg_catalog.setval('public."leaveType_id_seq"', 4, true);
 -- Name: notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public.notification_id_seq', 1, false);
+SELECT pg_catalog.setval('public.notification_id_seq', 81, true);
 
 
 --
@@ -1155,7 +1245,7 @@ SELECT pg_catalog.setval('public.role_id_seq', 2, true);
 -- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public.roles_id_seq', 2, true);
+SELECT pg_catalog.setval('public.roles_id_seq', 7, true);
 
 
 --
@@ -1218,7 +1308,7 @@ SELECT pg_catalog.setval('public.userdocument_id_seq', 1, false);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: oac_softwares
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 4, true);
+SELECT pg_catalog.setval('public.users_id_seq', 10, true);
 
 
 --

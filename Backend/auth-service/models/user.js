@@ -56,6 +56,10 @@ const User = sequelize.define('user', {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
+  lockoutUntil: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   passwordChangedAt: {
     type: DataTypes.DATE
   },

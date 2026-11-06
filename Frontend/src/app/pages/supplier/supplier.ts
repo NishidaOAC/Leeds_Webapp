@@ -19,6 +19,7 @@ export class Supplier implements OnInit {
   isListView: boolean = false;
   loading: boolean = false;
   isRareCase: boolean = false;
+    removeEvaluationDoc: boolean = false;
   supplierData: any;
 
   onboardingStatuses: any[] = [];
@@ -338,7 +339,17 @@ if (supplier.poDate && !isNaN(Date.parse(supplier.poDate))) {
 
   upload(event: any, type: 'EVAL') {
     const file = event.target.files[0];
-    if (file) this.form.evaluationFile = file;
+    if (file) {
+      this.form.evaluationFile = file;
+      this.removeEvaluationDoc = false;
+    }
+  }
+
+  clearEvaluation(input?: HTMLInputElement) {
+    if (this.form.currentEvaluationName) this.removeEvaluationDoc = true;
+    this.form.evaluationFile = null;
+    this.form.currentEvaluationName = '';
+    if (input) input.value = '';
   }
 
 

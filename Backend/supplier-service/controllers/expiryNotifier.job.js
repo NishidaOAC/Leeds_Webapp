@@ -6,8 +6,6 @@ const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const { Supplier } = require('../models');
 
-// Rest of your checkExpiringSuppliers function code...
-
 
 
 const checkExpiringSuppliers = async (targetSupplierId = null) => {
@@ -107,7 +105,7 @@ const checkExpiringSuppliers = async (targetSupplierId = null) => {
     console.log("==========================================");
 };
 
-// 🟢 FIXED CODE at the bottom of expiryNotifier.job.js:
+
 const initExpiryJob = () => {
     cron.schedule('0 0 * * *', () => checkExpiringSuppliers());
 };

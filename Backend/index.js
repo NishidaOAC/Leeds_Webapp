@@ -7,7 +7,7 @@ const { initScheduler } = require('./scheduler/backupTask');
 const app = express();
 app.use(cors({ origin: '*' }));
 app.use(cors({ 
-  origin: 'https://leeds.aeroassist.in', // 1. SPECIFIC URL (Mandatory for Login)
+  origin: 'https://leeds.aeroassist.in', 
   credentials: true 
 }));
 const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 });
 app.use('/api/auth', createProxyMiddleware({ target: AUTH_URL,  changeOrigin: true,
     pathRewrite: {
-      '^/api/auth': ''   // 🔥 REQUIRED
+      '^/api/auth': ''   
     }, timeout: 30000, proxyTimeout: 30000
   })
 );

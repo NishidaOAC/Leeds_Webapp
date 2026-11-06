@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-// 1. Helper function for HTML Sanitization (Prevents HTML Injection / Phishing)
+
 const sanitizeInput = (str) => {
   if (!str) return '';
   return String(str)
@@ -11,7 +11,7 @@ const sanitizeInput = (str) => {
     .replace(/'/g, '&#39;');
 };
 
-// A. Reusable template generator (Sanitized Data Injection)
+
 const buildCorporateTemplate = (supplierName, expiryDate) => {
   // Input Clean-up
   const cleanSupplierName = sanitizeInput(supplierName);
@@ -53,7 +53,7 @@ const buildCorporateTemplate = (supplierName, expiryDate) => {
     </div>`;
 };
 
-// B. ENDPOINT 1: Returns raw HTML string back to your Angular App for previewing
+
 exports.getEmailPreview = async (req, res) => {
   try {
     const { supplierName, expiryDate } = req.body;

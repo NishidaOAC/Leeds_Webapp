@@ -12,9 +12,7 @@ SupplierDocument.belongsTo(Supplier, {
   foreignKey: 'supplier_id' 
 });
 
-// 2. Onboarding Status Association (CLEANED UP)
-// Use ONE consistent definition. 
-// If your DB column is onboarding_status_id, use that for the foreignKey.
+
 Supplier.belongsTo(OnboardingStatus, { 
     foreignKey: 'onboarding_status_id', 
     as: 'OnboardingStatus' 

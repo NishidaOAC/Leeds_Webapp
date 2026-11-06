@@ -9,26 +9,23 @@ export const navItems: NavItem[] = [
     // 🟢 Quality allowed
     roles: ['Admin', 'QualityAdmin', 'Quality Super Administrator', 'Manager', 'user', 'superadministrator'] 
   },
-  {
-    displayName: 'Onboard Supplier',
-    iconName: 'person_add',
-    route: '/dashboard/supplier',
-    // 🟢 Quality allowed
-    roles: ['QualityAdmin', 'Quality Super Administrator']
-  },
-  {
-    displayName: 'Supplier Directory',
-    iconName: 'folder_shared',
-    route: '/dashboard/supplier/supplierlist',
-    // 🟢 Quality allowed
-    roles: ['QualityAdmin', 'Quality Super Administrator', 'Admin', 'Manager', 'SalesExecutive', 'KAM']
-  },
+{
+  displayName: 'Onboard Supplier',
+  iconName: 'add_business',
+  route: '/dashboard/supplier',
+  roles: ['QualityAdmin', 'Quality Super Administrator']
+},
+{
+  displayName: 'Supplier Directory',
+  iconName: 'storefront',
+  route: '/dashboard/supplier/supplierlist',
+  roles: ['QualityAdmin', 'Quality Super Administrator', 'Admin', 'Manager', 'SalesExecutive', 'KAM']
+},
   {
     displayName: 'NewPayment',
     iconName: 'add_card',
     route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',
-    // 🔴 Quality removed
     roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM']
   },
   {
@@ -36,11 +33,10 @@ export const navItems: NavItem[] = [
     iconName: 'payments',
     route: '/dashboard/payments',
     bgcolor: 'primary',
-    // 🔴 Quality removed
     roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant']
   },
   {
-    displayName: 'Company',
+    displayName: 'Customer',
     iconName: 'business',
     route: '/dashboard/company',
     bgcolor: 'primary',

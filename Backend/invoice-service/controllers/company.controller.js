@@ -51,7 +51,7 @@ exports.getSuppliersWithQualification = async (req, res) => {
 
 exports.getCompanies = async (req, res) => {
   try {
-    let whereClause = {};
+    let whereClause = { customer: true };
     let limit;
     let offset;
 

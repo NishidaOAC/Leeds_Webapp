@@ -6,7 +6,7 @@ const SupplierDocument = sequelize.define('SupplierDocument', {
   supplierId: { 
     type: DataTypes.UUID, 
     allowNull: false,
-    field: 'supplier_id' // Maps JS supplierId to DB supplier_id
+    field: 'supplier_id' 
   },
   documentType: { 
     type: DataTypes.STRING, 
@@ -22,10 +22,10 @@ const SupplierDocument = sequelize.define('SupplierDocument', {
   },
   fileUrl: { 
     type: DataTypes.STRING, 
-    allowNull: false, // This was the failing column
-    field: 'file_url' // ESSENTIAL FIX
+    allowNull: false, 
+    field: 'file_url' 
   },
-  // Only do this if you want documents to have their own status
+  
 status: {
   type: DataTypes.STRING,
   defaultValue: 'ACTIVE'

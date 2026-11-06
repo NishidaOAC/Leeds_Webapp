@@ -103,8 +103,17 @@
             <small *ngIf="form.currentEvaluationName">Current: {{ form.currentEvaluationName }}</small>
             <small *ngIf="form.evaluationFile">{{ form.evaluationFile.name }}</small>
           </div>
-          <input type="file" (change)="upload($event, 'EVAL')" id="evalFile" hidden>
-          <label for="evalFile" class="btn-action">Upload</label>
+          <!-- <input type="file" (change)="upload($event, 'EVAL')" id="evalFile" hidden>
+          <label for="evalFile" class="btn-action">Upload</label> -->
+            <input #evalInput type="file" (change)="upload($event, 'EVAL')" id="evalFile" hidden>
+          <label for="evalFile" class="btn-action">
+            {{ (form.evaluationFile || form.currentEvaluationName) ? 'Replace' : 'Upload' }}
+          </label>
+          <button type="button" class="btn-action remove"
+            *ngIf="form.evaluationFile || form.currentEvaluationName"
+            (click)="clearEvaluation(evalInput)">
+            Delete
+          </button>
         </div>
       </div>
       <br>
@@ -134,6 +143,7 @@
             <ng-container *ngIf="!cert.file && !cert.currentFileName">
               <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
               <label [for]="'certFile' + i" class="btn-action upload">Upload</label>
+                      
             </ng-container>
 
             <button type="button" class="btn-action clear" (click)="clearCertFile(i)"

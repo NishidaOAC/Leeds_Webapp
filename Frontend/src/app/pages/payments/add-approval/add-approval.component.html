@@ -26,35 +26,9 @@
               <input matInput formControlName="piNo" readonly="true">
               <mat-icon matSuffix>tag</mat-icon>
             </mat-form-field>
-
             <!-- Supplier Section -->
-            @if(supplierCompanies) {
-            <!-- <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Supplier</mat-label>
-                <input matInput placeholder="Search Supplier" 
-                       formControlName="supplierName" 
-                       [matAutocomplete]="auto" 
-                       (keyup)="search($event,'sup')">
-                <mat-icon matPrefix>business</mat-icon>
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="patch($event.option.value,'sup')">
-                  <mat-option *ngFor="let suggestion of filteredOptions" [value]="suggestion">
-                    <div class="suggestion-item">
-                      <mat-icon>store</mat-icon>
-                      <span>{{ suggestion.companyName }}</span>
-                    </div>
-                  </mat-option>
-                  <mat-option *ngIf="filteredOptions.length === 0" [value]="'add'" (click)="add('sup')">
-                    <div class="add-new-option">
-                      <mat-icon>add_circle</mat-icon>
-                      <span>ADD NEW SUPPLIER</span>
-                    </div>
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field> -->
-            }
-
-            <!-- Supplier Section -->
-            <mat-form-field appearance="outline" class="form-field" *ngIf="supplierCompanies">
+            @if (supplierCompanies) {
+            <mat-form-field appearance="outline" class="form-field">
               <mat-label>Supplier</mat-label>
               <input matInput placeholder="Search Supplier" formControlName="supplierName" [matAutocomplete]="auto"
                 (keyup)="search($event, 'sup')">
@@ -62,22 +36,42 @@
 
               <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn"
                 (optionSelected)="patch($event.option.value, 'sup')">
-                <mat-option *ngFor="let item of filteredOptions" [value]="item">
-                  <div class="suggestion-item">
-                    <mat-icon>store</mat-icon>
-                    <span>{{ item.companyName }}</span>
-                  </div>
-                </mat-option>
 
-                <mat-option *ngIf="filteredOptions && filteredOptions.length === 0" value="add" (click)="add('sup')">
-                  <div class="add-new-option">
-                    <mat-icon>add_circle</mat-icon>
-                    <span>ADD NEW SUPPLIER</span>
+                @for (item of filteredOptions; track item.supplierProfileId || item.companyName) {
+                @let daysLeft = getRemainingDays(item.expiryDate);
+
+
+                <mat-option [value]="item" [disabled]="daysLeft <= 0">
+                  <div class="suggestion-item d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                      <mat-icon>store</mat-icon>
+                      <span>{{ item.companyName }}</span>
+                    </div>
+
+                    @if (item.expiryDate) {
+                    <div class="supplier-status-badge">
+
+                      @if (daysLeft > 0 && daysLeft <= 7) { <span class="badge bg-warning text-dark">
+                        ⚠️ Expiring in {{ daysLeft }} {{ daysLeft === 1 ? 'day' : 'days' }}
+                        </span>
+                        }
+
+                        @else if (daysLeft <= 0) { <span class="badge bg-danger">
+                          Expired ({{ item.expiryDate | date:'dd/MM/yyyy' }})
+                          </span>
+                          }
+
+                    </div>
+                    }
                   </div>
                 </mat-option>
+                } @empty {
+                <!-- Empty State -->
+                }
+
               </mat-autocomplete>
             </mat-form-field>
-
+            }
             <!-- Supplier Details -->
             <div class="field-group">
               <mat-form-field appearance="outline" class="form-field half-width">
@@ -157,7 +151,8 @@
                   [matAutocomplete]="autoCustomer" (keyup)="search($event,'cust')">
                 <mat-icon matPrefix>person</mat-icon>
                 <!-- <mat-autocomplete #autoCustomer="matAutocomplete" (optionSelected)="patch($event.option.value,'cust')"> -->
-                <mat-autocomplete #autoCustomer="matAutocomplete" [displayWith]="displayFn" (optionSelected)="patch($event.option.value,'cust')">
+                <mat-autocomplete #autoCustomer="matAutocomplete" [displayWith]="displayFn"
+                  (optionSelected)="patch($event.option.value,'cust')">
                   <mat-option *ngFor="let suggestion of filteredCustomers" [value]="suggestion">
                     <div class="suggestion-item">
                       <mat-icon>business_center</mat-icon>

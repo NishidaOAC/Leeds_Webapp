@@ -462,3 +462,44 @@
 ::ng-deep .mat-form-field-required-marker {
   color: #dc3545;
 }
+
+//-------------new suggestion style code starts
+
+// Custom AutoComplete Styles
+::ng-deep .mat-mdc-option {
+  .suggestion-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .bg-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+  }
+
+  .bg-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .bg-light {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #e9ecef;
+  }
+}
+
+//-------------new suggestion style code ends

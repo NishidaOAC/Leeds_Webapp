@@ -76,19 +76,38 @@ export class AddApprovalComponent {
 
   id!: number;
   supplierCompanies: Company[] = [];
-  public customerCompanies: Company[] = [];
-  public filteredOptions: Company[] = [];
-  public getSuppliers(): void {
+  public customerCompanies: any[] = [];
+  public filteredOptions: any[] = [];
+  public getSuppliersold(): void {
     this.companyService.getqualifiedSuppliers().subscribe((res: any) => {
     console.log(res);
       
      this.supplierCompanies = res.data || [];
     this.filteredOptions = this.supplierCompanies;
     });
-    // this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
-    //   this.supplierCompanies = suppliers;
-    //   this.filteredOptions = this.supplierCompanies
-    // });
+  }
+
+
+getRemainingDays(expiryDate: string): number {
+  if (!expiryDate) return 999; 
+  const formattedDate = expiryDate.trim().replace(/\s+/g, '-');
+  const exp = new Date(formattedDate);
+  
+  if (isNaN(exp.getTime())) return 999;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  exp.setHours(0, 0, 0, 0);
+
+  const diffTime = exp.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+  public getSuppliers(): void {
+    this.companyService.getqualifiedSuppliers().subscribe((res: any) => {
+      console.log(res);
+      this.supplierCompanies = res.data || [];
+      this.filteredOptions = this.supplierCompanies;
+    });
   }
 
 displayFn(item: any): string {

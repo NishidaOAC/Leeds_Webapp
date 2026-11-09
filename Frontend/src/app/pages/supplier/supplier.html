@@ -27,358 +27,434 @@
   </header>
 
   <main class="form-container shadow-xl">
-    <div *ngIf="step === 1" class="step-fade-in">
-      <h2 class="section-title">Supplier Identity</h2>
-      <div class="input-grid">
-        <div class="glass-input">
-          <label>Supplier Legal Name</label>
-          <input type="text" [(ngModel)]="form.name" placeholder="Enter Registered Name">
-        </div>
-        <div class="glass-input">
-          <label>Supplier Email</label>
-          <input type="email" [(ngModel)]="form.email" placeholder="Enter Email Address">
-        </div>
-      </div>
 
-      <div class="quality-gate">
-        <p class="gate-label">Quality Assessment Selection</p>
-        <div class="selector-cards">
-          <div class="card" [class.selected]="form.hasCert" (click)="setQualityStatus(true)">
-            <i class="bi bi-award"></i>
-            <div class="text">
-              <strong>Certified Supplier</strong>
-              <small></small>
+    <!-- ===================== STEP 1 ===================== -->
+    @if (step === 1) {
+      <div class="step-fade-in">
+        <h2 class="section-title">Supplier Identity</h2>
+        <div class="input-grid">
+          <div class="glass-input">
+            <label>Supplier Legal Name</label>
+            <input type="text" [(ngModel)]="form.name" placeholder="Enter Registered Name">
+          </div>
+          <div class="glass-input">
+            <label>Supplier Email</label>
+            <input type="email" [(ngModel)]="form.email" placeholder="Enter Email Address">
+          </div>
+        </div>
+
+        <div class="quality-gate">
+          <p class="gate-label">Quality Assessment Selection</p>
+          <div class="selector-cards">
+            <div class="card" [class.selected]="form.hasCert" (click)="setQualityStatus(true)">
+              <i class="bi bi-award"></i>
+              <div class="text">
+                <strong>Certified Supplier</strong>
+                <small></small>
+              </div>
+            </div>
+            <div class="card" [class.selected]="!form.hasCert" (click)="setQualityStatus(false)">
+              <i class="bi bi-exclamation-triangle"></i>
+              <div class="text">
+                <strong>Non-Certified Supplier</strong>
+                <small></small>
+              </div>
             </div>
           </div>
-          <div class="card" [class.selected]="!form.hasCert" (click)="setQualityStatus(false)">
-            <i class="bi bi-exclamation-triangle"></i>
-            <div class="text">
-              <strong>Non-Certified Supplier</strong>
-              <small></small>
+        </div>
+      </div>
+    }
+
+    <!-- ===================== STEP 2 ===================== -->
+    @if (step === 2) {
+      <div class="step-fade-in">
+        <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
+          <i class="bi" [class.bi-check-circle-fill]="form.hasCert"
+            [class.bi-exclamation-triangle-fill]="!form.hasCert"></i>
+          <span>Approval Type: <strong>{{ getSelectedStatusLabel() }}</strong></span>
+        </div>
+
+        @if (!form.hasCert) {
+          <div class="form-check form-switch rare-case-box mt-3">
+            <input class="form-check-input" type="checkbox" id="condSwitch" [(ngModel)]="isRareCase"
+              (change)="syncStatusLogic()">
+            <label class="form-check-label" for="condSwitch">
+              <strong>Rare Case: No Supplier Audit Form</strong>
+              <small>Bypass standard audit per internal policy</small>
+            </label>
+          </div>
+        }
+
+        <div class="info-horizontal-grid">
+          <div class="glass-input">
+            <label><i class="bi bi-calendar-event"></i> Expiry Date</label>
+            <input type="date" [(ngModel)]="form.expiryDate">
+          </div>
+
+          @if (!form.hasCert) {
+            <div class="glass-input">
+              <label><i class="bi bi-hash"></i> Target PO Number</label>
+              <input type="text" [(ngModel)]="form.poNumber" placeholder="Enter PO #">
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div *ngIf="step === 2" class="step-fade-in">
-      <div class="status-banner" [attr.data-type]="getSelectedStatusCode()">
-        <i class="bi" [ngClass]="form.hasCert ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
-        <span>Approval Type: <strong>{{ getSelectedStatusLabel() }}</strong></span>
-      </div>
-
-      <div class="form-check form-switch rare-case-box mt-3" *ngIf="!form.hasCert">
-        <input class="form-check-input" type="checkbox" id="condSwitch" [(ngModel)]="isRareCase"
-          (change)="syncStatusLogic()">
-        <label class="form-check-label" for="condSwitch">
-          <strong>Rare Case: No Supplier Audit Form</strong>
-          <small>Bypass standard audit per internal policy</small>
-        </label>
-      </div>
-
-      <div class="info-horizontal-grid">
-        <div class="glass-input">
-          <label><i class="bi bi-calendar-event"></i> Expiry Date</label>
-          <input type="date" [(ngModel)]="form.expiryDate">
+            <div class="glass-input">
+              <label><i class="bi bi-calendar-check"></i> PO Issue Date</label>
+              <input type="date" [(ngModel)]="form.poDate">
+            </div>
+          }
         </div>
 
-        <div class="glass-input" *ngIf="!form.hasCert">
-          <label><i class="bi bi-hash"></i> Target PO Number</label>
-          <input type="text" [(ngModel)]="form.poNumber" placeholder="Enter PO #">
-        </div>
+        <br>
 
-        <div class="glass-input" *ngIf="!form.hasCert">
-          <label><i class="bi bi-calendar-check"></i> PO Issue Date</label>
-          <input type="date" [(ngModel)]="form.poDate">
-        </div>
-      </div>
-
-      <br>
-
-      <div class="upload-grid mt-4">
-        <div class="upload-card" [class.done]="form.evaluationFile || form.currentEvaluationName">
-          <div class="icon"><i class="bi bi-file-earmark-pdf"></i></div>
-          <div class="info">
-            <strong>Supplier Audit Form</strong>
-            <small *ngIf="form.currentEvaluationName">Current: {{ form.currentEvaluationName }}</small>
-            <small *ngIf="form.evaluationFile">{{ form.evaluationFile.name }}</small>
-          </div>
-          <!-- <input type="file" (change)="upload($event, 'EVAL')" id="evalFile" hidden>
-          <label for="evalFile" class="btn-action">Upload</label> -->
+        <div class="upload-grid mt-4">
+          <div class="upload-card" [class.done]="form.evaluationFile || form.currentEvaluationName">
+            <div class="icon"><i class="bi bi-file-earmark-pdf"></i></div>
+            <div class="info">
+              <strong>Supplier Audit Form</strong>
+              @if (form.currentEvaluationName) {
+                <small>Current: {{ form.currentEvaluationName }}</small>
+              }
+              @if (form.evaluationFile) {
+                <small>{{ form.evaluationFile.name }}</small>
+              }
+            </div>
+            <!-- <input type="file" (change)="upload($event, 'EVAL')" id="evalFile" hidden>
+            <label for="evalFile" class="btn-action">Upload</label> -->
             <input #evalInput type="file" (change)="upload($event, 'EVAL')" id="evalFile" hidden>
-          <label for="evalFile" class="btn-action">
-            {{ (form.evaluationFile || form.currentEvaluationName) ? 'Replace' : 'Upload' }}
-          </label>
-          <button type="button" class="btn-action remove"
-            *ngIf="form.evaluationFile || form.currentEvaluationName"
-            (click)="clearEvaluation(evalInput)">
-            Delete
-          </button>
-        </div>
-      </div>
-      <br>
-
-      <div class="certification-area mt-4" *ngIf="form.hasCert">
-        <h3 class="section-subtitle mb-3">Aviation & Quality Certifications</h3>
-
-        <div *ngFor="let cert of form.additionalCerts; let i = index" class="cert-row animate-slide">
-          <div class="cert-type-sector">
-            <select class="form-select-clean" [(ngModel)]="cert.name">
-              <option value="" disabled selected>Select Type</option>
-              <option *ngFor="let opt of CERT_OPTIONS" [value]="opt">{{opt}}</option>
-            </select>
-          </div>
-
-          <div class="cert-file-sector">
-            <div *ngIf="cert.file || cert.currentFileName" class="file-display">
-              <i class="bi bi-file-earmark-check-fill text-success"></i>
-              <span class="file-name-text" [title]="cert.file ? cert.file.name : cert.currentFileName">
-                {{ cert.file ? cert.file.name : cert.currentFileName }}
-              </span>
-            </div>
-            <span *ngIf="!cert.file && !cert.currentFileName" class="text-pending">Pending upload...</span>
-          </div>
-
-          <div class="cert-action-sector">
-            <ng-container *ngIf="!cert.file && !cert.currentFileName">
-              <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
-              <label [for]="'certFile' + i" class="btn-action upload">Upload</label>
-                      
-            </ng-container>
-
-            <button type="button" class="btn-action clear" (click)="clearCertFile(i)"
-              *ngIf="cert.file || cert.currentFileName">
-              Clear
-            </button>
-
-            <button type="button" class="btn-action remove" (click)="removeCert(i)"
-              *ngIf="form.additionalCerts.length > 1">
-              Delete
-            </button>
+            <label for="evalFile" class="btn-action">
+              {{ (form.evaluationFile || form.currentEvaluationName) ? 'Replace' : 'Upload' }}
+            </label>
+            @if (form.evaluationFile || form.currentEvaluationName) {
+              <button type="button" class="btn-action remove" (click)="clearEvaluation(evalInput)">
+                Delete
+              </button>
+            }
           </div>
         </div>
+        <br>
 
-        <button type="button" class="btn-add-slot" (click)="addCertSlot()">
-          <i class="bi bi-plus-circle"></i> Add Certification
-        </button>
-      </div>
+        <!-- Certifications (Certified suppliers) -->
+        @if (form.hasCert) {
+          <div class="certification-area mt-4">
+            <h3 class="section-subtitle mb-3">Aviation & Quality Certifications</h3>
 
-      <div class="support-docs-section mt-4 animate-slide" *ngIf="!form.hasCert">
-        <h3 class="section-subtitle mb-3">Additional Support Documents</h3>
+            @for (cert of form.additionalCerts; track $index; let i = $index) {
+              <div class="cert-row animate-slide">
+                <div class="cert-type-sector">
+                  <select class="form-select-clean" [(ngModel)]="cert.name">
+                    <option value="" disabled selected>Select Type</option>
+                    @for (opt of CERT_OPTIONS; track opt) {
+                      <option [value]="opt">{{ opt }}</option>
+                    }
+                  </select>
+                </div>
 
-        <div *ngFor="let doc of form.supportDocs; let i = index" class="cert-row mb-2">
-          <div class="cert-type-sector">
-            <input type="text" class="form-control-clean" [(ngModel)]="doc.description"
-              placeholder="e.g., One-time approval Letter">
-          </div>
+                <div class="cert-file-sector">
+                  @if (cert.file || cert.currentFileName) {
+                    <div class="file-display">
+                      <i class="bi bi-file-earmark-check-fill text-success"></i>
+                      <span class="file-name-text" [title]="cert.file ? cert.file.name : cert.currentFileName">
+                        {{ cert.file ? cert.file.name : cert.currentFileName }}
+                      </span>
+                    </div>
+                  }
+                  @if (!cert.file && !cert.currentFileName) {
+                    <span class="text-pending">Pending upload...</span>
+                  }
+                </div>
 
-          <div class="cert-file-sector">
-            <div *ngIf="doc.file || doc.currentFileName" class="file-display">
-              <i class="bi bi-file-earmark-check-fill text-info"></i>
-              <span class="file-name-text" [title]="doc.file ? doc.file.name : doc.currentFileName">
-                {{ doc.file ? doc.file.name : doc.currentFileName }}
-              </span>
-            </div>
-            <span *ngIf="!doc.file && !doc.currentFileName" class="text-pending">Pending upload...</span>
-          </div>
+                <div class="cert-action-sector">
+                  @if (!cert.file && !cert.currentFileName) {
+                    <input type="file" (change)="uploadCert($event, i)" [id]="'certFile' + i" hidden>
+                    <label [for]="'certFile' + i" class="btn-action upload">Upload</label>
+                  }
 
-          <div class="cert-action-sector">
-            <ng-container *ngIf="!doc.file && !doc.currentFileName">
-              <input type="file" (change)="uploadSupportDoc($event, i)" [id]="'supportDocFile' + i" hidden>
-              <label [for]="'supportDocFile' + i" class="btn-action upload">UPLOAD</label>
-            </ng-container>
+                  @if (cert.file || cert.currentFileName) {
+                    <button type="button" class="btn-action clear" (click)="clearCertFile(i)">
+                      Clear
+                    </button>
+                  }
 
-            <button type="button" class="btn-action clear" (click)="clearSupportDocFile(i)"
-              *ngIf="doc.file || doc.currentFileName">
-              CLEAR
+                  @if (form.additionalCerts.length > 1) {
+                    <button type="button" class="btn-action remove" (click)="removeCert(i)">
+                      Delete
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <button type="button" class="btn-add-slot" (click)="addCertSlot()">
+              <i class="bi bi-plus-circle"></i> Add Certification
             </button>
-
-            <button type="button" class="btn-action remove" (click)="removeSupportDoc(i)">
-              DELETE
-            </button>
           </div>
-        </div>
+        }
 
-        <button type="button" class="btn-add-slot" (click)="addSupportDocSlot()">
-          <i class="bi bi-plus-circle"></i> Add Support Document
-        </button>
-      </div>
+        <!-- Support documents (Non-certified suppliers) -->
+        @if (!form.hasCert) {
+          <div class="support-docs-section mt-4 animate-slide">
+            <h3 class="section-subtitle mb-3">Additional Support Documents</h3>
 
+            @for (doc of form.supportDocs; track $index; let i = $index) {
+              <div class="cert-row mb-2">
+                <div class="cert-type-sector">
+                  <input type="text" class="form-control-clean" [(ngModel)]="doc.description"
+                    placeholder="e.g., One-time approval Letter">
+                </div>
 
-      <div class="trade-references-section mt-4 animate-slide" *ngIf="!form.hasCert">
-        <h3 class="section-subtitle">Trade References <span class="text-danger">*</span></h3>
+                <div class="cert-file-sector">
+                  @if (doc.file || doc.currentFileName) {
+                    <div class="file-display">
+                      <i class="bi bi-file-earmark-check-fill text-info"></i>
+                      <span class="file-name-text" [title]="doc.file ? doc.file.name : doc.currentFileName">
+                        {{ doc.file ? doc.file.name : doc.currentFileName }}
+                      </span>
+                    </div>
+                  }
+                  @if (!doc.file && !doc.currentFileName) {
+                    <span class="text-pending">Pending upload...</span>
+                  }
+                </div>
 
-        <div class="table-responsive">
-          <table class="table table-borderless custom-trade-table">
-            <thead>
-              <tr>
-                <th>Company Name</th>
-                <th>Contact Email</th>
-                <th>Phone</th>
-                <th>Responses</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let ref of form.tradeReferences; let i = index">
+                <div class="cert-action-sector">
+                  @if (!doc.file && !doc.currentFileName) {
+                    <input type="file" (change)="uploadSupportDoc($event, i)" [id]="'supportDocFile' + i" hidden>
+                    <label [for]="'supportDocFile' + i" class="btn-action upload">UPLOAD</label>
+                  }
 
-                <td><input type="text" class="form-control" [(ngModel)]="ref.companyName"
-                    placeholder="Enter Company Name"></td>
-                <td><input type="email" class="form-control" [(ngModel)]="ref.email" placeholder="Enter Contact Email">
-                </td>
-                <td><input type="text" class="form-control" [(ngModel)]="ref.phone" placeholder="Enter Phone Number">
-                </td>
-                <td><input type="text" class="form-control" [(ngModel)]="ref.response"
-                    placeholder="Enter Response Details"></td>
-                <td>
-                  <button *ngIf="form.tradeReferences.length > 1" (click)="removeTradeReference(i)"
-                    class="btn btn-sm btn-outline-danger">
-                    <i class="bi bi-trash"></i>
+                  @if (doc.file || doc.currentFileName) {
+                    <button type="button" class="btn-action clear" (click)="clearSupportDocFile(i)">
+                      CLEAR
+                    </button>
+                  }
+
+                  <button type="button" class="btn-action remove" (click)="removeSupportDoc(i)">
+                    DELETE
                   </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </div>
+              </div>
+            }
 
-        <button type="button" class="btn-add-slot" (click)="addTradeReference()"
-          *ngIf="form.tradeReferences.length < 4">
-          <i class="bi bi-plus-circle"></i> Add Trade Reference
-        </button>
+            <button type="button" class="btn-add-slot" (click)="addSupportDocSlot()">
+              <i class="bi bi-plus-circle"></i> Add Support Document
+            </button>
+          </div>
+        }
+
+        <!-- Trade references (Non-certified suppliers) -->
+        @if (!form.hasCert) {
+          <div class="trade-references-section mt-4 animate-slide">
+            <h3 class="section-subtitle">Trade References <span class="text-danger">*</span></h3>
+
+            <div class="table-responsive">
+              <table class="table table-borderless custom-trade-table">
+                <thead>
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Contact Email</th>
+                    <th>Phone</th>
+                    <th>Responses</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (ref of form.tradeReferences; track $index; let i = $index) {
+                    <tr>
+                      <td><input type="text" class="form-control" [(ngModel)]="ref.companyName"
+                          placeholder="Enter Company Name"></td>
+                      <td><input type="email" class="form-control" [(ngModel)]="ref.email"
+                          placeholder="Enter Contact Email"></td>
+                      <td><input type="text" class="form-control" [(ngModel)]="ref.phone"
+                          placeholder="Enter Phone Number"></td>
+                      <td><input type="text" class="form-control" [(ngModel)]="ref.response"
+                          placeholder="Enter Response Details"></td>
+                      <td>
+                        @if (form.tradeReferences.length > 1) {
+                          <button (click)="removeTradeReference(i)" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (form.tradeReferences.length < 4) {
+              <button type="button" class="btn-add-slot" (click)="addTradeReference()">
+                <i class="bi bi-plus-circle"></i> Add Trade Reference
+              </button>
+            }
+          </div>
+        }
       </div>
-    </div>
+    }
 
-    <div *ngIf="step === 3" class="step-fade-in">
-      <div class="review-container">
-        <div class="review-header mb-4">
-          <h2 class="section-title">Final Review</h2>
-          <p class="section-hint">Please verify all information before submitting the onboarding request.</p>
-        </div>
-
-        <div class="review-grid">
-          <div class="review-card shadow-sm">
-            <div class="card-head">
-              <i class="bi bi-person-badge"></i>
-              <span>Supplier Identity</span>
-            </div>
-            <div class="card-body">
-              <div class="review-item">
-                <label>Legal Name</label>
-                <p>{{ form.name || 'Not Provided' }}</p>
-              </div>
-              <div class="review-item">
-                <label>Contact Email</label>
-                <p>{{ form.email || 'Not Provided' }}</p>
-              </div>
-            </div>
+    <!-- ===================== STEP 3 ===================== -->
+    @if (step === 3) {
+      <div class="step-fade-in">
+        <div class="review-container">
+          <div class="review-header mb-4">
+            <h2 class="section-title">Final Review</h2>
+            <p class="section-hint">Please verify all information before submitting the onboarding request.</p>
           </div>
 
-          <div class="review-card shadow-sm">
-            <div class="card-head">
-              <i class="bi bi-shield-check"></i>
-              <span>Compliance Path</span>
-            </div>
-            <div class="card-body">
-              <div class="review-item">
-                <label>Assessment Type</label>
-                <p class="status-tag" [attr.data-type]="getSelectedStatusCode()">
-                  {{ getSelectedStatusLabel() }}
-                </p>
+          <div class="review-grid">
+            <div class="review-card shadow-sm">
+              <div class="card-head">
+                <i class="bi bi-person-badge"></i>
+                <span>Supplier Identity</span>
               </div>
-              <div class="review-item" *ngIf="form.expiryDate">
-                <label>System Expiry</label>
-                <p>{{ form.expiryDate | date:'mediumDate' }}</p>
-              </div>
-              <div class="review-item" *ngIf="!form.hasCert && form.poNumber">
-                <label>Target PO</label>
-                <p>#{{ form.poNumber }} ({{ form.poDate | date:'shortDate' }})</p>
+              <div class="card-body">
+                <div class="review-item">
+                  <label>Legal Name</label>
+                  <p>{{ form.name || 'Not Provided' }}</p>
+                </div>
+                <div class="review-item">
+                  <label>Contact Email</label>
+                  <p>{{ form.email || 'Not Provided' }}</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="review-card shadow-sm full-width">
-            <div class="card-head">
-              <i class="bi bi-file-earmark-zip"></i>
-              <span>Document & Evidence Checklist</span>
+            <div class="review-card shadow-sm">
+              <div class="card-head">
+                <i class="bi bi-shield-check"></i>
+                <span>Compliance Path</span>
+              </div>
+              <div class="card-body">
+                <div class="review-item">
+                  <label>Assessment Type</label>
+                  <p class="status-tag" [attr.data-type]="getSelectedStatusCode()">
+                    {{ getSelectedStatusLabel() }}
+                  </p>
+                </div>
+                @if (form.expiryDate) {
+                  <div class="review-item">
+                    <label>System Expiry</label>
+                    <p>{{ form.expiryDate | date:'mediumDate' }}</p>
+                  </div>
+                }
+                @if (!form.hasCert && form.poNumber) {
+                  <div class="review-item">
+                    <label>Target PO</label>
+                    <p>#{{ form.poNumber }} ({{ form.poDate | date:'shortDate' }})</p>
+                  </div>
+                }
+              </div>
             </div>
-            <div class="card-body document-list">
-              <div class="doc-row">
-                <div class="doc-info">
-                  <i class="bi bi-file-earmark-pdf"></i>
-                  <span>Supplier Evaluation Form</span>
-                </div>
-                <div class="doc-status">
-                  <span *ngIf="form.evaluationFile || form.currentEvaluationName" class="badge-success">
-                    <i class="bi bi-check-circle-fill"></i> Ready
-                  </span>
-                  <span *ngIf="!form.evaluationFile && !form.currentEvaluationName" class="badge-warning">
-                    <i class="bi bi-exclamation-circle"></i> Missing
-                  </span>
-                </div>
-              </div>
 
-              <div class="doc-row" *ngIf="!form.hasCert && !isRareCase">
-                <div class="doc-info">
-                  <i class="bi bi-people"></i>
-                  <span>Trade References ({{form.tradeReferences.length}} provided)</span>
-                </div>
-                <div class="doc-status">
-                  <span class="badge-success"><i class="bi bi-check-circle-fill"></i> Linked</span>
-                </div>
+            <div class="review-card shadow-sm full-width">
+              <div class="card-head">
+                <i class="bi bi-file-earmark-zip"></i>
+                <span>Document & Evidence Checklist</span>
               </div>
-              <ng-container *ngFor="let cert of form.additionalCerts">
-                <div class="doc-row" *ngIf="cert.name && cert.name.trim() !== ''">
+              <div class="card-body document-list">
+                <div class="doc-row">
                   <div class="doc-info">
-                    <i class="bi bi-patch-check"></i>
-                    <span>{{ cert.name }}</span>
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    <span>Supplier Evaluation Form</span>
                   </div>
                   <div class="doc-status">
-                    <span *ngIf="cert.file || cert.currentFileName" class="badge-success">
-                      <i class="bi bi-check-circle-fill"></i> Uploaded
-                    </span>
-                    <span *ngIf="!cert.file && !cert.currentFileName" class="badge-warning">
-                      <i class="bi bi-dash-circle"></i> No File
-                    </span>
+                    @if (form.evaluationFile || form.currentEvaluationName) {
+                      <span class="badge-success">
+                        <i class="bi bi-check-circle-fill"></i> Ready
+                      </span>
+                    }
+                    @if (!form.evaluationFile && !form.currentEvaluationName) {
+                      <span class="badge-warning">
+                        <i class="bi bi-exclamation-circle"></i> Missing
+                      </span>
+                    }
                   </div>
                 </div>
-              </ng-container>
 
-
-
-              <ng-container *ngFor="let doc of form.supportDocs">
-                <div class="doc-row" *ngIf="doc.description && doc.description.trim() !== ''">
-                  <div class="doc-info">
-                    <i class="bi bi-paperclip"></i>
-                    <span>
-                      Supporting Document - {{ doc.description }}:
-                      {{ doc.file ? doc.file.name : (doc.currentFileName || 'No File Chosen') }}
-                    </span>
-                    <!-- <span> Supporting Document{{ doc.description }}</span> -->
+                @if (!form.hasCert && !isRareCase) {
+                  <div class="doc-row">
+                    <div class="doc-info">
+                      <i class="bi bi-people"></i>
+                      <span>Trade References ({{ form.tradeReferences.length }} provided)</span>
+                    </div>
+                    <div class="doc-status">
+                      <span class="badge-success"><i class="bi bi-check-circle-fill"></i> Linked</span>
+                    </div>
                   </div>
-                  <div class="doc-status">
-                    <span *ngIf="doc.file || doc.currentFileName" class="badge-success">
-                      <i class="bi bi-check-circle-fill"></i> Uploaded
-                    </span>
-                    <span *ngIf="!doc.file && !doc.currentFileName" class="badge-warning">
-                      <i class="bi bi-dash-circle"></i> No File
-                    </span>
-                  </div>
-                </div>
-              </ng-container>
+                }
 
+                @for (cert of form.additionalCerts; track $index) {
+                  @if (cert.name && cert.name.trim() !== '') {
+                    <div class="doc-row">
+                      <div class="doc-info">
+                        <i class="bi bi-patch-check"></i>
+                        <span>{{ cert.name }}</span>
+                      </div>
+                      <div class="doc-status">
+                        @if (cert.file || cert.currentFileName) {
+                          <span class="badge-success">
+                            <i class="bi bi-check-circle-fill"></i> Uploaded
+                          </span>
+                        }
+                        @if (!cert.file && !cert.currentFileName) {
+                          <span class="badge-warning">
+                            <i class="bi bi-dash-circle"></i> No File
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+
+                @for (doc of form.supportDocs; track $index) {
+                  @if (doc.description && doc.description.trim() !== '') {
+                    <div class="doc-row">
+                      <div class="doc-info">
+                        <i class="bi bi-paperclip"></i>
+                        <span>
+                          Supporting Document - {{ doc.description }}:
+                          {{ doc.file ? doc.file.name : (doc.currentFileName || 'No File Chosen') }}
+                        </span>
+                        <!-- <span> Supporting Document{{ doc.description }}</span> -->
+                      </div>
+                      <div class="doc-status">
+                        @if (doc.file || doc.currentFileName) {
+                          <span class="badge-success">
+                            <i class="bi bi-check-circle-fill"></i> Uploaded
+                          </span>
+                        }
+                        @if (!doc.file && !doc.currentFileName) {
+                          <span class="badge-warning">
+                            <i class="bi bi-dash-circle"></i> No File
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    }
 
+    <!-- ===================== FOOTER ===================== -->
     <footer class="form-footer">
-      <button class="btn-back" (click)="prev()" *ngIf="step > 1">Back</button>
-      <button class="btn-next ms-auto" (click)="next()" *ngIf="step === 1" [disabled]="!isStep1Valid">Continue</button>
-      <button class="btn-next ms-auto" (click)="next()" *ngIf="step === 2" [disabled]="!isStep2Valid">Review</button>
-      <button class="btn-submit ms-auto" (click)="submit()" *ngIf="step === 3" [disabled]="loading || !isStep2Valid">
-        {{ loading ? 'Processing...' : 'Submit Request' }}
-      </button>
+      @if (step > 1) {
+        <button class="btn-back" (click)="prev()">Back</button>
+      }
+      @if (step === 1) {
+        <button class="btn-next ms-auto" (click)="next()" [disabled]="!isStep1Valid">Continue</button>
+      }
+      @if (step === 2) {
+        <button class="btn-next ms-auto" (click)="next()" [disabled]="!isStep2Valid">Review</button>
+      }
+      @if (step === 3) {
+        <button class="btn-submit ms-auto" (click)="submit()" [disabled]="loading || !isStep2Valid">
+          {{ loading ? 'Processing...' : 'Submit Request' }}
+        </button>
+      }
     </footer>
   </main>
 </div>

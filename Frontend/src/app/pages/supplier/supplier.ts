@@ -415,29 +415,32 @@ export class Supplier implements OnInit {
     return !!(this.form.name && this.form.email && this.form.email.includes('@'));
   }
 
-  get isStep2Valid(): boolean {
-    const hasExpiry = !!this.form.expiryDate;
+get isStep2Valid(): boolean {
+  const hasExpiry = !!this.form.expiryDate;
+  const hasSaf = !!(this.form.evaluationFile || this.form.currentEvaluationName);
 
-    if (this.form.hasCert) {
-      const hasAtLeastOneCert = this.form.additionalCerts.some(
-        c => c.name && (c.file || c.currentFileName)
-      );
+  // Certified (Long Term): SAF നിർബന്ധം + certs
+  if (this.form.hasCert) {
+    const hasAtLeastOneCert = this.form.additionalCerts.some(
+      c => c.name && (c.file || c.currentFileName)
+    );
 
-      const allAddedCertsValid = this.form.additionalCerts.every(
-        c => c.name && (c.file || c.currentFileName)
-      );
+    const allAddedCertsValid = this.form.additionalCerts.every(
+      c => c.name && (c.file || c.currentFileName)
+    );
 
-      return hasExpiry && hasAtLeastOneCert && allAddedCertsValid;
-    }
-
-    if (this.isRareCase) {
-      return hasExpiry;
-    }
-
-    const hasAuditFile = !!(this.form.evaluationFile || this.form.currentEvaluationName);
-    const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
-    return hasExpiry && hasAuditFile && hasTradeRefs;
+    return hasExpiry && hasSaf && hasAtLeastOneCert && allAddedCertsValid;
   }
+
+  // Non-certified Rare Case: SAF ഒഴിവ്
+  if (this.isRareCase) {
+    return hasExpiry;
+  }
+
+  // Non-certified (One Time): SAF + trade references
+  const hasTradeRefs = this.form.tradeReferences.slice(0, 3).every(r => r.companyName && r.email);
+  return hasExpiry && hasSaf && hasTradeRefs;
+}
 
   addSupportDocSlot() {
     if (!this.form.supportDocs) {

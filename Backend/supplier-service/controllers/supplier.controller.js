@@ -310,15 +310,18 @@ exports.updateSupplier = async (req, res) => {
     const { id } = req.params;
     const transaction = await sequelize.transaction();
 
+    const s3KeysToDeleteAfterCommit = [];
+    const newlyUploadedKeys = [];
+
     try {
         const {
             name, email, hasQualityCert, hasSefAndTradeRef,
             expiryDate, poNumber, poDate, tradeReferences,
             qualityDocNames, existingCerts,
-            supportDocDescriptions, existingSupportDocs, // 👈 Added fields for keeping support documents up to date
-            onboardingStatusId
+            supportDocDescriptions, existingSupportDocs,
+            onboardingStatusId,
+            removeEvaluationDoc // 👈 SAF delete flag
         } = req.body;
-
 
         // --- 0. Date Sanitization Helper ---
         const parseValidDate = (dateVal) => {
@@ -330,10 +333,9 @@ exports.updateSupplier = async (req, res) => {
         const sanitizedExpiryDate = parseValidDate(expiryDate);
         const sanitizedPoDate = parseValidDate(poDate);
 
-
-
         const isCertified = hasQualityCert === 'true' || hasQualityCert === true;
         const hasRefs = hasSefAndTradeRef === 'true' || hasSefAndTradeRef === true;
+        const shouldRemoveSaf = removeEvaluationDoc === 'true' || removeEvaluationDoc === true;
 
         const currentSupplier = await Supplier.findByPk(id, { transaction });
         if (!currentSupplier) {
@@ -350,8 +352,10 @@ exports.updateSupplier = async (req, res) => {
         const certsToDelete = oldCerts.filter(old => !keptCerts.find(k => k.s3Key === old.s3Key));
 
         for (const cert of certsToDelete) {
-            if (cert.s3Key) await s3Service.deleteFile(cert.s3Key).catch(e => console.error(e));
-            await SupplierDocument.destroy({ where: { s3Key: cert.s3Key }, transaction });
+            if (cert.s3Key) {
+                s3KeysToDeleteAfterCommit.push(cert.s3Key);
+                await SupplierDocument.destroy({ where: { s3Key: cert.s3Key }, transaction });
+            }
         }
 
         // --- 2. Synchronize Additional Support Docs ---
@@ -363,13 +367,15 @@ exports.updateSupplier = async (req, res) => {
         const supportDocsToDelete = oldSupportDocs.filter(old => !keptSupportDocs.find(k => k.s3Key === old.s3Key));
 
         for (const doc of supportDocsToDelete) {
-            if (doc.s3Key) await s3Service.deleteFile(doc.s3Key).catch(e => console.error(e));
-            await SupplierDocument.destroy({ where: { s3Key: doc.s3Key }, transaction });
+            if (doc.s3Key) {
+                s3KeysToDeleteAfterCommit.push(doc.s3Key);
+                await SupplierDocument.destroy({ where: { s3Key: doc.s3Key }, transaction });
+            }
         }
 
         const newDocumentRecords = [];
         const newCertsJson = [...keptCerts];
-        const newSupportDocsJson = [...keptSupportDocs]; // 👈 Start with support docs kept in UI
+        const newSupportDocsJson = [...keptSupportDocs];
 
         // --- 3. Handle NEW Quality Certificate Uploads ---
         if (isCertified && req.files && req.files.qualityDocs) {
@@ -380,6 +386,7 @@ exports.updateSupplier = async (req, res) => {
                 const file = files[i];
                 const certLabel = names[i] || `Cert_${Date.now()}`;
                 const uploadResult = await s3Service.uploadToS3(file, currentSupplier.internalSupplierNumber);
+                newlyUploadedKeys.push(uploadResult.s3Key);
 
                 newDocumentRecords.push({
                     supplierId: id,
@@ -408,6 +415,7 @@ exports.updateSupplier = async (req, res) => {
                 const file = files[i];
                 const docLabel = descriptions[i] || `Support_Doc_${Date.now()}`;
                 const uploadResult = await s3Service.uploadToS3(file, currentSupplier.internalSupplierNumber);
+                newlyUploadedKeys.push(uploadResult.s3Key);
 
                 newDocumentRecords.push({
                     supplierId: id,
@@ -427,21 +435,27 @@ exports.updateSupplier = async (req, res) => {
             }
         }
 
-        // --- 5. Handle Mandatory Evaluation Form Replacement ---
-        if (req.files && req.files.evaluationDoc) {
-            const file = req.files.evaluationDoc[0];
-            const oldEval = await SupplierDocument.findOne({ where: { supplierId: id, documentType: 'EVALUATION' }, transaction });
+        // --- 5. SAF: Delete and/or Replace (ഒരു supplier-ന് ഒരു SAF മാത്രം) ---
+        const newSafFile = req.files?.evaluationDoc?.[0];
 
-            if (oldEval) {
-                await s3Service.deleteFile(oldEval.s3Key).catch(e => console.error(e));
-                await oldEval.destroy({ transaction });
-            }
+        const oldSaf = await SupplierDocument.findOne({
+            where: { supplierId: id, documentType: 'SAF' },
+            transaction
+        });
 
-            const uploadResult = await s3Service.uploadToS3(file, currentSupplier.internalSupplierNumber);
+        if (oldSaf && (newSafFile || shouldRemoveSaf)) {
+            if (oldSaf.s3Key) s3KeysToDeleteAfterCommit.push(oldSaf.s3Key);
+            await oldSaf.destroy({ transaction });
+        }
+
+        if (newSafFile) {
+            const uploadResult = await s3Service.uploadToS3(newSafFile, currentSupplier.internalSupplierNumber);
+            newlyUploadedKeys.push(uploadResult.s3Key);
+
             newDocumentRecords.push({
                 supplierId: id,
-                documentType: 'EVALUATION',
-                fileName: file.originalname,
+                documentType: 'SAF',
+                fileName: newSafFile.originalname,
                 fileUrl: uploadResult.s3Key,
                 s3Key: uploadResult.s3Key,
                 status: 'ACTIVE'
@@ -459,6 +473,22 @@ exports.updateSupplier = async (req, res) => {
             statusRecord = await OnboardingStatus.findOne({ where: { code: statusCode }, transaction });
         }
 
+        // --- 6b. SAF mandatory: Long Term & One Time-ന്; Conditional-ന് ഇല്ല ---
+        const isConditional = !!statusRecord && statusRecord.code === 'CONDITIONAL';
+        const isSafMandatory = !isConditional;
+        const willHaveSaf = !!newSafFile || (!!oldSaf && !shouldRemoveSaf);
+
+        if (isSafMandatory && !willHaveSaf) {
+            await transaction.rollback();
+            for (const key of newlyUploadedKeys) {
+                await s3Service.deleteFile(key).catch(e => console.error('S3 cleanup failed:', key, e));
+            }
+            return res.status(400).json({
+                success: false,
+                message: "Supplier Audit Form (SAF) is mandatory for Long Term and One Time approval."
+            });
+        }
+
         let initialReviewer = isCertified ? 'QUALITY' : 'SALES';
 
         // --- 7. Final Update Statement ---
@@ -466,8 +496,8 @@ exports.updateSupplier = async (req, res) => {
             name,
             email,
             hasQualityCert: isCertified,
-            certifications: isCertified ? newCertsJson : [], // Clear certs if path toggled
-            additionalDocuments: !isCertified ? newSupportDocsJson : [], // Clear support docs if path toggled
+            certifications: isCertified ? newCertsJson : [],
+            additionalDocuments: !isCertified ? newSupportDocsJson : [],
             hasSefAndTradeRef: hasRefs,
             currentReviewer: initialReviewer,
             onboardingStatusId: statusRecord ? statusRecord.id : currentSupplier.onboardingStatusId,
@@ -484,10 +514,9 @@ exports.updateSupplier = async (req, res) => {
 
         await transaction.commit();
 
-        // 2. Trigger notification check asynchronously (won't delay HTTP response)
-        // checkExpiringSuppliers().catch(err => 
-        //     console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
-        // );
+        for (const key of s3KeysToDeleteAfterCommit) {
+            await s3Service.deleteFile(key).catch(e => console.error('S3 delete failed:', key, e));
+        }
 
         checkExpiringSuppliers(id).catch(err =>
             console.error("[UPDATE SUPPLIER] Expiry check error:", err.message)
@@ -500,7 +529,12 @@ exports.updateSupplier = async (req, res) => {
         });
 
     } catch (error) {
-        if (transaction) await transaction.rollback();
+        await transaction.rollback().catch(() => {});
+
+        for (const key of newlyUploadedKeys) {
+            await s3Service.deleteFile(key).catch(e => console.error('S3 cleanup failed:', key, e));
+        }
+
         console.error("Update Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }

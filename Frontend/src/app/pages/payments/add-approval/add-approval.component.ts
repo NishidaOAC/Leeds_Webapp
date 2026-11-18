@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -28,11 +28,12 @@ import { UsersServices } from '../../users/users.service';
 import { FileService } from '../file-service';
 import { DesignationServices } from '../../users/role-list.component/designation.service';
 import { AddCompanyComponent } from '../../company/add-company/add-company.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 @Component({
   selector: 'app-add-approval',
   standalone: true,
   imports: [ReactiveFormsModule, MatFormFieldModule, MatCardModule, MatToolbarModule, MatIconModule, MatButtonModule,
-    MatSelectModule, MatInputModule, CommonModule, MatAutocompleteModule, MatProgressSpinnerModule, SafePipe],
+    MatSelectModule, MatInputModule, CommonModule, MatAutocompleteModule, MatProgressSpinnerModule, MatTooltipModule, SafePipe],
   templateUrl: './add-approval.component.html',
   styleUrl: './add-approval.component.scss'
 })
@@ -48,10 +49,13 @@ export class AddApprovalComponent {
   sanitizer=inject(DomSanitizer)
   fb=inject(FormBuilder)
 
+  supplierSub?: Subscription;
+
   ngOnDestroy(): void {
     this.invSub?.unsubscribe();
     this.uploadSub?.unsubscribe();
     this.submit?.unsubscribe();
+    this.supplierSub?.unsubscribe();
   }
 
   ngOnInit(): void {
@@ -66,9 +70,53 @@ export class AddApprovalComponent {
     this.roleName = user.power;
     
     this.getRoleById()
-    this.addDoc()
+    this.addDoc();
+
+    this.piForm.get('supplierName')?.setValidators([Validators.required, this.supplierValidator()]);
+    this.supplierSub = this.piForm.get('supplierName')?.valueChanges.subscribe((val) => {
+      const name = typeof val === 'string' ? (val as string).trim() : ((val as any)?.companyName?.trim() || '');
+      if (!name) {
+        this.piForm.get('supplierProfileId')?.setValue('', { emitEvent: false });
+        return;
+      }
+      const matched = this.supplierCompanies?.find(
+        (s) => s.companyName && s.companyName.trim().toLowerCase() === name.toLowerCase()
+      );
+      if (matched) {
+        this.piForm.get('supplierProfileId')?.setValue((matched as any).supplierProfileId || (matched as any).id, { emitEvent: false });
+      } else {
+        this.piForm.get('supplierProfileId')?.setValue('', { emitEvent: false });
+      }
+    });
   }
   
+  supplierValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const raw = control.value;
+      if (!raw) {
+        return { required: true };
+      }
+      const name = typeof raw === 'string' ? (raw as string).trim() : ((raw as any)?.companyName?.trim() || '');
+      if (!name) {
+        return { required: true };
+      }
+      if (!this.supplierCompanies || this.supplierCompanies.length === 0) {
+        return null;
+      }
+      const matched = this.supplierCompanies.find(
+        (s) => s.companyName && s.companyName.trim().toLowerCase() === name.toLowerCase()
+      );
+      if (!matched) {
+        return { invalidSupplier: true };
+      }
+      return null;
+    };
+  }
+
+  onSupplierBlur(): void {
+    this.piForm.get('supplierName')?.markAsTouched();
+  }
+
   get isCustomerSelected(): boolean {
     const purposeValue: any = this.piForm.get('purpose')?.value;
     return Array.isArray(purposeValue) && purposeValue.includes('Customer');
@@ -84,6 +132,7 @@ export class AddApprovalComponent {
       
      this.supplierCompanies = res.data || [];
     this.filteredOptions = this.supplierCompanies;
+
     });
     // this.companyService.getSuppliers().subscribe((suppliers: Company[]) => {
     //   this.supplierCompanies = suppliers;
@@ -120,6 +169,7 @@ displayFn(item: any): string {
   this.filterValue = inputVal.trim().replace(/\s+/g, '').toLowerCase();
 
   if (type === 'sup') {
+
     this.filteredOptions = this.supplierCompanies.filter(option => {
       const companyName = (option?.companyName || '').replace(/\s+/g, '').toLowerCase();
       const code = (option?.code?.toString() || '').replace(/\s+/g, '').toLowerCase();
@@ -146,14 +196,21 @@ patch(selectedSuggestion: any, type: string) {
   if (selectedSuggestion === 'add') return;
 
   if (type === 'sup') {
+    const supplierCompanyId = selectedSuggestion.supplierCompanyId || selectedSuggestion.companyId || (typeof selectedSuggestion.id === 'number' ? selectedSuggestion.id : null);
+    const supplierProfileId = selectedSuggestion.supplierProfileId || (typeof selectedSuggestion.id === 'string' ? selectedSuggestion.id : null);
+    const supplierName = selectedSuggestion.companyName || selectedSuggestion.name || (typeof selectedSuggestion === 'string' ? selectedSuggestion : '');
+
     this.piForm.patchValue({
-      supplierProfileId: selectedSuggestion.supplierProfileId,
-      supplierName: selectedSuggestion.companyName || selectedSuggestion
+      supplierProfileId: supplierProfileId,
+      supplierId: supplierCompanyId,
+      supplierName: supplierName
     });
   } else if (type === 'cust') {
+    const customerId = (typeof selectedSuggestion.id === 'number') ? selectedSuggestion.id : null;
+    const customerName = selectedSuggestion.companyName || selectedSuggestion.name || (typeof selectedSuggestion === 'string' ? selectedSuggestion : '');
     this.piForm.patchValue({
-      customerId: selectedSuggestion.id,
-      customerName: selectedSuggestion.companyName || selectedSuggestion
+      customerId: customerId,
+      customerName: customerName
     });
   }
 }
@@ -229,7 +286,7 @@ patch(selectedSuggestion: any, type: string) {
     accountantId:  <any>[],
     supplierProfileId: ['', Validators.required],
     supplierId: <any>[''],
-    supplierName: [''],
+    supplierName: ['', Validators.required],
     supplierPoNo: ['', Validators.required],
     supplierSoNo:[''],
     supplierCurrency:['Dollar'],
@@ -291,6 +348,30 @@ patch(selectedSuggestion: any, type: string) {
   uploadSub!: Subscription;
   imageUrl: string[] = [];
   fileType: string[] = [];
+  fullViewUrl: string | null = null;
+  fullViewTitle: string = '';
+
+  openFullView(url: string, title?: string): void {
+    this.fullViewUrl = url;
+    this.fullViewTitle = title || 'Document Preview';
+  }
+
+  closeFullView(): void {
+    this.fullViewUrl = null;
+    this.fullViewTitle = '';
+  }
+
+  openInNewTab(url: string): void {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  downloadDocument(url: string | null | undefined, title?: string): void {
+    if (!url) return;
+    this.fileService.downloadDocument(url, title);
+  }
+
   allowedFileTypes = ['pdf', 'jpeg', 'jpg', 'png', 'plain'];
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -433,19 +514,47 @@ patch(selectedSuggestion: any, type: string) {
   submitted: boolean = false;
 
 onSubmit() {
+  if (this.piForm.invalid || !this.isImageUploaded()) {
+    this.piForm.markAllAsTouched();
+    this.snackBar.open('Please select a valid supplier and fill all required fields.', '', { duration: 3000 });
+    return;
+  }
   this.submitted = true;
 
   const rawValues = this.piForm.getRawValue();
 
+  const rawSupplier: any = rawValues.supplierName;
+  const rawCustomer: any = rawValues.customerName;
+  let supplierName = typeof rawSupplier === 'object' && rawSupplier !== null
+    ? (rawSupplier.companyName || rawSupplier.name || '')
+    : (rawSupplier || '');
+  let customerName = typeof rawCustomer === 'object' && rawCustomer !== null
+    ? (rawCustomer.companyName || rawCustomer.name || '')
+    : (rawCustomer || '');
+
+  let supplierProfileId = rawValues.supplierProfileId || null;
+  let supplierId = (typeof rawValues.supplierId === 'number' && rawValues.supplierId > 0) ? rawValues.supplierId : null;
+
+  // If supplierProfileId is missing, check if supplierName matches any known supplier
+  if (!supplierProfileId && typeof supplierName === 'string' && supplierName.trim()) {
+    const match = this.supplierCompanies.find(s => 
+      (s.companyName || (s as any).name || '').trim().toLowerCase() === supplierName.trim().toLowerCase()
+    );
+    if (match) {
+      supplierProfileId = (match as any).supplierProfileId || (typeof match.id === 'string' ? match.id : null);
+      if (!supplierId && (match as any).supplierCompanyId) {
+        supplierId = (match as any).supplierCompanyId;
+      }
+    }
+  }
+
   const payload = {
     ...rawValues,
-    supplierName: (rawValues.supplierName as any)?.companyName || rawValues.supplierName,
-    customerName: (rawValues.customerName as any)?.companyName || rawValues.customerName,
-    // Ensure the UUID is explicitly passed
-    supplierProfileId: rawValues.supplierProfileId || null, 
-    // Set old integer field to null to avoid SQL type errors
-    supplierId: null, 
-    customerId: rawValues.customerId || null,
+    supplierName,
+    customerName,
+    supplierProfileId,
+    supplierId,
+    customerId: (typeof rawValues.customerId === 'number' && rawValues.customerId > 0) ? rawValues.customerId : null,
     kamId: rawValues.kamId || null,
     amId: rawValues.amId || null,
     accountantId: rawValues.accountantId || null,
@@ -459,18 +568,19 @@ onSubmit() {
   this.submit = submitMethod.subscribe({
     next: (invoice: any) => {
       this.submitted = false;
-      const piNo = invoice?.pi?.piNo || invoice?.piNo;
+      const piNo = invoice?.pi?.piNo || invoice?.piNo || payload.piNo;
       if (piNo) {
         this.snackBar.open(`Proforma Invoice ${piNo} uploaded successfully...`, "", { duration: 3000 });
         this.router.navigateByUrl('dashboard/payments');
       } else {
-        this.snackBar.open('Failed to upload the invoice. Please try again.', "", { duration: 3000 });
+        this.snackBar.open('Invoice created successfully.', "", { duration: 3000 });
+        this.router.navigateByUrl('dashboard/payments');
       }
     },
     error: (err: any) => {
       this.submitted = false;
       const errorMessage = err?.error?.message || err?.error?.text || 'An error occurred while uploading the invoice.';
-      alert(`Error: ${errorMessage}`);
+      this.snackBar.open(`Error: ${errorMessage}`, "Close", { duration: 5000 });
     }
     });
   }

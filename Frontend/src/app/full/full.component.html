@@ -1,23 +1,22 @@
 <mat-sidenav-container class="blue_theme light-theme" autosize autoFocus dir="ltr">
 
-  <!-- Compact Sidebar -->
+  <!-- Sleek Modern Sidebar -->
   <mat-sidenav #leftsidenav [mode]="isOver ? 'over' : 'side'" [opened]="!isOver"
     (openedChange)="onSidenavOpenedChange($event)" (closedStart)="onSidenavClosedStart()" class="sidebarNav">
 
     <div class="flex-layout">
 
       <div class="sidebar-header">
-        <a href="/" class="logodark">
-          <!-- 🟢 Added leading slash '/' before assets -->
+        <a href="/" class="logodark" aria-label="AeroAssist Home">
           <img src="/assets/images/logos/fintech_logo.jpeg" alt="AeroAssist Logo" />
         </a>
       </div>
 
-      <!-- Properly set height scrollbar -->
-      <ng-scrollbar class="sidebar-scroll" style="height: calc(100vh - 44px)">
+      <!-- Sidenav Items with Smooth Scroll -->
+      <ng-scrollbar class="sidebar-scroll" style="height: calc(100vh - 60px)">
         <mat-nav-list class="sidebar-list">
-          @for(item of navItems; track item) {
-          <app-nav-item [item]="item" (notify)="leftsidenav.toggle()"></app-nav-item>
+          @for(item of navItems; track item.displayName) {
+            <app-nav-item [item]="item" (notify)="leftsidenav.toggle()"></app-nav-item>
           }
         </mat-nav-list>
       </ng-scrollbar>
@@ -28,58 +27,51 @@
   <!-- Main Content Wrapper -->
   <mat-sidenav-content class="contentWrapper" #content>
 
-    <!-- Ultra-Compact Top Navbar -->
+    <!-- Sleek Top Navbar -->
     <header class="top-nav-header">
       <div class="header-left">
-        <button mat-icon-button (click)="leftsidenav.toggle()" class="toggle-btn" aria-label="Toggle Sidebar">
+        <button mat-icon-button (click)="leftsidenav.toggle()" class="toggle-btn" aria-label="Toggle Sidebar" title="Toggle Sidebar">
           <mat-icon>menu</mat-icon>
         </button>
+
+        <div class="header-brand-badge">
+          <span class="badge-dot"></span>
+          <span class="badge-text">AERO ASSIST PORTAL</span>
+        </div>
       </div>
 
       <div class="header-right">
-        <!-- Notification Bell -->
-        <!-- <div class="notification-box">
-          <button mat-icon-button class="icon-btn" aria-label="Notifications" (click)="toggleNotifications()">
-            <mat-icon>notifications</mat-icon>
-            <span class="badge">1</span>
-          </button>
-          @if (isNotificationOpen) {
-          <div class="dropdown-wrapper">
-            <app-notification />
-          </div>
-          }
-        </div> -->
-
+        <!-- Notification Dropdown -->
         <app-notification></app-notification>
 
-        <!-- Compact User Profile -->
-        <div class="user-profile-nav">
-          <div class="user-avatar-circle">
-            <span>SA</span>
+        <!-- User Profile Card -->
+        <div class="user-profile-card">
+          <div class="user-avatar-circle" [title]="username">
+            <span>{{ userInitials }}</span>
           </div>
 
           <div class="user-info-text">
             <span class="nav-username">{{ username || 'System Super Administrator' }}</span>
-            <span class="nav-user-role">{{ role || 'superadmin' }}</span>
+            <span class="nav-user-role-badge">{{ role || 'Super Administrator' }}</span>
           </div>
-
-          <!-- <button mat-icon-button class="logout-icon" (click)="logout()" title="Logout" aria-label="Logout">
-            <mat-icon>logout</mat-icon>
-          </button> -->
-<button 
-  mat-button 
-  class="logout-btn-full" 
-  (click)="logout()" 
-  aria-label="Sign Out">
-  <mat-icon>logout</mat-icon>
-  <span>Sign Out</span>
-</button>
-
         </div>
+
+        <div class="header-divider"></div>
+
+        <!-- Distinct Sign Out Button -->
+        <button 
+          mat-button 
+          class="logout-btn-full" 
+          (click)="logout()" 
+          title="Sign out of your account"
+          aria-label="Sign Out">
+          <mat-icon>logout</mat-icon>
+          <span>Sign Out</span>
+        </button>
       </div>
     </header>
 
-    <!-- Page Content Area (Reduced top margin) -->
+    <!-- Page Content Area -->
     <main class="pageWrapper">
       <div class="content-container">
         <router-outlet></router-outlet>

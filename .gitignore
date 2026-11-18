@@ -139,3 +139,9 @@ dist
 **/cache/
 
 .git
+
+# RSA Cryptographic Keys
+**/private.key
+**/jwtRS256.key
+*.pem
+!*.pub

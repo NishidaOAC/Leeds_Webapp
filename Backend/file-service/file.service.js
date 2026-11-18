@@ -390,6 +390,19 @@ class FileService {
     return { stream, fileInfo };
   }
 
+  getFileStreamByKey(s3Key) {
+    let cleanKey = s3Key;
+    if (cleanKey.includes('.amazonaws.com/')) {
+      cleanKey = cleanKey.split('.amazonaws.com/')[1];
+    }
+    cleanKey = decodeURIComponent(cleanKey.split('?')[0]);
+    const params = {
+      Bucket: this.bucketName,
+      Key: cleanKey
+    };
+    return this.s3.getObject(params).createReadStream();
+  }
+
   async updateFileMetadata(fileId, metadata) {
     // Update in database (implement your DB logic)
     const updatedFileInfo = await this.updateFileMetadataInDB(fileId, metadata);

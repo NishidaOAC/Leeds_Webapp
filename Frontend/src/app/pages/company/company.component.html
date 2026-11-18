@@ -4,20 +4,20 @@
       <div class="header-content">
         <div class="title-section">
           <mat-icon class="title-icon">business</mat-icon>
-          <mat-card-title class="title-text">Companies</mat-card-title>
+          <mat-card-title class="title-text">Customers</mat-card-title>
         </div>
       </div>
     </div>
 
     <mat-tab-group (selectedTabChange)="onTabChange($event)" class="custom-tab-group">
-      <mat-tab label="Company List">
+      <mat-tab label="Customer List">
         <div class="tab-content">
           <!-- Loading Overlay -->
           @if(isLoading){
             <div class="loader-overlay">
               <div class="loader-container">
                 <mat-progress-spinner mode="indeterminate" diameter="50" color="accent"></mat-progress-spinner>
-                <p class="loading-text">Loading companies...</p>
+                <p class="loading-text">Loading customers...</p>
               </div>
             </div>
           }
@@ -25,10 +25,10 @@
           <!-- Search Bar -->
           <div class="search-section">
             <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Search Companies</mat-label>
-              <input matInput (keyup)="applyFilter($event)" placeholder="Type company name, contact person, email..." />
+              <mat-label>Search Customers</mat-label>
+              <input matInput (keyup)="applyFilter($event)" placeholder="Type customer name, contact person, email..." />
               <mat-icon matSuffix>search</mat-icon>
-              <mat-hint>Search by company name, contact person, or email</mat-hint>
+              <mat-hint>Search by customer name, contact person, or email</mat-hint>
             </mat-form-field>
           </div>
 
@@ -40,7 +40,7 @@
               <ng-container matColumnDef="company">
                 <th mat-header-cell *matHeaderCellDef class="table-header">
                   <div class="header-content">
-                    <span>Company</span>
+                    <span>Customer</span>
                     <mat-icon class="sort-icon">unfold_more</mat-icon>
                   </div>
                 </th>
@@ -125,11 +125,11 @@
                             (click)="openCompany(element)" class="action-btn view-btn">
                       <mat-icon>visibility</mat-icon>
                     </button>
-                    <button mat-mini-fab color="accent" matTooltip="Edit Company" 
+                    <button mat-mini-fab color="accent" matTooltip="Edit Customer" 
                             (click)="editCompany(element)" class="action-btn edit-btn">
                       <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-mini-fab color="warn" matTooltip="Delete Company" 
+                    <button mat-mini-fab color="warn" matTooltip="Delete Customer" 
                             (click)="deleteCompany(element)" class="action-btn delete-btn">
                       <mat-icon>delete</mat-icon>
                     </button>
@@ -148,7 +148,7 @@
                 <td class="no-data-cell" [attr.colspan]="displayedColumns1.length">
                   <div class="no-data-content">
                     <mat-icon>search_off</mat-icon>
-                    <p>No companies found matching your search</p>
+                    <p>No customers found matching your search</p>
                   </div>
                 </td>
               </tr>
@@ -169,7 +169,7 @@
         </div>
       </mat-tab>
 
-      <mat-tab label="Add Company">
+      <mat-tab label="Add Customer">
         <div class="add-company-tab">
           <app-add-company
             [company]="selectedCompany"

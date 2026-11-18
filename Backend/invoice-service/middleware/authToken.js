@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const { getPublicKeyAsync } = require('../utils/keyUtils');
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -13,14 +14,49 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Option A: Verify locally and fetch user from auth service
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Call auth service to get user details
-    const response = await axios.get(`${process.env.AUTH_SERVICE_URL}/validate`, {
+    // 1. Asymmetric verification via RSA Public Key (RS256)
+    const publicKey = await getPublicKeyAsync();
+    let decoded;
+    try {
+      decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+    } catch (verifyErr) {
+      // Graceful fallback to HS256 for legacy or transitional tokens
+      if (process.env.JWT_SECRET && (verifyErr.name === 'JsonWebTokenError' || verifyErr.message.includes('algorithm'))) {
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      } else {
+        throw verifyErr;
+      }
+    }
+
+    // 2. Fast Path: Use self-contained RS256 token payload (no HTTP roundtrip to auth-service)
+    if (decoded && (decoded.id || decoded.userId) && decoded.name) {
+      req.user = {
+        id: decoded.id || decoded.userId,
+        userId: decoded.userId || decoded.id,
+        email: decoded.email,
+        name: decoded.name,
+        empNo: decoded.empNo,
+        roleId: decoded.roleId,
+        isActive: decoded.isActive !== undefined ? decoded.isActive : true,
+        role: decoded.role || {
+          id: decoded.roleId,
+          roleName: decoded.roleName || 'User',
+          abbreviation: decoded.roleName || 'User',
+          power: decoded.power || 'User'
+        },
+        roleName: decoded.roleName || (decoded.role && decoded.role.roleName),
+        power: decoded.power || (decoded.role && decoded.role.power)
+      };
+      return next();
+    }
+
+    // 3. Fallback: If payload lacks user/role details, query auth-service
+    const authUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+    const response = await axios.get(`${authUrl}/validate`, {
       headers: {
         'Authorization': `Bearer ${token}`
-      }
+      },
+      timeout: 5000
     });
 
     if (!response.data.success || !response.data.user) {
@@ -34,10 +70,7 @@ const authenticateToken = async (req, res, next) => {
     next();
 
   } catch (error) {
-    console.error('Auth Middleware Error:', error);
-
     if (error.response) {
-      // Auth service returned an error
       return res.status(error.response.status).json(error.response.data);
     }
 
@@ -55,6 +88,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    console.error('Invoice Auth Middleware Error:', error.message);
     return res.status(500).json({
       success: false,
       message: error.message || 'Authentication failed'

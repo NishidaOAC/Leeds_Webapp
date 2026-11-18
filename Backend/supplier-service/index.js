@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
 require('express-async-errors');
 const express = require('express');
 const cors = require('cors');
@@ -9,15 +9,8 @@ const { sequelize, testConnection } = require('./config/database');
 const { publishEvent } = require('./utils/eventPublisher');
 const supplierRoutes = require('./routes/supplier.routes');
 
-// 🟢 FIXED CODE: Keep only this single import at the top of index.js
-const { initExpiryJob, checkExpiringSuppliers } = require('./controllers/expiryNotifier.job');
-
-// 🔴 REMOVE THIS LINE completely from index.js:
-// require('./controllers/expiryNotifier.job');
-// IMPORT YOUR MODEL HERE
+const { initExpiryJob } = require('./controllers/expiryNotifier.job');
 const OnboardingStatus = require('./models/OnboardingStatus'); 
-
-
 
 // Initialize logger
 const logger = winston.createLogger({
@@ -34,7 +27,7 @@ const logger = winston.createLogger({
 
 const app = express();
 
-// --- 1. BODY PARSING LIMITS (Set once here) ---
+// --- 1. BODY PARSING LIMITS ---
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -71,44 +64,47 @@ app.use((err, req, res, next) => {
 });
 
 // Start server logic
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 3005;
 
 async function startServer() {
   try {
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      logger.error('Database connection failed. Exiting...');
-      process.exit(1);
-    }
-
-    const dbSyncMode = process.env.DB_SYNC;
-
-    if (dbSyncMode === 'force') {
-      logger.warn('⚠️ FORCE syncing database');
-      await sequelize.sync({ force: true });
-    } 
-    else if (dbSyncMode === 'alter') {
-      logger.info('Altering database schema');
-      await sequelize.sync({ alter: true });
-    } 
-
-    // Seed the data
-    logger.info('Checking for Onboarding Status data...');
-    await OnboardingStatus.seed(); 
-
-    logger.info('Supplier Service Database synchronization & seeding completed');
-
-    await publishEvent('SERVICE_STARTED', { service: 'supplier-service' });
-
     app.listen(PORT, () => {
       logger.info(`Supplier service running on port ${PORT}`);
     });
 
-    initExpiryJob();
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      logger.warn('Database connection failed. Server is running, but database operations will fail until PostgreSQL is running.');
+    } else {
+      const dbSyncMode = process.env.DB_SYNC || 'alter';
+
+      if (dbSyncMode === 'force') {
+        logger.warn('⚠️ FORCE syncing database');
+        await sequelize.sync({ force: true });
+      } else {
+        logger.info('Altering database schema');
+        await sequelize.sync({ alter: true });
+      } 
+
+      try {
+        logger.info('Checking for Onboarding Status data...');
+        await OnboardingStatus.seed(); 
+        logger.info('Supplier Service Database synchronization & seeding completed');
+      } catch (seedErr) {
+        logger.warn('Seeding warning:', seedErr.message);
+      }
+    }
+
+    await publishEvent('SERVICE_STARTED', { service: 'supplier-service' });
+
+    try {
+      initExpiryJob();
+    } catch (jobErr) {
+      logger.warn('Expiry job warning:', jobErr.message);
+    }
 
   } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
+    logger.error('Error starting server:', error);
   }
 }
 

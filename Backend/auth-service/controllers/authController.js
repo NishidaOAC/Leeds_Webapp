@@ -1,61 +1,111 @@
 const { User, Role } = require('../models');
+const { Op } = require('sequelize');
+const Notification = require('../models/notification');
 const authValidation = require('../validations/authValidation');
 const { publishEvent } = require('../utils/eventPublisher');
 const { sendApprovalRequestEmail, sendUserConfirmationEmail, sendForgotPasswordRequestToManager } = require('../utils/emailService');
 
 class AuthController {
-  // Request password reset (sends email to manager)
+  // Request password reset (sends in-app notification & optional email to manager)
   static async requestPasswordReset(req, res) {
     try {
       const { empNo } = req.body;
 
-      if (!empNo) {
+      if (!empNo || typeof empNo !== 'string' || !empNo.trim()) {
         return res.status(400).json({
           success: false,
           message: 'Please provide employee number'
         });
       }
 
-      // Find user
-      const query = {};
-      if (empNo) query.empNo = empNo;
+      const cleanEmpNo = empNo.trim();
 
-      const user = await User.findOne({ where: query });
+      // Find user case-insensitively by empNo or email
+      const user = await User.findOne({
+        where: {
+          [Op.or]: [
+            { empNo: { [Op.iLike]: cleanEmpNo } },
+            { email: { [Op.iLike]: cleanEmpNo } }
+          ]
+        }
+      });
 
       if (!user) {
-        // Return success even if user not found to prevent enumeration
+        // Return success even if user not found to prevent user enumeration
         return res.status(200).json({
           success: true,
           message: 'If the account exists, a request has been sent to the administrator.'
         });
       }
 
-      // Find super admins
-      // const superAdmins = await User.findAll({
-      //   where: { 
-      //     roleId: 1, // Assuming roleId 1 is super admin
-      //     isActive: true 
-      //   },
-      //   attributes: ['id', 'email', 'name']
-      // });
+      // 1. Identify administrators and managers to notify (SuperAdmin roleId: 1, Manager roleId: 5)
+      let admins = [];
+      try {
+        admins = await User.findAll({
+          where: {
+            roleId: [1, 5],
+            isActive: true
+          },
+          attributes: ['id', 'email', 'name', 'roleId']
+        });
+      } catch (dbErr) {
+        console.warn('[PasswordReset] Could not load admins:', dbErr.message);
+      }
 
-      // if (superAdmins.length > 0) {
-      // Send email to all admins (or just one, but usually all for redundancy)
-      // for (const admin of superAdmins) {
-      await sendForgotPasswordRequestToManager({
-        to: process.env.MANAGER_EMAIL,
-        userName: user.name,
-        userEmail: user.email,
-        empNo: user.empNo,
-        requestedAt: new Date().toLocaleString(),
-        dashboardLink: `${process.env.FRONTEND_URL}/dashboard/users` // Direct to users list
-      });
-      // }
-      // }
+      // 2. Persist in-app notifications for admins/managers
+      try {
+        if (admins.length > 0) {
+          const resetRoute = `/dashboard/users?openReset=true&resetUserId=${user.id}&empNo=${encodeURIComponent(user.empNo || '')}&username=${encodeURIComponent(user.name || '')}`;
+          const notifPromises = admins.map(admin => 
+            Notification.create({
+              userId: admin.id,
+              message: `Password reset request received from ${user.name} (${user.empNo || user.email}).`,
+              route: resetRoute,
+              isRead: false
+            })
+          );
+          await Promise.all(notifPromises);
+        }
+      } catch (notifErr) {
+        console.warn('[PasswordReset] In-app notification creation skipped:', notifErr.message);
+      }
+
+      // 3. Publish real-time event (RabbitMQ / Socket.io)
+      try {
+        await publishEvent('USER_PASSWORD_RESET_REQUESTED', {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          empNo: user.empNo,
+          requestedAt: new Date()
+        });
+      } catch (eventErr) {
+        // Non-blocking
+      }
+
+      // 4. Send email notification asynchronously without blocking response (prevents ETIMEDOUT 500 errors)
+      const recipientEmail = process.env.MANAGER_EMAIL || process.env.manager_email || (admins.length > 0 ? admins[0].email : null);
+      const frontendUrl = (process.env.FRONT_END || process.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
+
+      if (recipientEmail) {
+        sendForgotPasswordRequestToManager({
+          to: recipientEmail,
+          adminName: (admins.length > 0 && admins[0].name) ? admins[0].name : 'Administrator',
+          userName: user.name,
+          userEmail: user.email,
+          empNo: user.empNo,
+          requestedAt: new Date().toLocaleString(),
+          dashboardLink: `${frontendUrl}/dashboard/users`
+        }).then(() => {
+          console.log(`[PasswordReset] Notification email dispatched to ${recipientEmail}`);
+        }).catch((emailErr) => {
+          console.warn(`[PasswordReset] SMTP notification email delivery skipped/failed: ${emailErr.message}`);
+        });
+      }
 
       return res.status(200).json({
         success: true,
-        message: 'If the account exists, a request has been sent to the administrator.'
+        message: 'Password reset request has been submitted to your manager for approval.'
       });
 
     } catch (error) {
@@ -220,12 +270,22 @@ class AuthController {
     }
 
     // 2. Check if account is locked using lockoutUntil
-    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
-      const remainingMinutes = Math.ceil((user.lockoutUntil - new Date()) / 60000);
-      return res.status(423).json({
-        success: false,
-        message: `Account is temporarily locked. Please try again in ${remainingMinutes} minute(s).`
-      });
+    const now = new Date();
+    if (user.lockoutUntil) {
+      if (user.lockoutUntil > now) {
+        const remainingMinutes = Math.ceil((user.lockoutUntil - now) / 60000);
+        return res.status(423).json({
+          success: false,
+          locked: true,
+          remainingMinutes,
+          message: `Account is temporarily locked. Please try again in ${remainingMinutes} minute(s).`
+        });
+      } else {
+        // Lockout period has elapsed; reset failed attempts for a fresh cycle
+        await user.update({ failedLoginAttempts: 0, lockoutUntil: null });
+        user.failedLoginAttempts = 0;
+        user.lockoutUntil = null;
+      }
     }
 
     // 3. Compare Password
@@ -238,16 +298,27 @@ class AuthController {
       const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
       let updateData = { failedLoginAttempts: newFailedAttempts };
 
-      // Set lockout window if threshold reached
+      // Set lockout window if threshold reached (5 failed attempts)
       if (newFailedAttempts >= maxAttempts) {
         updateData.lockoutUntil = new Date(Date.now() + lockoutDurationMs);
+        await user.update(updateData);
+
+        const lockoutMinutes = Math.ceil(lockoutDurationMs / 60000);
+        return res.status(423).json({
+          success: false,
+          locked: true,
+          remainingMinutes: lockoutMinutes,
+          message: `Account is temporarily locked due to ${maxAttempts} consecutive failed login attempts. Please try again in ${lockoutMinutes} minute(s).`
+        });
       }
 
       await user.update(updateData);
+      const attemptsRemaining = maxAttempts - newFailedAttempts;
 
       return res.status(401).json({
         success: false,
-        message: 'Invalid employee number or password'
+        attemptsRemaining,
+        message: `Invalid employee number or password. ${attemptsRemaining} attempt(s) remaining before account lockout.`
       });
     }
 
@@ -258,12 +329,22 @@ class AuthController {
       lastLogin: new Date()
     });
 
-    // 5. Generate tokens
-    const token = user.generateToken();
-    const refreshToken = user.generateRefreshToken();
-
-    // 6. Role and Power handling (Matching Frontend Expectations)
+    // 5. Role and Power handling (Matching Frontend Expectations)
     const role = user.Role || await Role.findByPk(user.roleId);
+    const roleClaims = role ? {
+      roleName: role.roleName,
+      power: role.power,
+      role: {
+        id: role.id,
+        roleName: role.roleName,
+        abbreviation: role.abbreviation,
+        power: role.power
+      }
+    } : {};
+
+    // 6. Generate RS256 tokens with embedded role claims
+    const token = user.generateToken(roleClaims);
+    const refreshToken = user.generateRefreshToken();
 
     const userResponse = user.toJSON();
     delete userResponse.password;
@@ -332,9 +413,19 @@ static async logout(req, res) {
         });
       }
 
-      // Verify refresh token
+      // Verify refresh token (RS256 with HS256 fallback)
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      const { getPublicKey } = require('../utils/keyUtils');
+      let decoded;
+      try {
+        decoded = jwt.verify(refreshToken, getPublicKey(), { algorithms: ['RS256'] });
+      } catch (verifyErr) {
+        if (process.env.JWT_SECRET && (verifyErr.name === 'JsonWebTokenError' || verifyErr.message.includes('algorithm'))) {
+          decoded = jwt.verify(refreshToken, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+        } else {
+          throw verifyErr;
+        }
+      }
 
       // Find user
       const user = await User.findByPk(decoded.id);

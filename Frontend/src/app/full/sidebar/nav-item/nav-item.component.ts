@@ -8,6 +8,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { NavItem } from './nav-item';
+import { navItems } from '../sidebar-data';
 import { Router } from '@angular/router';
 import { NavService } from '../../../services/nav.service';
 
@@ -38,7 +39,7 @@ export class AppNavItemComponent implements OnChanges, OnInit {
     this.role = user.power
   }
 
-   hasAccess(item: NavItem): boolean {
+  hasAccess(item: NavItem): boolean {
     // If no roles specified, allow access to everyone
     if (!item.roles || item.roles.length === 0) {
       return true;
@@ -46,6 +47,38 @@ export class AppNavItemComponent implements OnChanges, OnInit {
     
     // Check if user's role is in the allowed roles array
     return item.roles.includes(this.role);
+  }
+
+  isRouteActive(route?: string): boolean {
+    if (!route) return false;
+
+    // 1. Direct exact match (ignoring query parameters and fragment)
+    if (this.router.isActive(route, {
+      paths: 'exact',
+      queryParams: 'ignored',
+      fragment: 'ignored',
+      matrixParams: 'ignored'
+    })) {
+      return true;
+    }
+
+    // 2. If another nav item is an exact match for current URL, do not activate this one
+    const currentBaseUrl = this.router.url.split('?')[0].split('#')[0];
+    const hasExactMatchingItem = navItems.some(item => item.route && item.route === currentBaseUrl);
+    if (hasExactMatchingItem) {
+      return false;
+    }
+
+    // 3. For deep child/detail routes without their own sidebar entry (e.g. /dashboard/payments/open/123),
+    // highlight the nav item that forms the longest matching route prefix
+    if (route !== '/dashboard' && currentBaseUrl.startsWith(route + '/')) {
+      const longerMatch = navItems.some(
+        other => other.route && other.route !== route && other.route.length > route.length && currentBaseUrl.startsWith(other.route)
+      );
+      return !longerMatch;
+    }
+
+    return false;
   }
 
   ngOnChanges() {

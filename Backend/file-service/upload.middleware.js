@@ -1,5 +1,22 @@
 const multer = require('multer');
-const { fileTypeFromBuffer } = require('file-type'); // npm install file-type
+
+// Detect file signature / magic bytes without external ESM dependency
+const detectFileType = (buffer) => {
+  if (!buffer || buffer.length < 4) return null;
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+    return { mime: 'image/jpeg' };
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+    return { mime: 'image/png' };
+  }
+  // PDF: 25 50 44 46 (%PDF)
+  if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
+    return { mime: 'application/pdf' };
+  }
+  return null;
+};
 
 // 1. Configure Multer Memory Storage
 const storage = multer.memoryStorage();
@@ -45,7 +62,7 @@ const validateMagicBytes = async (req, res, next) => {
       if (!file.buffer) continue;
 
       // Real File Signature / Magic Bytes Detection
-      const detected = await fileTypeFromBuffer(file.buffer);
+      const detected = detectFileType(file.buffer);
 
       // TXT files have no magic bytes, handle plain text validation
       if (!detected) {
@@ -76,5 +93,7 @@ const validateMagicBytes = async (req, res, next) => {
 
 module.exports = {
   upload,
-  validateMagicBytes
+  validateMagicBytes,
+  detectFileType,
+  fileFilter
 };

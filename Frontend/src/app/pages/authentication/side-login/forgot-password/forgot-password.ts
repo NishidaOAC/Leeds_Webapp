@@ -31,18 +31,23 @@ export class ForgotPassword {
     empNo: ['', [Validators.required]]
   });
 
-  submit(): void {
-    if (this.forgotForm.invalid) return;
+  isLoading = false;
 
+  submit(): void {
+    if (this.forgotForm.invalid || this.isLoading) return;
+
+    this.isLoading = true;
     this.authService.requestPasswordReset(
       this.forgotForm.value.empNo!
     ).subscribe({
-      next: () => {
-        alert('Password reset request sent to your manager.');
-        this.close(); // 👈 Optionally close modal after successful submission
+      next: (res: any) => {
+        this.isLoading = false;
+        alert(res?.message || 'Password reset request has been submitted to your manager for approval.');
+        this.close();
       },
-      error: () => {
-        alert('Something went wrong. Please contact HR.');
+      error: (err) => {
+        this.isLoading = false;
+        alert(err.error?.message || 'Something went wrong. Please contact HR.');
       }
     });
   }

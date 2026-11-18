@@ -14,8 +14,18 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // 1. Strict Algorithm Validation (Token Tampering & Alg NONE Guard)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    // 1. Strict Algorithm Validation (RS256 asymmetric with legacy HS256 fallback)
+    const { getPublicKey } = require('../utils/keyUtils');
+    let decoded;
+    try {
+      decoded = jwt.verify(token, getPublicKey(), { algorithms: ['RS256'] });
+    } catch (verifyErr) {
+      if (process.env.JWT_SECRET && (verifyErr.name === 'JsonWebTokenError' || verifyErr.message.includes('algorithm'))) {
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      } else {
+        throw verifyErr;
+      }
+    }
 
     // 2. Check if user exists and is active
     const user = await User.findOne({

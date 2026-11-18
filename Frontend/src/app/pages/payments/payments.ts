@@ -22,10 +22,10 @@ export class Payments {
   private refreshSub!: Subscription;
   role!: string;
   ngOnInit(): void {
-    const token: any = localStorage.getItem('user')
-    const user = JSON.parse(token)
+    const token: any = localStorage.getItem('user');
+    const user = JSON.parse(token);
     this.role = user.role;
-    this.roleName = user.power;
+    this.roleName = user.power || user.role;
     this.refreshSub = interval(5000).subscribe(() => {
       this.getRoleById();
     });
@@ -36,7 +36,7 @@ export class Payments {
   data: any;
   private invoiceService = inject(InvoiceService);
   isSubmitted!: true;
-  status: string = '';
+  status: any = '';
   header: string = '';
   pageStatus: boolean = true;
   dataToPass: any;
@@ -62,43 +62,45 @@ export class Payments {
       const shouldSetDefaultStatus = !this.statusSetByUser && !this.status;
       
       if(!this.isSubmitted){
-        if(this.roleName === 'SalesExecutive') { 
-          this.status = 'GENERATED'; this.sp = true; this.header = 'REJECTED'; this.pendingHeader='GENERATED'
-         }
-        if(this.roleName === 'KAM') { 
-          this.status = 'GENERATED'; this.kam = true; this.header = 'AM REJECTED'; this.pendingHeader='GENERATED'
+        if(this.roleName === 'SalesExecutive' || this.roleName === 'Sales Executive') { 
+          if (shouldSetDefaultStatus) this.status = 'GENERATED';
+          this.sp = true; this.header = 'REJECTED'; this.pendingHeader = 'GENERATED';
+        }
+        if(this.roleName === 'KAM' || this.roleName === 'Key Account Manager') { 
+          if (shouldSetDefaultStatus) this.status = 'GENERATED';
+          this.kam = true; this.header = 'AM REJECTED'; this.pendingHeader = 'GENERATED';
         }
         if(this.roleName === 'Manager') { 
-          this.status = 'KAM VERIFIED'; this.am = true; this.header = 'REJECTED'; this.pendingHeader='VERIFIED'
+          if (shouldSetDefaultStatus) this.status = 'KAM VERIFIED';
+          this.am = true; this.header = 'REJECTED'; this.pendingHeader = 'VERIFIED';
         }
         if(this.roleName === 'Accountant') { 
-          this.status = 'AM VERIFIED'; this.ma = true; this.pendingHeader='VERIFIED'
+          if (shouldSetDefaultStatus) this.status = 'AM VERIFIED';
+          this.ma = true; this.pendingHeader = 'VERIFIED';
         }
-        if(this.roleName === 'Admin' || this.roleName === 'Super Administrator') { 
+        if(this.roleName === 'Admin' || this.roleName === 'Administrator' || this.roleName === 'Super Administrator') { 
           this.admin = true; 
-          // Only set status to default if not set by user yet
           if (shouldSetDefaultStatus) {
-            this.status = '';
+            this.status = 'BANK SLIP ISSUED';
           }
         }
-        if(this.role === 'Team Lead') { this.teamLead = true }
-      }else{
-        // Only set status to default if not set by user yet
+        if(this.role === 'Team Lead') { this.teamLead = true; }
+      } else {
         if (shouldSetDefaultStatus) {
           this.status = '';
         }
         this.pageStatus = false;
-        if(this.roleName === 'Sales Executive') { 
-          this.sp = true; this.header = 'REJECTED'; this.pendingHeader='GENERATED'
-         }
-        if(this.roleName === 'Key Account Manager') { 
-          this.kam = true; this.header = 'AM REJECTED'; this.pendingHeader='GENERATED'
+        if(this.roleName === 'SalesExecutive' || this.roleName === 'Sales Executive') { 
+          this.sp = true; this.header = 'REJECTED'; this.pendingHeader = 'GENERATED';
+        }
+        if(this.roleName === 'KAM' || this.roleName === 'Key Account Manager') { 
+          this.kam = true; this.header = 'AM REJECTED'; this.pendingHeader = 'GENERATED';
         }
         if(this.roleName === 'Manager') { 
-          this.am = true; this.header = 'REJECTED'; this.pendingHeader='VERIFIED'
+          this.am = true; this.header = 'REJECTED'; this.pendingHeader = 'VERIFIED';
         }
         if(this.roleName === 'Accountant') { 
-          this.ma = true; this.pendingHeader='VERIFIED'
+          this.ma = true; this.pendingHeader = 'VERIFIED';
         }
       }
       this.data = {
@@ -111,7 +113,7 @@ export class Payments {
         admin: this.admin,
         teamLead: this.teamLead,
         pageStatus: this.pageStatus
-      }
+      };
 
       // Mark view as ready and initialize tabs
       if (!this.isViewReady) {
@@ -126,7 +128,8 @@ export class Payments {
         this.updateActiveTab();
       }
   }
-    private initializeTabs(): void {
+
+  private initializeTabs(): void {
     const tabIndex = this.invoiceService.getState('tabIndex');
     
     if (tabIndex !== undefined && tabIndex !== null) {
@@ -147,7 +150,7 @@ export class Payments {
       if (!localStorage.getItem('JWT_TOKEN')) {
         return;
       }
-      if (this.viewApprovalComponents.length > this.selectedTabIndex) {
+      if (this.viewApprovalComponents && this.viewApprovalComponents.length > this.selectedTabIndex) {
         const activeComponent = this.viewApprovalComponents.toArray()[this.selectedTabIndex];
         if (activeComponent) {
           activeComponent.loadData(this.data, this.selectedTabIndex);
@@ -158,8 +161,16 @@ export class Payments {
   
   selectedTabIndex: number = 0;
   onTabChange(event: number) {
+    this.selectedTabIndex = event;
+    this.statusSetByUser = true;
+
+    if (!this.data) {
+      this.data = {};
+    }
+
     switch (this.roleName) {
       case 'SalesExecutive':
+      case 'Sales Executive':
         switch (event) {
           case 0:
             this.data.status = 'GENERATED';
@@ -181,8 +192,10 @@ export class Payments {
             this.data.status = 'GENERATED';
             this.data.pageStatus = false;
             break;
-        };
+        }
         break;
+
+      case 'KAM':
       case 'Key Account Manager':
         switch (event) {
           case 0:
@@ -190,18 +203,14 @@ export class Payments {
             this.data.pageStatus = true;
             break;
           case 1:
-            this.data.status = ['KAM VERIFIED', 'KAM REJECTED'];
-            this.data.pageStatus = true;
-            break;
-          case 2:
             this.data.status = 'BANK SLIP ISSUED';
             this.data.pageStatus = false;
             break;
-          case 3:
+          case 2:
             this.data.status = 'AM REJECTED';
             this.data.pageStatus = false;
             break;
-          case 4:
+          case 3:
             this.data.status = '';
             this.data.pageStatus = false;
             break;
@@ -211,6 +220,7 @@ export class Payments {
             break;
         }
         break;
+
       case 'Manager':
         switch (event) {
           case 0:
@@ -222,9 +232,9 @@ export class Payments {
             this.data.pageStatus = true;
             break;
           case 2:
-              this.data.status = 'GENERATED';
-              this.data.pageStatus = false;
-              break;
+            this.data.status = 'GENERATED';
+            this.data.pageStatus = false;
+            break;
           case 3:
             this.data.status = 'BANK SLIP ISSUED';
             this.data.pageStatus = false;
@@ -237,16 +247,13 @@ export class Payments {
             this.data.status = '';
             this.data.pageStatus = false;
             break;
-          case 6:
-            this.data.status = '';
-            this.data.pageStatus = false;
-            break;
           default:
             this.data.status = 'KAM VERIFIED';
             this.data.pageStatus = false;
             break;
-        } 
+        }
         break;
+
       case 'Accountant':
         switch (event) {
           case 0:
@@ -261,21 +268,20 @@ export class Payments {
             this.data.status = '';
             this.data.pageStatus = false;
             break;
-          case 3:
-            this.data.status = '';
-            this.data.pageStatus = false;
-            break;
           default:
             this.data.status = 'AM VERIFIED';
+            this.data.pageStatus = false;
             break;
-        } 
+        }
         break;
 
       case 'Super Administrator':
+      case 'Admin':
+      case 'Administrator':
         switch (event) {
           case 0:
-            this.data.status = 'GENERATED';
-            this.data.pageStatus = true;
+            this.data.status = 'BANK SLIP ISSUED';
+            this.data.pageStatus = false;
             break;
           case 1:
             this.data.status = '';
@@ -287,50 +293,42 @@ export class Payments {
             break;
         }
         break;
+
       default:
-          switch (event) {
-            case 0:
-              this.data.status = 'GENERATED';
-              break;
-            case 1:
-              this.data.status = '';
-              break;
-            case 2:
-              this.data.status = 'AM REJECTED';
-              break;
-            case 3:
-              this.data.status = '';
-              break;
-            default:
-              this.data.status = 'GENERATED';
-              break;
-          }
-          break;
+        switch (event) {
+          case 0:
+            this.data.status = 'GENERATED';
+            this.data.pageStatus = true;
+            break;
+          case 1:
+            this.data.status = 'BANK SLIP ISSUED';
+            this.data.pageStatus = false;
+            break;
+          case 2:
+            this.data.status = 'AM REJECTED';
+            this.data.pageStatus = false;
+            break;
+          case 3:
+            this.data.status = '';
+            this.data.pageStatus = false;
+            break;
+          default:
+            this.data.status = 'GENERATED';
+            this.data.pageStatus = false;
+            break;
+        }
+        break;
     }
-    
-    // Sync this.status with this.data.status so interval uses user's selected status
+
+    // Sync this.status and this.pageStatus with this.data
     this.status = this.data.status;
-    this.statusSetByUser = true;
-    
-    if (event === 0 && this.viewApprovalComponents.length > 0 && (this.roleName === 'Administrator' || this.roleName === 'Super Administrator')) {
-      const activeComponent = this.viewApprovalComponents.toArray()[0]; 
-      if (activeComponent) {
-        activeComponent.loadData(this.data, event);
-      } 
-    }  
-    // else if (event === 1 && this.viewExpenseComponent.length > 0 && (this.roleName === 'Administrator' || this.roleName === 'Super Administrator')) {
-    //   const activeComponent = this.viewExpenseComponent.toArray()[0]; 
-    //   if (activeComponent) {
-    //     activeComponent.loadData(this.data, event);
-    //   } 
-    // } 
-    else if (this.viewApprovalComponents.length > 0) {
+    this.pageStatus = this.data.pageStatus;
+
+    if (this.viewApprovalComponents && this.viewApprovalComponents.length > event) {
       const activeComponent = this.viewApprovalComponents.toArray()[event];
       if (activeComponent) {
         activeComponent.loadData(this.data, event);
-      } 
+      }
     }
-
   }
-  
 }

@@ -17,6 +17,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { InvoiceService } from '../invoice.service';
 import { VerificationDialogueComponent } from './verification-dialogue/verification-dialogue.component';
 import { BankReceiptDialogueComponent } from './bank-receipt-dialogue/bank-receipt-dialogue.component';
@@ -27,7 +28,7 @@ import { PerformaInvoice } from '../performa-invoice';
   selector: 'app-view-approval',
   standalone: true,
   imports: [ MatToolbarModule, MatFormFieldModule, ReactiveFormsModule, MatIconModule, MatPaginatorModule, MatDividerModule,
-    RouterModule, MatCardModule,MatDialogModule, CommonModule, MatButtonModule, MatProgressSpinnerModule
+    RouterModule, MatCardModule, MatDialogModule, CommonModule, MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
   ],
   templateUrl: './view-approval.component.html',
   styleUrl: './view-approval.component.scss',
@@ -350,5 +351,34 @@ export class ViewApprovalComponent {
     });
   }
 
-}
 
+  getStatusClass(status?: string): string {
+    if (!status) return 'status-default';
+    const s = status.toUpperCase();
+    if (s.includes('REJECTED') || s.includes('DECLINED')) return 'status-danger';
+    if (s.includes('APPROVED') || s.includes('SUCCESS') || s.includes('ISSUED')) return 'status-success';
+    if (s.includes('VERIFIED')) return 'status-info';
+    if (s.includes('GENERATED') || s.includes('INITIATED')) return 'status-warning';
+    return 'status-default';
+  }
+
+  getStatusLabel(status?: string): string {
+    if (!status) return '-';
+    return status.replace(/_/g, ' ');
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  clearSearch(input: HTMLInputElement): void {
+    input.value = '';
+    this.filterValue = '';
+    this.getInvoices();
+  }
+}

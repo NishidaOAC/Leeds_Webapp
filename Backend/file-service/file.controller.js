@@ -271,6 +271,55 @@ class FileController {
       next(error);
     }
   }
+
+  proxyDownload = async (req, res, next) => {
+    try {
+      const fileUrl = req.query.url;
+      const rawFilename = req.query.filename || 'document.pdf';
+      if (!fileUrl) {
+        return res.status(400).json({ success: false, error: 'URL parameter is required' });
+      }
+
+      const cleanFilename = String(rawFilename).replace(/[/\\?%*:|"<>]/g, '_');
+
+      // Check if URL belongs to our AWS S3 bucket
+      if (fileUrl.includes('.amazonaws.com/')) {
+        let key = fileUrl.split('.amazonaws.com/')[1];
+        if (key) {
+          key = decodeURIComponent(key.split('?')[0]);
+          const stream = this.fileService.getFileStreamByKey(key);
+          
+          stream.on('error', (err) => {
+            console.error('S3 stream error during download:', err.message);
+            if (!res.headersSent) {
+              res.status(404).json({ success: false, error: 'File not found in S3 bucket' });
+            }
+          });
+
+          res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+          return stream.pipe(res);
+        }
+      }
+
+      // Fallback for direct external URLs
+      const upstream = await fetch(fileUrl);
+      if (!upstream.ok) {
+        return res.status(upstream.status).json({ success: false, error: 'Failed to retrieve file from source' });
+      }
+
+      const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+
+      const { Readable } = require('stream');
+      Readable.fromWeb(upstream.body).pipe(res);
+    } catch (error) {
+      console.error('Proxy download error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, error: 'Failed to process file download' });
+      }
+    }
+  }
 }
 
 module.exports = FileController;

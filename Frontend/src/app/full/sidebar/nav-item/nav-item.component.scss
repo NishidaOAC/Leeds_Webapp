@@ -16,17 +16,17 @@
   display: flex !important;
   align-items: center !important;
   
-  height: 36px !important;
-  min-height: 36px !important;
-  padding: 0 10px !important;
-  margin: 2px 6px !important; 
-  border-radius: 6px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 14px !important;
+  margin: 3px 0 !important; 
+  border-radius: 8px !important;
   
-  color: #475569;
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.15s ease-in-out;
+  color: #f1f5f9 !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   cursor: pointer;
 
   &::before,
@@ -39,58 +39,73 @@
     align-items: center !important;
     width: 100% !important;
     padding: 0 !important;
+    color: #f1f5f9 !important;
   }
 
   .routeIcon,
   mat-icon {
-    font-size: 17px !important;
-    width: 17px !important;
-    height: 17px !important;
-    margin-right: 10px !important;
-    color: #64748b;
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 12px !important;
+    color: #38bdf8 !important; /* Vibrant Sky Blue on Dark */
     flex-shrink: 0;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease !important;
   }
 
-  .hide-menu {
-    font-size: 12.5px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex-grow: 1;
-    line-height: 1;
+  .hide-menu,
+  span {
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex-grow: 1 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.1px !important;
+    color: #f1f5f9 !important;
   }
 
   .arrow-icon mat-icon {
-    font-size: 14px !important;
-    width: 14px !important;
-    height: 14px !important;
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
     margin-right: 0 !important;
+    color: #64748b !important;
   }
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+
+    .hide-menu,
+    span {
+      color: #ffffff !important;
+    }
 
     .routeIcon,
     mat-icon {
-      color: #1e293b;
+      color: #7dd3fc !important;
+      transform: scale(1.1) !important;
     }
   }
 
   &.activeMenu,
   &.active {
-    background-color: #234A86;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
     color: #ffffff !important;
-    font-weight: 600;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45) !important;
 
     .hide-menu,
+    span,
     .routeIcon,
     mat-icon {
       color: #ffffff !important;
+      transform: none !important;
     }
   }
 }

@@ -1,5 +1,5 @@
 // payment-service/index.js
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
 require('express-async-errors');
 
 const express = require('express');
@@ -97,28 +97,27 @@ const PORT = process.env.PORT || 3002;
 
 async function startServer() {
   try {
-    // Test DB connection
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      logger.warn('Database connection failed. Starting server anyway...');
-    }
-
-    // Sync database models
-    await sequelize.sync();
-    logger.info('Database models synchronized');
-
-    // Notify service started
-    await publishEvent('SERVICE_STARTED', { service: 'payment-service' });
-
     app.listen(PORT, () => {
       logger.info(`Payment Service running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
       logger.info(`Database: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
     });
 
+    // Test DB connection
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      logger.warn('Database connection failed. Server is running, but database operations will fail until PostgreSQL is running.');
+    } else {
+      // Sync database models
+      await sequelize.sync({ alter: true });
+      logger.info('Database models synchronized');
+    }
+
+    // Notify service started
+    await publishEvent('SERVICE_STARTED', { service: 'payment-service' });
+
   } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
+    logger.error('Error during startup:', error);
   }
 }
 

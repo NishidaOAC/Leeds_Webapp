@@ -34,6 +34,9 @@ router.post(
 // File management & deletion routes
 router.delete('/filedeletebyurl', fileController.deleteByUrl);
 
+// File download proxy (forces browser attachment download)
+router.get('/proxy-download', fileController.proxyDownload);
+
 // File retrieval routes
 router.get('/:fileId', fileController.getFileInfo);
 router.get('/download/:fileId', fileController.downloadFile);

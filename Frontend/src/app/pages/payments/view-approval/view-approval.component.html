@@ -1,181 +1,276 @@
-<div class="page-container" fxLayout="column" fxLayoutAlign="space-between stretch">
-  <div fxLayout="column" fxLayoutAlign="space-between stretch" class="components-container">
-    <mat-card fxFlex>
-      <div fxFlex class="table-component-holder mat-elevation-z4">
-        <!-- Table Header -->
-        <mat-toolbar class="table-header">
-          <div class="row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div class="col"></div>
-            <div class="col" style="text-align: right;">
-              <div class="input-group">
-                <input 
-                  type="search" 
-                  placeholder="Search Data by Entry No..." 
-                  (keyup)="applyFilter($event)"
-                >
-              </div>
-            </div>
-          </div>
-        </mat-toolbar>
+<div class="payments-page-container">
+  <div class="payments-card mat-elevation-z2">
+    <!-- Table Header Toolbar -->
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="table-title">
+          <mat-icon class="title-icon">receipt_long</mat-icon>
+          <h2>Payment Records</h2>
+        </div>
+        <span class="count-pill">{{ totalItems }} Total</span>
+      </div>
 
-        <!-- Table Container -->
-        <div class="table-container">
-          <table>
-            <!-- Table Head -->
-            <thead>
-              <tr>
-                <th scope="col">EntryNo</th>
-                <th scope="col">Customer</th>
-                <th scope="col">Sales Executive</th>
-                <th scope="col">KAM</th>
-                <th scope="col">Manager</th>
-                <th scope="col">Accountant</th>
-                <th scope="col">Status</th>
-                <th scope="col">Manage</th>
-              </tr>
-            </thead>
-
-            <!-- Table Body -->
-            <tbody>
-              <!-- Invoice Rows -->
-              @for(invoice of invoices; let i = $index; track $index) {
-                <tr [routerLink]="['open/', invoice.id]">
-                  <!-- Invoice Details -->
-                  <td [attr.data-label]="'InvoiceNo'">{{ invoice.piNo || '-' }}</td>
-                  <td [attr.data-label]="'InvoiceNo'">{{ invoice.customers?.companyName ?? 'To Stock' }}</td>
-                  <td [attr.data-label]="'SP'">{{ invoice.salesPerson?.name || '-' }}</td>
-                  <td [attr.data-label]="'KAM'">{{ invoice.kam?.name || '-' }}</td>
-                  <td [attr.data-label]="'AM'">{{ invoice.am?.name || '-' }}</td>
-                  <td [attr.data-label]="'MA'">{{ invoice.accountant?.name }}</td>
-                  <td [attr.data-label]="'Status'">{{ invoice.status }}_{{ invoice.count }}</td>
-
-                  <!-- Action Buttons -->
-                  <td (click)="$event.stopPropagation()">
-                    <div class="action-icons">
-                      
-                      <!-- Admin/Edit Buttons -->
-                      @if(data.admin || invoice.editButtonStatus) {
-                        <button 
-                          class="update-button" 
-                          [routerLink]="['edit/', invoice.id]"
-                        >
-                          Update
-                        </button>
-                        <button 
-                          class="delete-button" 
-                          (click)="deleteFunction(invoice)"
-                        >
-                          Delete
-                        </button>
-                      }
-
-                      <!-- Approval Buttons -->
-                      @if(!data.sp && data.pageStatus && !data.admin && !data.teamLead && invoice.status != 'AM APPROVED' && !invoice.editButtonStatus) {
-                        <button 
-                          mat-raised-button 
-                          class="approve-button"
-                          [disabled]="
-                            (data.roleName === 'KAM' && invoice.status === 'KAM VERIFIED') ||
-                            (data.roleName === 'Manager' && invoice.status === 'AM VERIFIED')
-                          "
-                          (click)="verified('approved', invoice.piNo, invoice.salesPerson?.name, invoice.id, invoice.status)"
-                        >
-                          APPROVE
-                        </button>
-                        <button 
-                          mat-raised-button 
-                          class="reject-button"
-                          [disabled]="
-                            (data.roleName === 'KAM' && invoice.status === 'KAM REJECTED') ||
-                            (data.roleName === 'Manager' && invoice.status === 'AM REJECTED')
-                          "
-                          (click)="verified('rejected', invoice.piNo, invoice.addedBy.name, invoice.id, invoice.status)"
-                        >
-                          REJECT
-                        </button>
-                      }
-
-                      <!-- KAM Unavailable Button -->
-                      @if(!data.pageStatus && data.am && invoice.status === 'GENERATED' ) {
-                        <button 
-                          mat-raised-button 
-                          class="kam-unavailable-button"
-                          (click)="handleKamUnavailable(invoice.id, invoice.piNo, invoice.addedBy.name)"
-                        >
-                          MARK KAM UNAVAILABLE
-                        </button>
-                      }
-
-                      <!-- Accountant Bank Slip Button -->
-                      @if(!data.sp && data.ma) {
-                        <button 
-                          mat-raised-button 
-                          class="add-bank-slip-button"
-                          (click)="addBankSlip(invoice.piNo, invoice.id, invoice.status)"
-                        >
-                          {{ invoice.status === 'BANK SLIP ISSUED' ? 'Edit Wireslip' : 'Wireslip' }}
-                        </button>
-                      }
-
-                      <!-- KAM Attach Button -->
-                      @if(data.kam && (invoice.status === 'AM APPROVED' || invoice.status === 'CARD PAYMENT SUCCESS')) {
-                        <button 
-                          mat-raised-button 
-                          class="add-bank-slip-button"
-                          (click)="addBankSlip(invoice.piNo, invoice.id, invoice.status)"
-                        >
-                          {{ invoice.status === 'CARD PAYMENT SUCCESS' ? 'Edit Attach' : 'Attach' }}
-                        </button>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              }
-
-              <!-- No Records Found -->
-              @if(invoices.length === 0) {
-                <tr>
-                  <td [colSpan]="7" style="text-align: center;">
-                    No records found
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-
-          <!-- Paginator -->
-          @if (invoices) {
-            <div fxLayout="row wrap">
-              <div fxFlex="100" class="p-2">
-                <mat-paginator 
-                  [length]="totalItems" 
-                  [pageSize]="pageSize" 
-                  [pageIndex]="currentPage - 1"
-                  (page)="onPageChange($event)" 
-                  [pageSizeOptions]="[10, 20, 30, 40, 50, 100]"
-                >
-                </mat-paginator>
-              </div>
-            </div>
-          } 
-          <!-- @else {
-            <div fxLayout="column" fxLayoutAlign="center center" class="user-spinner">
-              <mat-spinner color="primary"></mat-spinner>
-            </div>
-          } -->
-
-          <!-- Form Submission Spinner -->
-          <!-- @if(submittingForm) {
-            <div fxLayout="column" fxLayoutAlign="center center" class="user-spinner">
-              <mat-spinner color="primary"></mat-spinner>
-            </div>
-          } -->
+      <div class="toolbar-right">
+        <div class="search-box">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input 
+            #searchInput
+            type="text" 
+            placeholder="Search Entry No, Customer..." 
+            [value]="filterValue || ''"
+            (keyup)="applyFilter($event)"
+          >
+          @if(filterValue) {
+            <button type="button" class="clear-btn" (click)="clearSearch(searchInput)" matTooltip="Clear search">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
         </div>
       </div>
-    </mat-card>
+    </div>
 
+    <!-- Table Scroll Container -->
+    <div class="table-scroll-wrapper">
+      <table class="modern-table">
+        <!-- Table Head -->
+        <thead>
+          <tr>
+            <th class="th-entry" scope="col">Entry No</th>
+            <th class="th-customer" scope="col">Customer</th>
+            <th class="th-person" scope="col">Sales Executive</th>
+            <th class="th-person" scope="col">KAM</th>
+            <th class="th-person" scope="col">Manager</th>
+            <th class="th-person" scope="col">Accountant</th>
+            <th class="th-status" scope="col">Status</th>
+            <th class="th-actions" scope="col">Manage</th>
+          </tr>
+        </thead>
+
+        <!-- Table Body -->
+        <tbody>
+          @for(invoice of invoices; let i = $index; track invoice.id || $index) {
+            <tr [routerLink]="['open/', invoice.id]" class="data-row">
+              <!-- Entry No -->
+              <td class="td-entry" [attr.data-label]="'Entry No'">
+                <span class="entry-no-pill">
+                  <mat-icon class="pill-icon">tag</mat-icon>
+                  <span>{{ invoice.piNo || '-' }}</span>
+                </span>
+              </td>
+
+              <!-- Customer -->
+              <td class="td-customer" [attr.data-label]="'Customer'">
+                <div class="customer-cell">
+                  <div class="customer-icon-wrap" [class.to-stock]="!invoice.customers?.companyName">
+                    <mat-icon>{{ invoice.customers?.companyName ? 'business' : 'inventory_2' }}</mat-icon>
+                  </div>
+                  <div class="customer-meta">
+                    <span class="customer-name" [matTooltip]="invoice.customers?.companyName ?? 'To Stock'">
+                      {{ invoice.customers?.companyName ?? 'To Stock' }}
+                    </span>
+                    @if(invoice.customers?.code) {
+                      <span class="customer-code">{{ invoice.customers.code }}</span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <!-- Sales Executive -->
+              <td class="td-person" [attr.data-label]="'Sales Executive'">
+                @if(invoice.salesPerson?.name) {
+                  <div class="person-chip" [matTooltip]="invoice.salesPerson.name">
+                    <span class="avatar-circle avatar-sp">{{ getInitials(invoice.salesPerson.name) }}</span>
+                    <span class="person-name">{{ invoice.salesPerson.name }}</span>
+                  </div>
+                } @else {
+                  <span class="unassigned-text">—</span>
+                }
+              </td>
+
+              <!-- KAM -->
+              <td class="td-person" [attr.data-label]="'KAM'">
+                @if(invoice.kam?.name) {
+                  <div class="person-chip" [matTooltip]="invoice.kam.name">
+                    <span class="avatar-circle avatar-kam">{{ getInitials(invoice.kam.name) }}</span>
+                    <span class="person-name">{{ invoice.kam.name }}</span>
+                  </div>
+                } @else {
+                  <span class="unassigned-text">—</span>
+                }
+              </td>
+
+              <!-- Manager -->
+              <td class="td-person" [attr.data-label]="'Manager'">
+                @if(invoice.am?.name) {
+                  <div class="person-chip" [matTooltip]="invoice.am.name">
+                    <span class="avatar-circle avatar-am">{{ getInitials(invoice.am.name) }}</span>
+                    <span class="person-name">{{ invoice.am.name }}</span>
+                  </div>
+                } @else {
+                  <span class="unassigned-text">—</span>
+                }
+              </td>
+
+              <!-- Accountant -->
+              <td class="td-person" [attr.data-label]="'Accountant'">
+                @if(invoice.accountant?.name) {
+                  <div class="person-chip" [matTooltip]="invoice.accountant.name">
+                    <span class="avatar-circle avatar-ma">{{ getInitials(invoice.accountant.name) }}</span>
+                    <span class="person-name">{{ invoice.accountant.name }}</span>
+                  </div>
+                } @else {
+                  <span class="unassigned-text">—</span>
+                }
+              </td>
+
+              <!-- Status -->
+              <td class="td-status" [attr.data-label]="'Status'">
+                <div class="status-cell-wrapper">
+                  <span class="status-pill" [ngClass]="getStatusClass(invoice.status)">
+                    <span class="status-dot"></span>
+                    <span class="status-label">{{ getStatusLabel(invoice.status) }}</span>
+                  </span>
+                  @if(invoice.count && invoice.count > 1) {
+                    <span class="revision-badge" matTooltip="Revision count">v{{ invoice.count }}</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <div class="action-buttons-wrap">
+                  <!-- Admin / Edit Buttons -->
+                  @if(data?.admin || invoice.editButtonStatus) {
+                    <button 
+                      type="button"
+                      class="btn-action btn-update" 
+                      [routerLink]="['edit/', invoice.id]"
+                      matTooltip="Edit invoice details"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Update</span>
+                    </button>
+                    <button 
+                      type="button"
+                      class="btn-action btn-delete" 
+                      (click)="deleteFunction(invoice)"
+                      matTooltip="Delete invoice"
+                    >
+                      <mat-icon>delete_outline</mat-icon>
+                      <span>Delete</span>
+                    </button>
+                  }
+
+                  <!-- Approval Buttons -->
+                  @if(!data?.sp && data?.pageStatus && !data?.admin && !data?.teamLead && invoice.status != 'AM APPROVED' && !invoice.editButtonStatus) {
+                    <button 
+                      type="button"
+                      class="btn-action btn-approve"
+                      [disabled]="
+                        (data?.roleName === 'KAM' && invoice.status === 'KAM VERIFIED') ||
+                        (data?.roleName === 'Manager' && invoice.status === 'AM VERIFIED')
+                      "
+                      (click)="verified('approved', invoice.piNo, invoice.salesPerson?.name, invoice.id, invoice.status)"
+                      matTooltip="Approve this payment stage"
+                    >
+                      <mat-icon>check_circle</mat-icon>
+                      <span>Approve</span>
+                    </button>
+                    <button 
+                      type="button"
+                      class="btn-action btn-reject"
+                      [disabled]="
+                        (data?.roleName === 'KAM' && invoice.status === 'KAM REJECTED') ||
+                        (data?.roleName === 'Manager' && invoice.status === 'AM REJECTED')
+                      "
+                      (click)="verified('rejected', invoice.piNo, invoice.addedBy?.name, invoice.id, invoice.status)"
+                      matTooltip="Reject this payment stage"
+                    >
+                      <mat-icon>cancel</mat-icon>
+                      <span>Reject</span>
+                    </button>
+                  }
+
+                  <!-- KAM Unavailable Button -->
+                  @if(!data?.pageStatus && data?.am && invoice.status === 'GENERATED') {
+                    <button 
+                      type="button"
+                      class="btn-action btn-unavailable"
+                      (click)="handleKamUnavailable(invoice.id, invoice.piNo, invoice.addedBy?.name)"
+                      matTooltip="Mark KAM as unavailable"
+                    >
+                      <mat-icon>person_off</mat-icon>
+                      <span>KAM Unavailable</span>
+                    </button>
+                  }
+
+                  <!-- Accountant Bank Slip Button -->
+                  @if(!data?.sp && data?.ma) {
+                    <button 
+                      type="button"
+                      class="btn-action btn-attach"
+                      (click)="addBankSlip(invoice.piNo, invoice.id, invoice.status)"
+                      matTooltip="Manage wireslip document"
+                    >
+                      <mat-icon>receipt</mat-icon>
+                      <span>{{ invoice.status === 'BANK SLIP ISSUED' ? 'Edit Wireslip' : 'Wireslip' }}</span>
+                    </button>
+                  }
+
+                  <!-- KAM Attach Button -->
+                  @if(data?.kam && (invoice.status === 'AM APPROVED' || invoice.status === 'CARD PAYMENT SUCCESS')) {
+                    <button 
+                      type="button"
+                      class="btn-action btn-attach"
+                      (click)="addBankSlip(invoice.piNo, invoice.id, invoice.status)"
+                      matTooltip="Attach card receipt document"
+                    >
+                      <mat-icon>attach_file</mat-icon>
+                      <span>{{ invoice.status === 'CARD PAYMENT SUCCESS' ? 'Edit Attach' : 'Attach' }}</span>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+
+          <!-- Empty State -->
+          @if(!submittingForm && invoices.length === 0) {
+            <tr>
+              <td colspan="8" class="empty-state-cell">
+                <div class="empty-state-content">
+                  <div class="empty-icon-circle">
+                    <mat-icon>receipt_long</mat-icon>
+                  </div>
+                  <h4>No payment records found</h4>
+                  <p>There are no invoices matching your current filter criteria.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Loading Overlay -->
+      @if(submittingForm) {
+        <div class="table-loading-overlay">
+          <mat-spinner diameter="42" strokeWidth="4"></mat-spinner>
+          <span>Loading payment records...</span>
+        </div>
+      }
+    </div>
+
+    <!-- Paginator Footer -->
+    <div class="table-footer">
+      <mat-paginator 
+        [length]="totalItems" 
+        [pageSize]="pageSize" 
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event)" 
+        [pageSizeOptions]="[10, 20, 30, 50, 100]"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    </div>
   </div>
-
-  <mat-divider></mat-divider>
-
 </div>

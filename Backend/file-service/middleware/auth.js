@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { getPublicKeyAsync } = require('../utils/keyUtils');
+
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -11,27 +12,29 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Check if user exists and is active
-    const user = await User.findOne({
-      where: { 
-        id: decoded.id, 
-        isActive: true 
+    // 1. Asymmetric verification via RSA Public Key (RS256)
+    const publicKey = await getPublicKeyAsync();
+    let decoded;
+    try {
+      decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+    } catch (verifyErr) {
+      // Graceful fallback to HS256 for legacy tokens
+      if (process.env.JWT_SECRET && (verifyErr.name === 'JsonWebTokenError' || verifyErr.message.includes('algorithm'))) {
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      } else {
+        throw verifyErr;
       }
-    });
-    if (!user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'User not found or inactive' 
-      });
     }
 
-    // Attach user to request
+    const userId = decoded.id || decoded.userId;
+
+    // Attach user to request directly from cryptographically verified claims
     req.user = {
-      id: user.id,
-      email: user.email,
-      roleId: user.roleId,
-      name: user.name
+      id: userId,
+      userId: userId,
+      email: decoded.email,
+      roleId: decoded.roleId,
+      name: decoded.name
     };
 
     next();
@@ -50,14 +53,13 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    console.error('File Auth Middleware Error:', error.message);
     return res.status(500).json({
       success: false,
       message: error.message || 'Authentication failed'
     });
   }
-
 };
-
 
 const authorizeRole = (...roles) => {
   return (req, res, next) => {

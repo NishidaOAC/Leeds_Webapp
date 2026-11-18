@@ -3,32 +3,31 @@ import { NavItem } from './nav-item/nav-item';
 export const navItems: NavItem[] = [
   {
     displayName: 'Dashboard',
-    iconName: 'dashboard',
+    iconName: 'grid_view',
     route: '/dashboard',
     bgcolor: 'primary',
     // 🟢 Quality allowed
-    roles: ['Admin', 'QualityAdmin', 'Quality Super Administrator', 'Manager', 'user', 'superadministrator'] 
+    roles: ['Admin', 'QualityAdmin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant'] 
   },
   {
     displayName: 'Onboard Supplier',
     iconName: 'person_add',
     route: '/dashboard/supplier',
     // 🟢 Quality allowed
-    roles: ['QualityAdmin', 'Quality Super Administrator']
+    roles: ['QualityAdmin']
   },
   {
     displayName: 'Supplier Directory',
     iconName: 'folder_shared',
     route: '/dashboard/supplier/supplierlist',
     // 🟢 Quality allowed
-    roles: ['QualityAdmin', 'Quality Super Administrator', 'Admin', 'Manager', 'SalesExecutive', 'KAM']
+    roles: ['QualityAdmin', 'Admin', 'Manager', 'SalesExecutive', 'KAM']
   },
   {
-    displayName: 'NewPayment',
+    displayName: 'New Payment',
     iconName: 'add_card',
     route: '/dashboard/payments/addpayments',
     bgcolor: 'primary',
-    // 🔴 Quality removed
     roles: ['Admin', 'Manager', 'SalesExecutive', 'KAM']
   },
   {
@@ -36,27 +35,25 @@ export const navItems: NavItem[] = [
     iconName: 'payments',
     route: '/dashboard/payments',
     bgcolor: 'primary',
-    // 🔴 Quality removed
     roles: ['Admin', 'Manager', 'user', 'SalesExecutive', 'KAM', 'Accountant']
   },
   {
-    displayName: 'Company',
+    displayName: 'Customer',
     iconName: 'business',
     route: '/dashboard/company',
     bgcolor: 'primary',
-    // 🔴 Quality removed
-    roles: ['Admin']
+    roles: ['Admin', 'KAM']
   },
   {
     displayName: 'Users',
-    iconName: 'people',
+    iconName: 'manage_accounts',
     route: '/dashboard/users',
     bgcolor: 'primary',
     // 🔴 Quality removed
     roles: ['Admin', 'Manager']
   },
   {
-    displayName: 'Role',
+    displayName: 'Roles',
     iconName: 'admin_panel_settings',
     route: '/dashboard/users/roles',
     bgcolor: 'primary',
@@ -64,7 +61,7 @@ export const navItems: NavItem[] = [
     roles: ['Admin']
   },
   {
-    displayName: 'Team',
+    displayName: 'Teams',
     iconName: 'groups',
     route: '/dashboard/users/teams',
     bgcolor: 'primary',
@@ -72,7 +69,7 @@ export const navItems: NavItem[] = [
     roles: ['Admin', 'Manager']
   },
   {
-    displayName: 'Report',
+    displayName: 'Reports',
     iconName: 'bar_chart',
     route: '/dashboard/payments/report',
     bgcolor: 'primary',

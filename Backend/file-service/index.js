@@ -1,5 +1,5 @@
-// payment-service/index.js
-require('dotenv').config();
+// file-service/index.js
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
 
 const express = require('express');
 const cors = require('cors');
@@ -46,30 +46,19 @@ app.use((req, res, next) => {
 
 // Routes
 const paymentRoutes = require('./file.routes');
-// const companyRoutes = require('./routes/company.routes');
-// app.use('/company', companyRoutes);
 app.use('/', paymentRoutes);
 
 // Health check
 app.get('/health', async (req, res) => {
   const dbStatus = await testConnection();
-  // Optionally check RabbitMQ connection
   res.json({
-    service: 'payment-service',
+    service: 'file-service',
     status: 'running',
     timestamp: new Date().toISOString(),
     database: dbStatus ? 'connected' : 'disconnected',
     version: process.env.npm_package_version || '1.0.0'
   });
 });
-
-// 404 handler
-// app.use('*', (req, res) => {
-//   res.status(404).json({
-//     success: false,
-//     message: 'Route not found'
-//   });
-// });
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -94,28 +83,27 @@ const PORT = process.env.PORT || 3003;
 
 async function startServer() {
   try {
-    // Test DB connection
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      logger.warn('Database connection failed. Starting server anyway...');
-    }
-
-    // Sync database models
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
-    logger.info('Database models synchronized');
-
-    // Notify service started
-    await publishEvent('SERVICE_STARTED', { service: 'file-service' });
-
     app.listen(PORT, () => {
       logger.info(`File Service running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
       logger.info(`Database: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
     });
 
+    // Test DB connection
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      logger.warn('Database connection failed. Server is running, but database operations will fail until PostgreSQL is running.');
+    } else {
+      // Sync database models
+      await sequelize.sync({ alter: true });
+      logger.info('Database models synchronized');
+    }
+
+    // Notify service started
+    await publishEvent('SERVICE_STARTED', { service: 'file-service' });
+
   } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
+    logger.error('Error during startup:', error);
   }
 }
 

@@ -1,262 +1,405 @@
 @if(pi){
-  <!-- Header Section -->
-  <div class="header-container">
-    <div class="header-content">
-      <div class="header-left">
-        <div class="title-section">
-          <mat-icon class="title-icon">receipt_long</mat-icon>
-          <div class="title-text">
-            <h1 class="main-title">PROFORMA INVOICE</h1>
-            <div class="invoice-details">
-              <span class="invoice-number">{{ piNo | uppercase }}</span>
-              <span class="invoice-status" [ngClass]="getStatusClass(pi.status)">
-                {{ pi.status | titlecase }}
-              </span>
+  <div class="invoice-view-container">
+    <!-- Header Section -->
+    <div class="header-container">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="title-section">
+            <div class="title-icon-box">
+              <mat-icon class="title-icon">receipt_long</mat-icon>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="header-right">
-        <div class="action-buttons">
-          <span class="added-by">
-            <mat-icon class="person-icon">person</mat-icon>
-            Added by: {{pi.addedBy?.name}}
-          </span>
-          
-          <button mat-mini-fab color="basic" matTooltip="Go Back" 
-                  class="action-btn back-btn" (click)="goBack()">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Card -->
-  <mat-card class="invoice-card">
-    
-    <!-- Invoice Information Section -->
-    <div class="invoice-info-section">
-      <div class="section-header">
-        <mat-icon>info</mat-icon>
-        <h3>Invoice Information</h3>
-      </div>
-      
-      <div class="info-grid">
-        <!-- Supplier Information -->
-        <div class="info-card supplier-info">
-          <div class="info-card-header">
-            <mat-icon class="card-icon">store</mat-icon>
-            <h4>Supplier Details</h4>
-          </div>
-          <div class="info-card-content">
-            <div class="info-row">
-              <span class="info-label">Company Name:</span>
-             <span class="info-value">{{ pi.suppliers?.companyName || pi.supplierName || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">PO Number:</span>
-              <span class="info-value">{{ pi.supplierPoNo || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">SO Number:</span>
-              <span class="info-value">{{ pi.supplierSoNo || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Price:</span>
-              <span class="info-value price-value">
-                {{ pi.supplierCurrency === 'Dollar' ? '$' : pi.supplierCurrency }} 
-                {{ pi.supplierPrice | number }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Transaction Details -->
-        <div class="info-card transaction-info">
-          <div class="info-card-header">
-            <mat-icon class="card-icon">swap_horiz</mat-icon>
-            <h4>Transaction Details</h4>
-          </div>
-          <div class="info-card-content">
-            <div class="info-row">
-              <span class="info-label">Purpose:</span>
-              <span class="info-value">{{ pi.purpose }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Payment Mode:</span>
-              <span class="info-value payment-mode">{{ pi.paymentMode }}</span>
-            </div>
-            <div class="info-row full-width">
-              <span class="info-label">Notes:</span>
-              <div class="info-value notes-content" [innerHTML]="formatNotes(pi.notes)"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Customer Information -->
-        @if(pi.customers?.companyName){
-          <div class="info-card customer-info">
-            <div class="info-card-header">
-              <mat-icon class="card-icon">person</mat-icon>
-              <h4>Customer Details</h4>
-            </div>
-            <div class="info-card-content">
-              <div class="info-row">
-                <span class="info-label">Company Name:</span>
-                <span class="info-value">{{ pi.customers.companyName }}</span>
+            <div class="title-text">
+              <div class="title-row">
+                <h1 class="main-title">PROFORMA INVOICE</h1>
+                <span class="invoice-number">{{ piNo | uppercase }}</span>
               </div>
-              <div class="info-row">
-                <span class="info-label">SO Number:</span>
-                <span class="info-value">{{ pi.customerSoNo || 'N/A' }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">PO Number:</span>
-                <span class="info-value">{{ pi.customerPoNo || 'N/A' }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">PO Value:</span>
-                <span class="info-value price-value">
-                  {{ pi.customerCurrency === 'Dollar' ? '$' : pi.customerCurrency }} 
-                  {{ pi.poValue | number }}
+              <div class="invoice-meta-row">
+                <span class="invoice-status" [ngClass]="getStatusClass(pi.status)">
+                  <span class="status-dot"></span>
+                  <span class="status-text">{{ getStatusLabel(pi.status) }}</span>
+                </span>
+                <span class="meta-divider">•</span>
+                <span class="added-by">
+                  <mat-icon class="person-icon">person</mat-icon>
+                  <span>Added by <strong>{{ pi.addedBy?.name || 'System' }}</strong></span>
                 </span>
               </div>
             </div>
           </div>
-        }
+        </div>
+        
+        <div class="header-right">
+          <button mat-flat-button class="back-btn" (click)="goBack()" matTooltip="Return to Payments List">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Back to List</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Documents Section -->
-    <div class="documents-section">
-      <div class="section-header">
-        <mat-icon>folder</mat-icon>
-        <h3>Documents</h3>
-      </div>
+    <!-- Main Card Body -->
+    <mat-card class="invoice-card mat-elevation-z2">
       
-      <mat-tab-group class="documents-tab-group">
-        @for (url of signedUrl; let i = $index; track $index) {
-          <mat-tab [label]="'Document ' + (i + 1)">
-            <div class="tab-content">
-              <div class="pdf-container">
-                <iframe [src]="url.url | safe" width="100%" height="600px" 
-                        frameborder="0" title="Document {{i + 1}}"></iframe>
+      <!-- Invoice Information Section -->
+      <div class="invoice-info-section">
+        <div class="section-header">
+          <div class="section-title">
+            <mat-icon class="section-icon">info</mat-icon>
+            <h3>Invoice Overview</h3>
+          </div>
+        </div>
+        
+        <div class="info-grid">
+          <!-- Supplier Information -->
+          <div class="info-card supplier-card">
+            <div class="info-card-header">
+              <div class="card-icon-wrap supplier-icon">
+                <mat-icon>storefront</mat-icon>
               </div>
-              @if(url.remarks){
-                <div class="document-remarks">
-                  <mat-icon>comment</mat-icon>
-                  <span>Remarks: {{url.remarks}}</span>
+              <h4>Supplier Details</h4>
+            </div>
+            <div class="info-card-content">
+              <div class="info-row">
+                <span class="info-label">Company Name</span>
+                <span class="info-value font-semibold">{{ pi.suppliers?.companyName || pi.supplierName || 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Supplier PO #</span>
+                <span class="info-value">{{ pi.supplierPoNo || 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Supplier SO #</span>
+                <span class="info-value">{{ pi.supplierSoNo || 'N/A' }}</span>
+              </div>
+              <div class="info-row price-row">
+                <span class="info-label">Total Price</span>
+                <span class="info-value price-badge">
+                  {{ pi.supplierCurrency === 'Dollar' ? '$' : (pi.supplierCurrency === 'AED' ? 'AED' : pi.supplierCurrency) }} 
+                  {{ pi.supplierPrice | number:'1.2-2' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction Details -->
+          <div class="info-card transaction-card">
+            <div class="info-card-header">
+              <div class="card-icon-wrap transaction-icon">
+                <mat-icon>payments</mat-icon>
+              </div>
+              <h4>Transaction Details</h4>
+            </div>
+            <div class="info-card-content">
+              <div class="info-row">
+                <span class="info-label">Purpose</span>
+                <span class="info-value">{{ pi.purpose || 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Payment Mode</span>
+                <span class="info-value payment-mode-pill">
+                  <mat-icon class="mode-icon">{{ pi.paymentMode === 'CreditCard' ? 'credit_card' : 'account_balance' }}</mat-icon>
+                  <span>{{ pi.paymentMode || 'WireTransfer' }}</span>
+                </span>
+              </div>
+              <div class="info-row full-width notes-row">
+                <span class="info-label">Notes & Instructions</span>
+                <div class="notes-content" [innerHTML]="formatNotes(pi.notes || 'No additional notes provided.')"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Information -->
+          @if(pi.customers?.companyName){
+            <div class="info-card customer-card">
+              <div class="info-card-header">
+                <div class="card-icon-wrap customer-icon">
+                  <mat-icon>business</mat-icon>
                 </div>
-              }
-            </div>
-          </mat-tab>
-        }
-        @if(bankSlip){
-          <mat-tab label="Wire Slip">
-            <div class="tab-content">
-              <div class="pdf-container">
-                <iframe [src]="bankSlip | safe" width="100%" height="600px" 
-                        frameborder="0" title="Wire Slip"></iframe>
+                <h4>Customer Details</h4>
               </div>
-              <div class="document-remarks">
-                <mat-icon>account_balance</mat-icon>
-                <span>Bank wire slip attached</span>
+              <div class="info-card-content">
+                <div class="info-row">
+                  <span class="info-label">Company Name</span>
+                  <span class="info-value font-semibold">{{ pi.customers.companyName }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Customer SO #</span>
+                  <span class="info-value">{{ pi.customerSoNo || 'N/A' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Customer PO #</span>
+                  <span class="info-value">{{ pi.customerPoNo || 'N/A' }}</span>
+                </div>
+                <div class="info-row price-row">
+                  <span class="info-label">PO Value</span>
+                  <span class="info-value price-badge customer-badge">
+                    {{ pi.customerCurrency === 'Dollar' ? '$' : (pi.customerCurrency === 'AED' ? 'AED' : pi.customerCurrency) }} 
+                    {{ pi.poValue | number:'1.2-2' }}
+                  </span>
+                </div>
               </div>
             </div>
-          </mat-tab>
-        }
-      </mat-tab-group>
-    </div>
-
-    <!-- Action Buttons Section -->
-    <div class="action-section">
-      @if(pi.approveButtonStatus) {
-        <div class="approval-buttons">
-          <button mat-raised-button color="primary" 
-                  class="approve-button" 
-                  (click)="verified('approved', pi.piNo, pi.salesPerson?.name, pi.id, pi.status)">
-            <mat-icon>check_circle</mat-icon>
-            APPROVE
-          </button>
-          
-          <button mat-stroked-button color="warn" 
-                  class="reject-button" 
-                  (click)="verified('rejected', pi.piNo, pi.addedBy.name, pi.id, pi.status)">
-            <mat-icon>cancel</mat-icon>
-            REJECT
-          </button>
-        </div>
-      }
-      
-      @if((ma && pi.status !== 'BANK SLIP ISSUED') || (admin && pi.status !== 'BANK SLIP ISSUED') || (kam && pi.status === 'AM APPROVED')){
-        <div class="additional-actions">
-          <button mat-raised-button color="accent" 
-                  class="wire-slip-button" 
-                  (click)="addBankSlip(piNo || pi.piNo, pi.id, pi.status)">
-            <mat-icon>attach_file</mat-icon>
-            {{ (kam && pi.status === 'AM APPROVED') ? 'ATTACH WIRE SLIP' : 'ADD WIRE SLIP' }}
-          </button>
-        </div>
-      }
-    </div>
-
-    <!-- Status History Section -->
-    <div class="status-section">
-      <div class="section-header">
-        <mat-icon>history</mat-icon>
-        <h3>Status History</h3>
-        <div class="search-box">
-          <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Search by status...</mat-label>
-            <input matInput type="search" (keyup)="applyFilter($event)">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
+          }
         </div>
       </div>
-      
-      <div class="status-table-container">
-        <table mat-table [dataSource]="status" class="status-table">
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let row">
-              <span class="status-badge">
-                {{row.status}} @if(row.count) { ({{row.count}})}
-              </span>
-            </td>
-          </ng-container>
 
-          <ng-container matColumnDef="remarks">
-            <th mat-header-cell *matHeaderCellDef>Remarks</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="remarks-content" [innerHTML]="formatRemarks(row.remarks)"></div>
-            </td>
-          </ng-container>
+      <!-- Action Buttons Section -->
+      @if(pi.approveButtonStatus || ((ma && pi.status !== 'BANK SLIP ISSUED') || (admin && pi.status !== 'BANK SLIP ISSUED') || (kam && pi.status === 'AM APPROVED'))) {
+        <div class="action-section">
+          <div class="action-section-title">
+            <mat-icon>task_alt</mat-icon>
+            <span>Approval Actions</span>
+          </div>
 
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Date & Time</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="date-cell">
-                <mat-icon class="date-icon">schedule</mat-icon>
-                {{row.date | date: 'dd/MM/yyyy HH:mm:ss'}}
+          <div class="action-buttons-container">
+            @if(pi.approveButtonStatus) {
+              <button mat-flat-button 
+                      class="btn-approve" 
+                      (click)="verified('approved', pi.piNo, pi.salesPerson?.name, pi.id, pi.status)">
+                <mat-icon>check_circle</mat-icon>
+                <span>APPROVE INVOICE</span>
+              </button>
+              
+              <button mat-stroked-button 
+                      class="btn-reject" 
+                      (click)="verified('rejected', pi.piNo, pi.addedBy?.name, pi.id, pi.status)">
+                <mat-icon>cancel</mat-icon>
+                <span>REJECT INVOICE</span>
+              </button>
+            }
+            
+            @if((ma && pi.status !== 'BANK SLIP ISSUED') || (admin && pi.status !== 'BANK SLIP ISSUED') || (kam && pi.status === 'AM APPROVED')){
+              <button mat-flat-button 
+                      class="btn-wire-slip" 
+                      (click)="addBankSlip(piNo || pi.piNo, pi.id, pi.status)">
+                <mat-icon>attach_file</mat-icon>
+                <span>{{ (kam && pi.status === 'AM APPROVED') ? 'ATTACH CARD RECEIPT' : 'ATTACH WIRE SLIP' }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Documents Section -->
+      <div class="documents-section">
+        <div class="section-header">
+          <div class="section-title">
+            <mat-icon class="section-icon">folder_open</mat-icon>
+            <h3>Uploaded Documents</h3>
+          </div>
+        </div>
+        
+        <mat-tab-group class="documents-tab-group" animationDuration="200ms">
+          @for (url of signedUrl; let i = $index; track $index) {
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">description</mat-icon>
+                <span>Document {{ i + 1 }}</span>
+              </ng-template>
+              <div class="tab-content">
+                <div class="doc-viewer-toolbar">
+                  <div class="toolbar-left-info">
+                    <span class="file-type-pill">{{ url.type | uppercase }}</span>
+                    <span class="file-label">Document {{ i + 1 }}</span>
+                  </div>
+                  <div class="toolbar-right-actions">
+                    <button type="button" 
+                            mat-stroked-button 
+                            class="btn-viewer-action fullview" 
+                            (click)="openFullView(url.url, 'Document ' + (i + 1))" 
+                            matTooltip="Open full-screen view">
+                      <mat-icon>fullscreen</mat-icon>
+                      <span>Full View</span>
+                    </button>
+                    <button type="button" 
+                            mat-stroked-button 
+                            class="btn-viewer-action" 
+                            (click)="openInNewTab(url.url)" 
+                            matTooltip="Open in new browser tab">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span>Open in Tab</span>
+                    </button>
+                    <button type="button" 
+                            mat-stroked-button 
+                            class="btn-viewer-action" 
+                            (click)="downloadDocument(url.url, 'Invoice_' + piNo + '_Document_' + (i + 1))" 
+                            matTooltip="Download document file">
+                      <mat-icon>download</mat-icon>
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="pdf-container">
+                  <iframe [src]="url.url | safe" width="100%" height="700px" 
+                          frameborder="0" title="Document {{i + 1}}"></iframe>
+                </div>
+                @if(url.remarks){
+                  <div class="document-remarks">
+                    <mat-icon>comment</mat-icon>
+                    <span><strong>Remarks:</strong> {{ url.remarks }}</span>
+                  </div>
+                }
               </div>
-            </td>
-          </ng-container>
+            </mat-tab>
+          }
+          @if(bankSlip){
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">account_balance</mat-icon>
+                <span>Wire Slip</span>
+              </ng-template>
+              <div class="tab-content">
+                <div class="doc-viewer-toolbar">
+                  <div class="toolbar-left-info">
+                    <span class="file-type-pill wire-pill">WIRE SLIP</span>
+                    <span class="file-label">Bank Receipt</span>
+                  </div>
+                  <div class="toolbar-right-actions">
+                    <button type="button" 
+                            mat-stroked-button 
+                            class="btn-viewer-action fullview" 
+                            (click)="openFullView(bankSlip, 'Wire Slip / Bank Receipt')" 
+                            matTooltip="Open full-screen view">
+                      <mat-icon>fullscreen</mat-icon>
+                      <span>Full View</span>
+                    </button>
+                    <button type="button" 
+                            mat-stroked-button 
+                            class="btn-viewer-action" 
+                            (click)="openInNewTab(bankSlip)" 
+                            matTooltip="Open in new browser tab">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span>Open in Tab</span>
+                    </button>
+                    <button type="button" 
+                            mat-stroked-button 
+                            class="btn-viewer-action" 
+                            (click)="downloadDocument(bankSlip, 'Wire_Slip_' + piNo)" 
+                            matTooltip="Download wire slip">
+                      <mat-icon>download</mat-icon>
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
 
-          <tr mat-header-row *matHeaderRowDef="['status', 'remarks', 'date']" class="status-header-row"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['status', 'remarks', 'date']" class="status-row"></tr>
-        </table>
+                <div class="pdf-container">
+                  <iframe [src]="bankSlip | safe" width="100%" height="700px" 
+                          frameborder="0" title="Wire Slip"></iframe>
+                </div>
+                <div class="document-remarks wire-slip-remarks">
+                  <mat-icon>verified</mat-icon>
+                  <span>Bank wire slip attached to this invoice</span>
+                </div>
+              </div>
+            </mat-tab>
+          }
+        </mat-tab-group>
       </div>
-    </div>
 
-    <!-- Loading Spinner -->
-    @if(submitted){
-      <div class="loading-overlay">
-        <div class="spinner-container">
-          <mat-spinner diameter="60" color="primary"></mat-spinner>
-          <p class="loading-text">Processing...</p>
+      <!-- Status History Section -->
+      <div class="status-section">
+        <div class="section-header flex-header">
+          <div class="section-title">
+            <mat-icon class="section-icon">history</mat-icon>
+            <h3>Audit Trail & Status History</h3>
+          </div>
+          <div class="search-box">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+              <mat-icon matPrefix>search</mat-icon>
+              <input matInput type="search" placeholder="Filter status history..." (keyup)="applyFilter($event)">
+            </mat-form-field>
+          </div>
+        </div>
+        
+        <div class="status-table-container">
+          <table mat-table [dataSource]="status" class="status-table">
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Stage / Status</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="history-status-wrap">
+                  <span class="status-pill" [ngClass]="getStatusClass(row.status)">
+                    <span class="status-dot"></span>
+                    <span class="status-label">{{ getStatusLabel(row.status) }}</span>
+                  </span>
+                  @if(row.count) {
+                    <span class="revision-pill">v{{ row.count }}</span>
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Remarks Column -->
+            <ng-container matColumnDef="remarks">
+              <th mat-header-cell *matHeaderCellDef>Remarks</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="remarks-content" [innerHTML]="formatRemarks(row.remarks) || '—'"></div>
+              </td>
+            </ng-container>
+
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date & Time</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="date-cell">
+                  <mat-icon class="date-icon">schedule</mat-icon>
+                  <span>{{ row.date | date: 'dd MMM yyyy, hh:mm a' }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['status', 'remarks', 'date']" class="status-header-row"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['status', 'remarks', 'date']" class="status-row"></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Loading Spinner -->
+      @if(submitted){
+        <div class="loading-overlay">
+          <div class="spinner-container">
+            <mat-spinner diameter="50" color="primary"></mat-spinner>
+            <p class="loading-text">Processing invoice stage...</p>
+          </div>
+        </div>
+      }
+    </mat-card>
+
+    <!-- Full-Screen Document Inspection Modal -->
+    @if(fullViewUrl) {
+      <div class="fullscreen-overlay" (keydown.escape)="closeFullView()" tabindex="0">
+        <div class="fullscreen-backdrop" (click)="closeFullView()"></div>
+        <div class="fullscreen-card">
+          <div class="fullscreen-header">
+            <div class="fullscreen-title-box">
+              <div class="fullscreen-icon">
+                <mat-icon>visibility</mat-icon>
+              </div>
+              <div class="fullscreen-text">
+                <h3>{{ fullViewTitle }}</h3>
+                <span>Invoice: <strong>{{ piNo }}</strong> &bull; Full View</span>
+              </div>
+            </div>
+            <div class="fullscreen-controls">
+              <button type="button" class="btn-ctrl" (click)="openInNewTab(fullViewUrl)" matTooltip="Open original file in separate browser tab">
+                <mat-icon>open_in_new</mat-icon>
+                <span>Open in Tab</span>
+              </button>
+              <button type="button" class="btn-ctrl" (click)="downloadDocument(fullViewUrl, fullViewTitle)" matTooltip="Download document file">
+                <mat-icon>download</mat-icon>
+                <span>Download</span>
+              </button>
+              <button type="button" class="btn-ctrl-close" (click)="closeFullView()" matTooltip="Close Full View (Esc)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="fullscreen-body">
+            <iframe [src]="fullViewUrl | safe" class="fullscreen-iframe" title="Full Document Inspection"></iframe>
+          </div>
         </div>
       </div>
     }
-  </mat-card>
+  </div>
 }

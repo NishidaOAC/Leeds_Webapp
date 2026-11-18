@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
 require('express-async-errors');
 const express = require('express');
 const cors = require('cors');
@@ -11,8 +11,6 @@ const { sequelize, testConnection } = require('./config/database');
 const { publishEvent } = require('./utils/eventPublisher');
 const Customer = require('./models/customer.model');
 const Document = require('./models/document.model');
-
-
 
 // Initialize logger
 const logger = winston.createLogger({
@@ -38,7 +36,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // Request logging middleware
 app.use((req, res, next) => {
   logger.info({
@@ -50,13 +47,10 @@ app.use((req, res, next) => {
   next();
 });
 
-
-
 // Routes
 app.use('/', customerRoutes);
 app.use('/purchase-order', purchaseOrderRoutes);
 app.use('/document', documentRoutes);
-
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -98,45 +92,40 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3004;
 
 async function startServer() {
   try {
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      logger.warn('Database connection failed. Starting server anyway...');
-    }
-
-    const dbSyncMode = process.env.DB_SYNC;
-
-    if (dbSyncMode === 'force') {
-      logger.warn('⚠️ FORCE syncing database (all tables will be dropped)');
-      await sequelize.sync({ force: true });
-    } 
-    else if (dbSyncMode === 'alter') {
-      logger.info('Altering database schema');
-      await sequelize.sync({ alter: true });
-    } 
-    else {
-      logger.info('Database sync disabled');
-    }
-
-    logger.info('Database synchronization completed');
-
-    await publishEvent('SERVICE_STARTED', { service: 'customer-service' });
-
     app.listen(PORT, () => {
       logger.info(`Customer Service running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
       logger.info(`Database: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
     });
 
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      logger.warn('Database connection failed. Server is running, but database operations will fail until PostgreSQL is running.');
+    } else {
+      const dbSyncMode = process.env.DB_SYNC || 'alter';
+
+      if (dbSyncMode === 'force') {
+        logger.warn('⚠️ FORCE syncing database (all tables will be dropped)');
+        await sequelize.sync({ force: true });
+      } 
+      else {
+        logger.info('Altering database schema');
+        await sequelize.sync({ alter: true });
+      }
+
+      logger.info('Database synchronization completed');
+    }
+
+    await publishEvent('SERVICE_STARTED', { service: 'customer-service' });
+
   } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
+    logger.error('Error during startup:', error);
   }
 }
-
 
 // Handle graceful shutdown
 process.on('SIGTERM', async () => {

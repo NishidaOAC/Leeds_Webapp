@@ -10,13 +10,21 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION
 });
 
-// Email transporter
+// Email transporter with STARTTLS (Port 587) and connection timeouts to prevent hanging
 const transporter = nodemailer.createTransport({
-service: 'Gmail',
-auth: {
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: (process.env.SMTP_SECURE === 'true') || false,
+  auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
-},
+  },
+  tls: {
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 8000,
+  greetingTimeout: 5000,
+  socketTimeout: 10000
 });
 
 class EmailService {
@@ -28,15 +36,15 @@ class EmailService {
       // Input validation
       if (!toEmail) throw new Error('Recipient email is required');
       
-      // Extract data
+      // Extract data safely
       const [supplier, customer] = await Promise.all([
-        Company.findOne({ where: { id: pi.supplierId } }),
-        Company.findOne({ where: { id: pi.customerId } })
+        (pi.supplierId && !isNaN(pi.supplierId)) ? Company.findOne({ where: { id: pi.supplierId } }) : null,
+        (pi.customerId && !isNaN(pi.customerId)) ? Company.findOne({ where: { id: pi.customerId } }) : null
       ]);
 
       const emailData = {
         piNo: pi.piNo,
-        supplierName: supplier?.companyName || 'Unknown Supplier',
+        supplierName: supplier?.companyName || pi.suppliers?.companyName || pi.supplierName || 'Unknown Supplier',
         supplierPoNo: pi.supplierPoNo,
         supplierSoNo: pi.supplierSoNo,
         supplierPrice: pi.supplierPrice,
@@ -44,7 +52,7 @@ class EmailService {
         status,
         paymentMode: pi.paymentMode,
         purpose: pi.purpose,
-        customerName: customer?.companyName || 'Unknown Customer',
+        customerName: customer?.companyName || pi.customers?.companyName || pi.customerName || ((pi.purpose && pi.purpose.toLowerCase().includes('customer')) ? 'Unknown Customer' : 'To Stock'),
         customerPoNo: pi.customerPoNo,
         customerSoNo: pi.customerSoNo,
         customerCurrency: pi.customerCurrency,
@@ -73,8 +81,9 @@ class EmailService {
       }
 
       // Send email
+      const senderAddress = process.env.EMAIL_USER || process.env.SMTP_USER || 'aeroassist@onboardaero.com';
       const mailOptions = {
-        from: `Aeroassist - ${user.name} <${process.env.SMTP_USER}>`,
+        from: `Aeroassist - ${user.name} <${senderAddress}>`,
         to: toEmail,
         subject: this.getStatusMessage(pi.piNo, status),
         html: this.generateStatusUpdateTemplate(emailData),
@@ -120,8 +129,9 @@ class EmailService {
     attachments = []
   }) {
     try {
+      const senderAddress = process.env.EMAIL_USER || process.env.SMTP_USER || 'aeroassist@onboardaero.com';
       const mailOptions = {
-        from: `Aeroassist - ${requestedBy} <${process.env.SMTP_USER}>`,
+        from: `Aeroassist - ${requestedBy} <${senderAddress}>`,
         to: toEmail,
         cc: ccEmails,
         subject: `Payment Completed - ${piNo} / ${supplierPoNo}`,
@@ -262,8 +272,9 @@ class EmailService {
     attachments = []
   }) {
     try {
+      const senderAddress = process.env.EMAIL_USER || process.env.SMTP_USER || 'aeroassist@onboardaero.com';
       const mailOptions = {
-        from: `Aeroassist - ${requestedBy} <${process.env.SMTP_USER}>`,
+        from: `Aeroassist - ${requestedBy} <${senderAddress}>`,
         to: toEmail,
         cc: ccEmails,
         subject: `New Payment Request Generated - ${piNo} / ${supplierPoNo}`,
@@ -790,23 +801,26 @@ class EmailService {
   }
 
   /**
-   * Prepare email content for new PI (for addPIKAM)
+   * Prepare email content for new/updated PI
    */
-  async prepareNewPIEmailContent({ supplierId, customerId, urls }) {
+  async prepareNewPIEmailContent({ supplierId, customerId, urls, supplierName, customerName, purpose }) {
       const [supplier, customer] = await Promise.all([
-        Company.findOne({ where: { id: supplierId } }),
-        Company.findOne({ where: { id: customerId } })
+        (supplierId && !isNaN(supplierId)) ? Company.findOne({ where: { id: supplierId } }) : null,
+        (customerId && !isNaN(customerId)) ? Company.findOne({ where: { id: customerId } }) : null
       ]);
 
       // Prepare attachments from S3 - Pass the urls array directly
       const attachments = await this.getAttachmentsFromS3(urls);
       
+      const resolvedSupplierName = supplierName || (supplier ? supplier.companyName : null) || 'Unknown Supplier';
+      const resolvedCustomerName = customerName || (customer ? customer.companyName : null) || ((purpose && purpose.toLowerCase().includes('customer')) ? 'Unknown Customer' : 'To Stock');
+
       return { 
         supplier, 
         customer, 
         attachments,
-        supplierName: supplier ? supplier.companyName : 'Unknown Supplier',
-        customerName: customer ? customer.companyName : 'Unknown Customer'
+        supplierName: resolvedSupplierName,
+        customerName: resolvedCustomerName
       };
   }
 

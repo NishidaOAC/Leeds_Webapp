@@ -78,25 +78,57 @@ User.prototype.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Instance method to generate JWT token
-User.prototype.generateToken = function() {
+// Instance method to generate JWT token (RS256 asymmetric)
+User.prototype.generateToken = function(extraClaims = {}) {
   const jwt = require('jsonwebtoken');
+  const { getPrivateKey } = require('../utils/keyUtils');
+  const privateKey = getPrivateKey();
+
+  const roleData = this.Role ? {
+    id: this.Role.id,
+    roleName: this.Role.roleName,
+    abbreviation: this.Role.abbreviation,
+    power: this.Role.power
+  } : null;
+
+  const payload = {
+    id: this.id,
+    userId: this.id,
+    email: this.email,
+    name: this.name,
+    empNo: this.empNo,
+    roleId: this.roleId,
+    isActive: this.isActive,
+    status: this.status,
+    roleName: (this.Role && this.Role.roleName) || extraClaims.roleName || null,
+    power: (this.Role && this.Role.power) || extraClaims.power || null,
+    role: roleData || extraClaims.role || null,
+    ...extraClaims
+  };
+
   return jwt.sign(
-    { id: this.id, email: this.email, roleId: this.roleId },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m' }
+    payload,
+    privateKey,
+    {
+      algorithm: 'RS256',
+      expiresIn: process.env.JWT_ACCESS_EXPIRY || process.env.JWT_EXPIRES_IN || '15m'
+    }
   );
 };
 
-// Instance method to generate refresh token
+// Instance method to generate refresh token (RS256 asymmetric)
 User.prototype.generateRefreshToken = function() {
   const jwt = require('jsonwebtoken');
+  const { getPrivateKey } = require('../utils/keyUtils');
+  const privateKey = getPrivateKey();
   return jwt.sign(
-    { id: this.id },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_REFRESH_EXPIRY || '7d' }
+    { id: this.id, userId: this.id, type: 'refresh' },
+    privateKey,
+    {
+      algorithm: 'RS256',
+      expiresIn: process.env.JWT_REFRESH_EXPIRY || '7d'
+    }
   );
 };
-    // const salt = await bcrypt.genSalt(12);
-    
+
 module.exports = User;

@@ -36,7 +36,7 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     Notification
 ],
   templateUrl: './full.component.html',
-  styleUrls: ['./full.component.scss'],
+  styleUrl: './full.component.scss',
   encapsulation: ViewEncapsulation.None
 })
 export class FullComponent implements OnInit {
@@ -65,17 +65,36 @@ export class FullComponent implements OnInit {
     return this.isMobileScreen;
   }
 
-  username: string;
-  role!: string;
+  username: string = '';
+  role: string = '';
+
+  get userInitials(): string {
+    if (!this.username) return 'SA';
+    const parts = this.username.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return this.username.slice(0, 2).toUpperCase();
+  }
+
   constructor(
     private router: Router,
     private breakpointObserver: BreakpointObserver,
   ) {
-        const token: any = localStorage.getItem('user')
-        let user = JSON.parse(token)
-        this.username = user.name;
-        this.role = user.role
-        console.log(this.role)
+    const token: any = localStorage.getItem('user');
+    if (token) {
+      try {
+        const user = JSON.parse(token);
+        this.username = user.name || user.username || 'System Super Administrator';
+        this.role = user.role || user.power || 'Super Administrator';
+      } catch {
+        this.username = 'System Super Administrator';
+        this.role = 'Super Administrator';
+      }
+    } else {
+      this.username = 'System Super Administrator';
+      this.role = 'Super Administrator';
+    }
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW])

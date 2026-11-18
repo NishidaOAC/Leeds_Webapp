@@ -5,6 +5,7 @@
       mat-icon-button 
       class="icon-btn" 
       aria-label="Notifications"
+      #menuTrigger="matMenuTrigger"
       [matMenuTriggerFor]="notificationMenu">
       <mat-icon 
         [matBadge]="unreadCount" 

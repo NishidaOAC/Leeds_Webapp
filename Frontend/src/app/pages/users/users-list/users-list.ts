@@ -34,6 +34,21 @@ export class UsersList {
 
   ngOnInit() {
     this.load();
+    this.route.queryParams.subscribe((params) => {
+      if (params['openReset'] === 'true' && params['resetUserId']) {
+        const userId = Number(params['resetUserId']);
+        const empNo = params['empNo'] || '';
+        const username = params['username'] || '';
+        this.resetPassword(userId, empNo, username);
+
+        // Remove query parameters from the active URL without navigating away
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+    });
   }
 
   onTabChange(event: MatTabChangeEvent): void {
@@ -129,6 +144,9 @@ export class UsersList {
   private dialog = inject(MatDialog);
   dialogSub!: Subscription;
   resetPassword(id: number, empNo: string, username: string){
+    if (this.dialog.openDialogs.some(d => d.componentInstance instanceof ResetPasswordComponent)) {
+      return;
+    }
     const dialogRef = this.dialog.open(ResetPasswordComponent, {
       width: '450px',
       data: {id: id, paswordReset: false, username: username, empNo: empNo}

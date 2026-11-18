@@ -19,7 +19,9 @@ import { AuthService } from '../../../authentication/auth.service';
 import { DesignationServices } from '../../../users/role-list.component/designation.service';
 import { PerformaInvoiceStatus } from '../../performa-invoice-status';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BankReceiptDialogueComponent } from '../bank-receipt-dialogue/bank-receipt-dialogue.component';
+import { FileService } from '../../file-service';
 
 @Component({
   selector: 'app-view-invoices',
@@ -31,7 +33,7 @@ import { BankReceiptDialogueComponent } from '../bank-receipt-dialogue/bank-rece
     MatCardModule,
     MatIconModule,
     SafePipe,
-    MatProgressSpinnerModule, MatFormFieldModule, ReactiveFormsModule,UpperCasePipe,DatePipe
+    MatProgressSpinnerModule, MatFormFieldModule, ReactiveFormsModule, UpperCasePipe, DatePipe, MatTooltipModule
   ],
   templateUrl: './view-invoices.component.html',
   styleUrl: './view-invoices.component.scss'
@@ -50,6 +52,30 @@ export class ViewInvoicesComponent {
   router=inject(Router)
   route=inject(ActivatedRoute)
   dialog=inject(MatDialog)
+  fileService=inject(FileService)
+  fullViewUrl: string | null = null;
+  fullViewTitle: string = '';
+
+  openFullView(url: string, title?: string): void {
+    this.fullViewUrl = url;
+    this.fullViewTitle = title || 'Invoice Document';
+  }
+
+  closeFullView(): void {
+    this.fullViewUrl = null;
+    this.fullViewTitle = '';
+  }
+
+  openInNewTab(url: string): void {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  downloadDocument(url: string | null | undefined, title?: string): void {
+    if (!url) return;
+    this.fileService.downloadDocument(url, title);
+  }
   userId!: number
 
   formatNotes(notes: string): string {
@@ -111,22 +137,17 @@ export class ViewInvoicesComponent {
   statusDataSource = new MatTableDataSource<any>([]);
   // Add this method to your component
   getStatusClass(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'APPROVED': 'status-approved',
-      'KAM APPROVED': 'status-approved',
-      'AM APPROVED': 'status-approved',
-      'BANK SLIP ISSUED': 'status-bank-slip',
-      'CARD PAYMENT SUCCESS': 'status-payment-success',
-      'PENDING': 'status-pending',
-      'GENERATED': 'status-pending',
-      'REJECTED': 'status-rejected',
-      'KAM REJECTED': 'status-rejected',
-      'AM REJECTED': 'status-rejected'
-    };
-    
-    // Convert to uppercase for matching
-    const upperStatus = (status || '').toUpperCase();
-    return statusMap[upperStatus] || 'status-pending';
+    const upper = (status || '').toUpperCase();
+    if (upper.includes('REJECTED') || upper.includes('DECLINED')) return 'status-danger';
+    if (upper.includes('APPROVED') || upper.includes('SUCCESS') || upper.includes('ISSUED')) return 'status-success';
+    if (upper.includes('VERIFIED')) return 'status-info';
+    if (upper.includes('GENERATED') || upper.includes('INITIATED') || upper.includes('PENDING')) return 'status-warning';
+    return 'status-default';
+  }
+
+  getStatusLabel(status: string): string {
+    if (!status) return '-';
+    return status.replace(/_/g, ' ');
   }
 
   piSub!: Subscription;
@@ -219,7 +240,7 @@ export class ViewInvoicesComponent {
           this.submitted = false;
           this.getPiById(id)
           this.snackBar.open(`Invoice ${piNo} updated to ${status}...`,"" ,{duration:3000})
-          this.router.navigateByUrl('login/viewApproval/view')
+          this.router.navigate(['dashboard/payments'])
         });
       }
     })

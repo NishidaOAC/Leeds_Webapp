@@ -403,8 +403,18 @@ exports.validateToken = async (req, res) => {
       });
     }
 
-    // Verify JWT token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify JWT token (RS256 with HS256 fallback)
+    const { getPublicKey } = require('../utils/keyUtils');
+    let decoded;
+    try {
+      decoded = jwt.verify(token, getPublicKey(), { algorithms: ['RS256'] });
+    } catch (verifyErr) {
+      if (process.env.JWT_SECRET && (verifyErr.name === 'JsonWebTokenError' || verifyErr.message.includes('algorithm'))) {
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      } else {
+        throw verifyErr;
+      }
+    }
     
     // Find user in database
     const user = await User.findOne({
@@ -621,12 +631,22 @@ exports.refreshToken = async (req, res) => {
       });
     }
 
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    // Verify refresh token (RS256 with HS256 fallback)
+    const { getPrivateKey, getPublicKey } = require('../utils/keyUtils');
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, getPublicKey(), { algorithms: ['RS256'] });
+    } catch (verifyErr) {
+      if ((process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET) && (verifyErr.name === 'JsonWebTokenError' || verifyErr.message.includes('algorithm'))) {
+        decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      } else {
+        throw verifyErr;
+      }
+    }
     
     const user = await User.findOne({
       where: {
-        id: decoded.userId,
+        id: decoded.userId || decoded.id,
         isActive: true
       }
     });
@@ -638,16 +658,28 @@ exports.refreshToken = async (req, res) => {
       });
     }
 
-    // Generate new access token
+    // Generate new RS256 access token
+    const role = await Role.findByPk(user.roleId);
     const newAccessToken = jwt.sign(
       {
+        id: user.id,
         userId: user.id,
         email: user.email,
         name: user.name,
-        roleId: user.roleId
+        empNo: user.empNo,
+        roleId: user.roleId,
+        isActive: user.isActive,
+        roleName: role ? role.roleName : null,
+        power: role ? role.power : null,
+        role: role ? {
+          id: role.id,
+          roleName: role.roleName,
+          abbreviation: role.abbreviation,
+          power: role.power
+        } : null
       },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+      getPrivateKey(),
+      { algorithm: 'RS256', expiresIn: process.env.JWT_EXPIRES_IN || process.env.JWT_ACCESS_EXPIRY || '15m' }
     );
 
     return res.status(200).json({
@@ -701,7 +733,13 @@ exports.resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
         await User.update(
-            { password: hashedPassword, passwordChangedAt: new Date() }, 
+            { 
+              password: hashedPassword, 
+              passwordChangedAt: new Date(),
+              failedLoginAttempts: 0,
+              lockoutUntil: null,
+              isLocked: false
+            }, 
             { where: { id: req.params.id } }
         );
 

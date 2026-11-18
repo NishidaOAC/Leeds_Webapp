@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -65,16 +65,7 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// 404 handler
-// app.use('*', (req, res) => {
-//   res.status(404).json({
-//     success: false,
-//     message: 'Route not found'
-//   });
-// });
-
 // 404 handler (New Express 5 style)
-// 404 handler - simply don't provide a path
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -105,28 +96,32 @@ const PORT = process.env.PORT || 3001;
 
 async function startServer() {
   try {
-    // Test database connection
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      logger.warn('Database connection failed. Starting server anyway...');
-    }
-
-    // Sync database models
-    await sequelize.sync();
-    await initializeSystem();
-    logger.info('Database models synchronized');
-
-    // Connect to RabbitMQ
-    await publishEvent('SERVICE_STARTED', { service: 'auth-service' });
     app.listen(PORT, () => {
       logger.info(`Auth Service running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
       logger.info(`Database: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
     });
 
+    // Test database connection
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      logger.warn('Database connection failed. Server is running, but database operations will fail until PostgreSQL is running.');
+    } else {
+      // Sync database models (alter: true automatically adds missing columns like personalEmail)
+      await sequelize.sync({ alter: true });
+      try {
+        await initializeSystem();
+      } catch (initErr) {
+        logger.warn('Initial system seed warning:', initErr.message);
+      }
+      logger.info('Database models synchronized');
+    }
+
+    // Connect to RabbitMQ
+    await publishEvent('SERVICE_STARTED', { service: 'auth-service' });
+
   } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
+    logger.error('Error during startup:', error);
   }
 }
 

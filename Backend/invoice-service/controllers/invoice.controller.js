@@ -10,6 +10,87 @@ const emailService = require('../services/emailService');
 const notificationService = require('../services/notificationService');
 // Removed unused nodemailer/ExcelJS and legacy email signature helpers
 
+/**
+ * Helper to resolve supplier and customer IDs and names
+ * Ensures Company foreign key is populated and handles fallbacks
+ */
+async function resolveSupplierAndCustomer({ supplierId, supplierProfileId, supplierName, customerId, customerName, purpose }) {
+    let resolvedSupplierId = (supplierId && !isNaN(supplierId) && Number(supplierId) > 0) ? parseInt(supplierId, 10) : null;
+    let resolvedCustomerId = (customerId && !isNaN(customerId) && Number(customerId) > 0) ? parseInt(customerId, 10) : null;
+    let resolvedSupplierName = (typeof supplierName === 'string') ? supplierName.trim() : null;
+    let resolvedCustomerName = (typeof customerName === 'string') ? customerName.trim() : null;
+    let resolvedSupplierProfileId = supplierProfileId || null;
+
+    // 1. Resolve Supplier
+    if (resolvedSupplierId) {
+        const found = await Company.findByPk(resolvedSupplierId);
+        if (found) {
+            resolvedSupplierName = resolvedSupplierName || found.companyName;
+        }
+    } else if (resolvedSupplierName) {
+        let matchedCompany = await Company.findOne({
+            where: {
+                companyName: { [Op.iLike]: resolvedSupplierName }
+            }
+        });
+        if (!matchedCompany) {
+            try {
+                matchedCompany = await Company.create({
+                    companyName: resolvedSupplierName,
+                    supplier: true,
+                    customer: false
+                });
+            } catch (createErr) {
+                console.warn('Company create warning in resolveSupplierAndCustomer:', createErr.message);
+                matchedCompany = await Company.findOne({
+                    where: {
+                        companyName: { [Op.iLike]: resolvedSupplierName }
+                    }
+                });
+            }
+        }
+        if (matchedCompany) {
+            resolvedSupplierId = matchedCompany.id;
+            resolvedSupplierName = matchedCompany.companyName;
+        }
+    }
+
+    // 2. Resolve Customer
+    if (resolvedCustomerId) {
+        const foundCust = await Company.findByPk(resolvedCustomerId);
+        if (foundCust) {
+            resolvedCustomerName = resolvedCustomerName || foundCust.companyName;
+        }
+    } else if (resolvedCustomerName && resolvedCustomerName.toLowerCase() !== 'to stock') {
+        const matchedCust = await Company.findOne({
+            where: {
+                companyName: { [Op.iLike]: resolvedCustomerName }
+            }
+        });
+        if (matchedCust) {
+            resolvedCustomerId = matchedCust.id;
+            resolvedCustomerName = matchedCust.companyName;
+        }
+    }
+
+    // Default fallbacks
+    if (!resolvedSupplierName) {
+        resolvedSupplierName = 'Unknown Supplier';
+    }
+    if (!resolvedCustomerName) {
+        resolvedCustomerName = (purpose && purpose.toLowerCase().includes('customer')) ? 'Unknown Customer' : 'To Stock';
+    }
+
+    return {
+        supplierId: resolvedSupplierId,
+        supplierProfileId: resolvedSupplierProfileId,
+        supplierName: resolvedSupplierName,
+        customerId: resolvedCustomerId,
+        customerName: resolvedCustomerName
+    };
+}
+
+
 
 exports.dashboardCreditCard = async (req, res) => {
   try {
@@ -385,7 +466,7 @@ exports.getPI =  async(req, res) => {
 }
 
 exports.addPI = async (req, res) => {
-    let { piNo, url, kamId, amId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
+    let { piNo, url, kamId, amId, supplierId, supplierProfileId, supplierName, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId, customerName,
         customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode } = req.body;
     if (Array.isArray(purpose)) {
         purpose = purpose.join(', ');
@@ -444,11 +525,25 @@ exports.addPI = async (req, res) => {
             return res.json({ error: 'Invoice is already saved' });
         }
 
+        // Resolve supplier and customer IDs and names
+        const resolved = await resolveSupplierAndCustomer({
+            supplierId,
+            supplierProfileId,
+            supplierName,
+            customerId,
+            customerName,
+            purpose
+        });
+
         // Create new PI
         const newPi = await PerformaInvoice.create({
-            piNo, url, status, salesPersonId: userId, kamId, supplierId, amId,
+            piNo, url, status, salesPersonId: userId, kamId, 
+            supplierId: resolved.supplierId, 
+            supplierProfileId: resolved.supplierProfileId,
+            amId,
             supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
-            customerId, customerPoNo, customerSoNo, customerCurrency, poValue,
+            customerId: resolved.customerId, 
+            customerPoNo, customerSoNo, customerCurrency, poValue,
             addedById: userId, notes, paymentMode
         });
 
@@ -473,63 +568,70 @@ exports.addPI = async (req, res) => {
             urlsToProcess = [url.url];
         }
         
-        const emailContent = await emailService.prepareNewPIEmailContent({
-            supplierId,
-            customerId,
-            urls: urlsToProcess  // Pass as urls (plural)
-        });
+        // 5. Send email notification & notification safely in background (non-blocking)
+        (async () => {
+            try {
+                const emailContent = await emailService.prepareNewPIEmailContent({
+                    supplierId: resolved.supplierId,
+                    customerId: resolved.customerId,
+                    supplierName: resolved.supplierName,
+                    customerName: resolved.customerName,
+                    purpose,
+                    urls: urlsToProcess  // Pass as urls (plural)
+                });
 
-        // Get finance emails
-        const financeEmails = await emailService.findFinanceEmails();
-        // Ensure attachments is always an array
-        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-        // Send email using EmailService
-        const emailResult = await emailService.sendNewPIEmail({
-            piNo,
-            supplierName: emailContent.supplierName,
-            supplierPoNo,
-            supplierSoNo,
-            supplierPrice,
-            supplierCurrency,
-            status,
-            paymentMode,
-            purpose,
-            customerName: emailContent.customerName,
-            customerPoNo,
-            customerSoNo,
-            poValue,
-            customerCurrency,
-            notes,
-            requestedBy: req.user.name,
-            toEmail: recipientEmail,
-            ccEmails: financeEmails,
-            attachments: emailAttachments
-        });
-        try {
-            // Assuming notification service runs on port 3001
-            // You can make this configurable via environment variables
-            const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-                userId: notificationRecipientId,
-                message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
-                isRead: false,
-                type: 'PI_CREATED', // Add type if your notification service supports it
-                metadata: {
-                    piNo: piNo,
-                    piId: newPi.id,
-                    paymentMode: paymentMode,
+                // Get finance emails
+                const financeEmails = await emailService.findFinanceEmails();
+                // Ensure attachments is always an array
+                const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+                // Send email using EmailService
+                await emailService.sendNewPIEmail({
+                    piNo,
+                    supplierName: emailContent.supplierName,
+                    supplierPoNo,
+                    supplierSoNo,
+                    supplierPrice,
+                    supplierCurrency,
+                    status,
+                    paymentMode,
+                    purpose,
+                    customerName: emailContent.customerName,
+                    customerPoNo,
+                    customerSoNo,
+                    poValue,
+                    customerCurrency,
+                    notes,
                     requestedBy: req.user.name,
-                    supplierPoNo: supplierPoNo
-                }
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add any authentication headers if needed
-                    'Authorization': req.headers.authorization || ''
-                }
-            });
-        } catch (notificationError) {
-            // You might want to implement a retry mechanism or queue for failed notifications
-        }
+                    toEmail: recipientEmail,
+                    ccEmails: financeEmails,
+                    attachments: emailAttachments
+                });
+            } catch (emailErr) {
+                console.warn('⚠️ Invoice saved, but email notification failed in addPI:', emailErr.message);
+            }
+            try {
+                await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                    userId: notificationRecipientId,
+                    message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
+                    isRead: false,
+                    type: 'PI_CREATED',
+                    metadata: {
+                        piNo: piNo,
+                        piId: newPi.id,
+                        paymentMode: paymentMode,
+                        requestedBy: req.user.name,
+                        supplierPoNo: supplierPoNo
+                    }
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': req.headers.authorization || ''
+                    }
+                });
+            } catch (notificationError) {
+                console.warn('⚠️ Invoice saved, but push notification failed in addPI:', notificationError.message);
+            }
+        })();
 
         res.json({
             pi: newPi,
@@ -541,8 +643,8 @@ exports.addPI = async (req, res) => {
 }
 
 exports.updatePIBySE = async (req, res) => {
-    let { url, kamId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, 
-        customerId, customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, amId } = req.body;
+    let { url, kamId, supplierId, supplierProfileId, supplierName, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, 
+        customerId, customerName, customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, amId } = req.body;
 
     if (Array.isArray(purpose)) {
         purpose = purpose.join(', ');
@@ -611,6 +713,16 @@ exports.updatePIBySE = async (req, res) => {
             status = 'GENERATED';
         }
 
+        // Resolve supplier and customer IDs and names
+        const resolved = await resolveSupplierAndCustomer({
+            supplierId: supplierId || pi.supplierId,
+            supplierProfileId: supplierProfileId || pi.supplierProfileId,
+            supplierName,
+            customerId: customerId === '' ? null : (customerId || pi.customerId),
+            customerName,
+            purpose: purpose || pi.purpose
+        });
+
         // Update PI
         const updateData = {
             url,
@@ -619,12 +731,13 @@ exports.updatePIBySE = async (req, res) => {
             count: pi.count + 1,
             status,
             supplierSoNo,
-            supplierId,
+            supplierId: resolved.supplierId,
+            supplierProfileId: resolved.supplierProfileId,
             supplierPoNo,
             supplierCurrency,
             supplierPrice,
             purpose,
-            customerId,
+            customerId: resolved.customerId,
             customerSoNo,
             customerPoNo,
             customerCurrency,
@@ -658,8 +771,11 @@ exports.updatePIBySE = async (req, res) => {
         }
 
         const emailContent = await emailService.prepareNewPIEmailContent({
-            supplierId,
-            customerId,
+            supplierId: resolved.supplierId,
+            customerId: resolved.customerId,
+            supplierName: resolved.supplierName,
+            customerName: resolved.customerName,
+            purpose: updateData.purpose,
             urls: urlsToProcess
         });
 
@@ -734,8 +850,8 @@ exports.updatePIBySE = async (req, res) => {
 
 exports.addPIKAM = async (req, res) => {
     let { 
-        piNo, url, amId, supplierId, supplierSoNo, supplierPoNo, 
-        supplierCurrency, supplierPrice, purpose, customerId,
+        piNo, url, amId, supplierId, supplierProfileId, supplierName, supplierSoNo, supplierPoNo, 
+        supplierCurrency, supplierPrice, purpose, customerId, customerName,
         customerPoNo, customerSoNo, customerCurrency, poValue,  
         notes, paymentMode 
     } = req.body;
@@ -782,6 +898,16 @@ exports.addPIKAM = async (req, res) => {
             });
         }
 
+        // Resolve supplier and customer IDs and names
+        const resolved = await resolveSupplierAndCustomer({
+            supplierId,
+            supplierProfileId,
+            supplierName,
+            customerId,
+            customerName,
+            purpose
+        });
+
         // 3. Create new invoice
         const newPi = await PerformaInvoice.create({
             piNo, 
@@ -789,13 +915,14 @@ exports.addPIKAM = async (req, res) => {
             status, 
             kamId: userId, 
             amId, 
-            supplierId,
+            supplierId: resolved.supplierId,
+            supplierProfileId: resolved.supplierProfileId,
             supplierSoNo, 
             supplierPoNo, 
             supplierCurrency, 
             supplierPrice, 
             purpose, 
-            customerId, 
+            customerId: resolved.customerId, 
             customerPoNo, 
             customerSoNo,
             customerCurrency, 
@@ -811,100 +938,74 @@ exports.addPIKAM = async (req, res) => {
             status: status,
             date: new Date(),
         });
-        // Handle different URL formats
-        let urlsToProcess = [];
-        
-        if (Array.isArray(url)) {
-            // If URL is an array of objects with url property
-            urlsToProcess = url.map(item => item.url).filter(Boolean);
-        } else if (typeof url === 'string') {
-            // If URL is a simple string
-            urlsToProcess = [url];
-        } else if (url && url.url) {
-            // If URL is an object with url property
-            urlsToProcess = [url.url];
-        }
-        // 5. Prepare email content
-        const emailContent = await emailService.prepareNewPIEmailContent({
-            supplierId,
-            customerId,
-            urls: urlsToProcess  // Pass as urls (plural)
-        });
 
-        // const supplierName = supplier ? supplier.companyName : 'Unknown Supplier';
-        // const customerName = customer ? customer.companyName : 'Unknown Customer';
+        // 5. Send email notification safely in background (non-blocking)
+        (async () => {
+            try {
+                // Handle different URL formats
+                let urlsToProcess = [];
+                
+                if (Array.isArray(url)) {
+                    urlsToProcess = url.map(item => (typeof item === 'object' && item.url) ? item.url : item).filter(Boolean);
+                } else if (typeof url === 'string') {
+                    urlsToProcess = [url];
+                } else if (url && url.url) {
+                    urlsToProcess = [url.url];
+                }
 
-        // Get finance emails for CC
-        const financeEmails = await emailService.findFinanceEmails();
-        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-        let recipientEmail = null;
-        let notificationRecipientId = null;
-        
-        // Get recipient info based on payment mode
-        if (paymentMode === 'CreditCard') {
-            const am = await getUserById(
-                amId,
-                req.headers.authorization
-            );
-            recipientEmail = am.user ? am.user.email : null;
-            notificationRecipientId = amId;
-            if (!recipientEmail) {
-                return res.send("AM project email is missing.\n Please inform the admin to add it.");
+                const emailContent = await emailService.prepareNewPIEmailContent({
+                    supplierId: resolved.supplierId,
+                    customerId: resolved.customerId,
+                    supplierName: resolved.supplierName,
+                    customerName: resolved.customerName,
+                    purpose,
+                    urls: urlsToProcess
+                });
+
+                const financeEmails = await emailService.findFinanceEmails();
+                const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+                
+                // Recipient info was already fetched in step 1 (am object)
+                const recipientEmail = am ? am.email : null;
+
+                if (recipientEmail) {
+                    await emailService.sendNewPIEmail({
+                        piNo,
+                        supplierName: emailContent.supplierName,
+                        supplierPoNo,
+                        supplierSoNo,
+                        supplierPrice,
+                        supplierCurrency,
+                        status,
+                        paymentMode,
+                        purpose,
+                        customerName: emailContent.customerName,
+                        customerPoNo,
+                        customerSoNo,
+                        customerCurrency,
+                        notes,
+                        requestedBy: req.user.name,
+                        requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+                        toEmail: recipientEmail,
+                        ccEmails: financeEmails,
+                        attachments: emailAttachments
+                    });
+                }
+            } catch (emailError) {
+                console.warn('⚠️ Invoice saved, but email notification failed:', emailError.message);
             }
-        } else if (paymentMode === 'WireTransfer') {
-            const am = await getUserById(
-                amId,
-                req.headers.authorization
-            );
-            recipientEmail = am.user ? am.user.email : null;
-            notificationRecipientId = amId;
-            if (!recipientEmail) {
-                return res.send("AM email is missing. \n Please inform the admin to add it.");
-            }
-        }
-        // 6. Send email notification
-        
-        const emailResult = await emailService.sendNewPIEmail({
-            piNo,
-            supplierName: emailContent.supplierName,
-            supplierPoNo,
-            supplierSoNo,
-            supplierPrice,
-            supplierCurrency,
-            status,
-            paymentMode,
-            purpose,
-            customerName: emailContent.customerName,
-            customerPoNo,
-            customerSoNo,
-            customerCurrency,
-            notes,
-            requestedBy: req.user.name,
-            requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-            toEmail: recipientEmail,
-            ccEmails: financeEmails,
-            attachments: emailAttachments
-        });
+        })();
 
-        // 7. Create notification (using notification service)
-        // notificationService.handleStatusNotification({
-        //     pi: newPi,
-        //     status,
-        //     kamId: userId,
-        //     authToken: req.headers.authorization
-        // }).catch(error => {
-        //     console.error('Background notification creation failed:', error);
-        // });
-
-        // 8. Return success response
-        res.status(201).json({
+        // 6. Return success response
+        return res.status(201).json({
             success: true,
             message: 'Proforma Invoice saved successfully',
             pi: newPi
         });
 
     } catch (error) {
-        res.status(500).json({ 
+        console.error('Database error creating Proforma Invoice:', error);
+        return res.status(500).json({ 
             success: false, 
             message: 'Failed to create proforma invoice',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -918,12 +1019,15 @@ exports.updatePIKAM = async (req, res) => {
         url, 
         amId, 
         supplierId, 
+        supplierProfileId,
+        supplierName,
         supplierSoNo, 
         supplierPoNo, 
         supplierCurrency, 
         supplierPrice, 
         purpose, 
         customerId,
+        customerName,
         customerSoNo, 
         customerPoNo, 
         customerCurrency, 
@@ -989,17 +1093,28 @@ exports.updatePIKAM = async (req, res) => {
 
         const piNo = pi.piNo;
 
+        // Resolve supplier and customer IDs and names
+        const resolved = await resolveSupplierAndCustomer({
+            supplierId: supplierId || pi.supplierId,
+            supplierProfileId: supplierProfileId || pi.supplierProfileId,
+            supplierName,
+            customerId: customerId === '' ? null : (customerId || pi.customerId),
+            customerName,
+            purpose: purpose || pi.purpose
+        });
+
         // Update PI fields
         const updateData = {
             url: url || pi.url,
             amId: amId || pi.amId,
-            supplierId: supplierId || pi.supplierId,
+            supplierId: resolved.supplierId,
+            supplierProfileId: resolved.supplierProfileId,
             supplierSoNo: supplierSoNo || pi.supplierSoNo,
             supplierPoNo: supplierPoNo || pi.supplierPoNo,
             supplierCurrency: supplierCurrency || pi.supplierCurrency,
             supplierPrice: supplierPrice || pi.supplierPrice,
             purpose: purpose || pi.purpose,
-            customerId: customerId === '' ? null : (customerId || pi.customerId),
+            customerId: resolved.customerId,
             customerSoNo: customerSoNo || pi.customerSoNo,
             customerPoNo: customerPoNo || pi.customerPoNo,
             customerCurrency: customerCurrency || pi.customerCurrency,
@@ -1049,6 +1164,9 @@ exports.updatePIKAM = async (req, res) => {
         const emailContent = await emailService.prepareNewPIEmailContent({
             supplierId: updateData.supplierId,
             customerId: updateData.customerId,
+            supplierName: resolved.supplierName,
+            customerName: resolved.customerName,
+            purpose: updateData.purpose,
             urls: urlsToProcess
         });
 
@@ -1130,8 +1248,8 @@ exports.updatePIKAM = async (req, res) => {
 exports.addPIAM = async (req, res) => {
     // const emailSignature = await getEmailSignature(req.user.id, req.user.name);
 
-    let { piNo, url, accountantId, supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
-        customerId, customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode, kamId } = req.body;
+    let { piNo, url, accountantId, supplierId, supplierProfileId, supplierName, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose,
+        customerId, customerName, customerPoNo, customerSoNo, customerCurrency, poValue, notes, paymentMode, kamId } = req.body;
 
     if (Array.isArray(purpose)) {
         purpose = purpose.join(', ');
@@ -1188,9 +1306,22 @@ exports.addPIAM = async (req, res) => {
             return res.send('Invoice is already saved') 
         }
 
+        // Resolve supplier and customer IDs and names
+        const resolved = await resolveSupplierAndCustomer({
+            supplierId,
+            supplierProfileId,
+            supplierName,
+            customerId,
+            customerName,
+            purpose
+        });
+
         const newPi = await PerformaInvoice.create({
             kamId, piNo, url, accountantId, status: status, amId: userId,
-            supplierId, supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, customerId,
+            supplierId: resolved.supplierId, 
+            supplierProfileId: resolved.supplierProfileId,
+            supplierSoNo, supplierPoNo, supplierCurrency, supplierPrice, purpose, 
+            customerId: resolved.customerId,
             customerSoNo, customerPoNo, customerCurrency, poValue, notes, paymentMode, addedById: userId
         });
 
@@ -1214,66 +1345,71 @@ exports.addPIAM = async (req, res) => {
             urlsToProcess = [url.url];
         }
         
-        const emailContent = await emailService.prepareNewPIEmailContent({
-            supplierId,
-            customerId,
-            urls: urlsToProcess  // Pass as urls (plural)
-        });
+        // 5. Send email notification & push notification safely in background (non-blocking)
+        (async () => {
+            try {
+                const emailContent = await emailService.prepareNewPIEmailContent({
+                    supplierId: resolved.supplierId,
+                    customerId: resolved.customerId,
+                    supplierName: resolved.supplierName,
+                    customerName: resolved.customerName,
+                    purpose,
+                    urls: urlsToProcess  // Pass as urls (plural)
+                });
 
-        // Get finance emails
-        const financeEmails = await emailService.findFinanceEmails();
-        // Ensure attachments is always an array
-        const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
-        // Send email using EmailService
-        const emailResult = await emailService.sendNewPIEmail({
-            piNo,
-            supplierName: emailContent.supplierName,
-            supplierPoNo,
-            supplierSoNo,
-            supplierPrice,
-            supplierCurrency,
-            status,
-            paymentMode,
-            purpose,
-            customerName: emailContent.customerName,
-            customerPoNo,
-            customerSoNo,
-            customerCurrency,
-            notes,
-            requestedBy: req.user.name,
-            requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
-            toEmail: recipientEmail,
-            ccEmails: financeEmails,
-            attachments: emailAttachments
-        });
-
-        try {
-            // Assuming notification service runs on port 3001
-            // You can make this configurable via environment variables
-            const notificationResponse = await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
-                userId: notificationRecipientId,
-                message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
-                isRead: false,
-                type: 'PI_CREATED', // Add type if your notification service supports it
-                metadata: {
-                    piNo: piNo,
-                    piId: newPi.id,
-                    paymentMode: paymentMode,
+                // Get finance emails
+                const financeEmails = await emailService.findFinanceEmails();
+                // Ensure attachments is always an array
+                const emailAttachments = Array.isArray(emailContent.attachments) ? emailContent.attachments : [];
+                // Send email using EmailService
+                await emailService.sendNewPIEmail({
+                    piNo,
+                    supplierName: emailContent.supplierName,
+                    supplierPoNo,
+                    supplierSoNo,
+                    supplierPrice,
+                    supplierCurrency,
+                    status,
+                    paymentMode,
+                    purpose,
+                    customerName: emailContent.customerName,
+                    customerPoNo,
+                    customerSoNo,
+                    customerCurrency,
+                    notes,
                     requestedBy: req.user.name,
-                    supplierPoNo: supplierPoNo
-                }
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add any authentication headers if needed
-                    'Authorization': req.headers.authorization || ''
-                }
-            });
-        } catch (notificationError) {
-            // Log the error but don't fail the main operation
-            console.error('Failed to create notification:', notificationError.message);
-            // You might want to implement a retry mechanism or queue for failed notifications
-        }
+                    requestedByDesignation: (req.user && req.user.role ? (req.user.role.roleName || req.user.role.abbreviation) : null),
+                    toEmail: recipientEmail,
+                    ccEmails: financeEmails,
+                    attachments: emailAttachments
+                });
+            } catch (emailErr) {
+                console.warn('⚠️ Invoice saved, but email notification failed in addPIAM:', emailErr.message);
+            }
+
+            try {
+                await axios.post(`${process.env.AUTH_SERVICE_URL}/notification/create`, {
+                    userId: notificationRecipientId,
+                    message: `New Payment Request Generated ${piNo} / ${supplierPoNo}`,
+                    isRead: false,
+                    type: 'PI_CREATED',
+                    metadata: {
+                        piNo: piNo,
+                        piId: newPi.id,
+                        paymentMode: paymentMode,
+                        requestedBy: req.user.name,
+                        supplierPoNo: supplierPoNo
+                    }
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': req.headers.authorization || ''
+                    }
+                });
+            } catch (notificationError) {
+                console.warn('⚠️ Invoice saved, but notification failed in addPIAM:', notificationError.message);
+            }
+        })();
         
 
         res.json({
@@ -1292,12 +1428,15 @@ exports.updatePIAM = async (req, res) => {
         kamId, 
         accountantId, 
         supplierId, 
+        supplierProfileId,
+        supplierName,
         supplierSoNo,
         supplierPoNo,
         supplierCurrency, 
         supplierPrice, 
         purpose, 
         customerId, 
+        customerName,
         customerPoNo,
         customerSoNo,
         customerCurrency, 
@@ -1386,18 +1525,29 @@ exports.updatePIAM = async (req, res) => {
         accountantId = accountantId === '' ? null : accountantId;
         customerId = customerId === '' ? null : customerId;
 
+        // Resolve supplier and customer IDs and names
+        const resolved = await resolveSupplierAndCustomer({
+            supplierId: supplierId || pi.supplierId,
+            supplierProfileId: supplierProfileId || pi.supplierProfileId,
+            supplierName,
+            customerId: customerId || pi.customerId,
+            customerName,
+            purpose: purpose || pi.purpose
+        });
+
         // Update PI fields
         const updateData = {
             url: url || pi.url,
             kamId: kamId || pi.kamId,
             accountantId: accountantId || pi.accountantId,
-            supplierId: supplierId || pi.supplierId,
+            supplierId: resolved.supplierId,
+            supplierProfileId: resolved.supplierProfileId,
             supplierPoNo: supplierPoNo || pi.supplierPoNo,
             supplierSoNo: supplierSoNo || pi.supplierSoNo,
             supplierCurrency: supplierCurrency || pi.supplierCurrency,
             supplierPrice: supplierPrice || pi.supplierPrice,
             purpose: purpose || pi.purpose,
-            customerId: customerId || pi.customerId,
+            customerId: resolved.customerId,
             customerPoNo: customerPoNo || pi.customerPoNo,
             customerSoNo: customerSoNo || pi.customerSoNo,
             customerCurrency: customerCurrency || pi.customerCurrency,
@@ -1447,6 +1597,9 @@ exports.updatePIAM = async (req, res) => {
         const emailContent = await emailService.prepareNewPIEmailContent({
             supplierId: updateData.supplierId,
             customerId: updateData.customerId,
+            supplierName: resolved.supplierName,
+            customerName: resolved.customerName,
+            purpose: updateData.purpose,
             urls: urlsToProcess
         });
 

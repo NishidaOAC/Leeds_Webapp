@@ -129,10 +129,10 @@ export class CompanyComponent {
       this.ps.deleteCompany(row.id).subscribe({
         next: () => {
           this.load();
-          this.snackBar.open('Company deleted successfully', 'Close', { duration: 3000 });
+          this.snackBar.open('Customer deleted successfully', 'Close', { duration: 3000 });
         },
         error: (err) => {
-          this.snackBar.open('Error deleting company', 'Close', { duration: 3000 });
+          this.snackBar.open('Error deleting customer', 'Close', { duration: 3000 });
         },
       });
     }
